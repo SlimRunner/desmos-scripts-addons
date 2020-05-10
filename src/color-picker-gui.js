@@ -5,8 +5,12 @@
  *
 */
 
-//detect changes in class
-//https://stackoverflow.com/questions/42121565/detecting-class-change-without-setinterval
+/* temp resources
+ * detect changes in class
+ * https://stackoverflow.com/questions/42121565/detecting-class-change-without-setinterval
+ * show system color dialog with regular button
+ * https://stackoverflow.com/questions/29676017/open-browser-standard-colorpicker-with-javascript-without-type-color
+*/
 
 //JSON tree of GUI elements
 const guiElements = {
@@ -32,9 +36,6 @@ const guiElements = {
 			{
 				name : 'i',
 				id : 'btnIcon',
-				styles : {
-
-				},
 				classes : [
 					'dcg-icon-magic'
 				]
@@ -54,11 +55,9 @@ const guiElements = {
 			width : '256px',
 			height : '324px',
 			background : '#ededed',
-			padding : '8px'
+			padding : '8px',
+			borderRadius: '4px'
 		},
-		classes : [
-
-		],
 		controls : [
 			{
 				name : 'label',
@@ -70,10 +69,7 @@ const guiElements = {
 				styles : {
 					color : 'black',
 					fontSize : '14pt',
-				},
-				classes : [
-
-				]
+				}
 			},
 			{
 				name : 'input',
@@ -88,11 +84,9 @@ const guiElements = {
 					fontSize : '14pt',
 					border : '1px solid #CCC',
 					borderRadius: '4px',
+					padding : '4px',
 					margin: '4px'
-				},
-				classes : [
-
-				]
+				}
 			},
 			{
 				name : 'label',
@@ -104,10 +98,7 @@ const guiElements = {
 				styles : {
 					color : 'black',
 					fontSize : '14pt',
-				},
-				classes : [
-
-				]
+				}
 			},
 			{
 				name : 'input',
@@ -121,10 +112,7 @@ const guiElements = {
 					border : '1px solid #CCC',
 					borderRadius: '4px',
 					margin: '4px'
-				},
-				classes : [
-
-				]
+				}
 			}
 		]
 	}]
@@ -160,7 +148,6 @@ function miscButton_click() {
 			Calc.setState(tempState);
 
 			ctrlList.expIndex.value = '';
-			ctrlList.colorInput.value = '';
 			ctrlList.pickerFrame.style.display = 'none';
 
 			console.log('color changed successfully');
@@ -203,10 +190,16 @@ function insertNodes(jsonTree, parentNode, outControls) {
 	for (let item of jsonTree.controls) {
 		outControls[item.id] = document.createElement(item.name);
 		outControls[item.id].setAttribute('id', item.id);
-
 		parentNode.appendChild(outControls[item.id]);
-		item.classes.forEach(elem => outControls[item.id].classList.add(elem));
-		Object.assign(outControls[item.id].style, item.styles);
+
+		if (item.hasOwnProperty('classes')) {
+			console.table([item.id, 'has classes']);
+			item.classes.forEach(elem => outControls[item.id].classList.add(elem));
+		}
+
+		if (item.hasOwnProperty('styles')) {
+			Object.assign(outControls[item.id].style, item.styles);
+		}
 
 		if (item.hasOwnProperty('attributes')) {
 			item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
@@ -216,7 +209,9 @@ function insertNodes(jsonTree, parentNode, outControls) {
 			outControls[item.id].innerText = item.textContent;
 		}
 
-		if (item.hasOwnProperty('controls'))
+		if (item.hasOwnProperty('controls')) {
 			insertNodes(item, outControls[item.id], outControls);
+		}
+
 	}
 }
