@@ -193,7 +193,6 @@ function insertNodes(jsonTree, parentNode, outControls) {
 		parentNode.appendChild(outControls[item.id]);
 
 		if (item.hasOwnProperty('classes')) {
-			console.table([item.id, 'has classes']);
 			item.classes.forEach(elem => outControls[item.id].classList.add(elem));
 		}
 
