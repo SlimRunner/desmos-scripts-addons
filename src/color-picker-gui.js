@@ -32,17 +32,14 @@ const guiElements = {
 			'dcg-settings-pillbox',
 			'dcg-action-settings'
 		],
-		controls : [
-			{
-				name : 'i',
-				id : 'btnIcon',
-				classes : [
-					'dcg-icon-magic'
-				]
-			}
-		]
-	},
-	{
+		controls : [{
+			name : 'i',
+			id : 'btnIcon',
+			classes : [
+				'dcg-icon-magic'
+			]
+		}]
+	}, {
 		name : 'div',
 		id : 'pickerFrame',
 		styles : {
@@ -58,63 +55,58 @@ const guiElements = {
 			padding : '8px',
 			borderRadius: '4px'
 		},
-		controls : [
-			{
-				name : 'label',
-				id : 'expIndexLabel',
-				textContent: 'Select element',
-				attributes: [
-					{name: 'for', value : 'expIndex'}
-				],
-				styles : {
-					color : 'black',
-					fontSize : '14pt',
-				}
-			},
-			{
-				name : 'input',
-				id : 'expIndex',
-				attributes: [
-					{name: 'type', value : 'number'},
-					{name: 'min', value : '1'},
-					{name: 'step', value : '1'}
-				],
-				styles : {
-					background : 'white',
-					fontSize : '14pt',
-					border : '1px solid #CCC',
-					borderRadius: '4px',
-					padding : '4px',
-					margin: '4px'
-				}
-			},
-			{
-				name : 'label',
-				id : 'colorInputLabel',
-				textContent: 'pick color',
-				attributes: [
-					{name: 'for', value : 'colorInput'}
-				],
-				styles : {
-					color : 'black',
-					fontSize : '14pt',
-				}
-			},
-			{
-				name : 'input',
-				id : 'colorInput',
-				attributes: [
-					{name: 'type', value : 'color'}
-				],
-				styles : {
-					background : 'white',
-					fontSize : '14pt',
-					border : '1px solid #CCC',
-					borderRadius: '4px',
-					margin: '4px'
-				}
+		controls : [{
+			name : 'label',
+			id : 'expIndexLabel',
+			textContent: 'Select element',
+			attributes: [
+				{name: 'for', value : 'expIndex'}
+			],
+			styles : {
+				color : 'black',
+				fontSize : '14pt',
 			}
-		]
+		}, {
+			name : 'input',
+			id : 'expIndex',
+			attributes: [
+				{name: 'type', value : 'number'},
+				{name: 'min', value : '1'},
+				{name: 'step', value : '1'}
+			],
+			styles : {
+				background : 'white',
+				fontSize : '14pt',
+				border : '1px solid #CCC',
+				borderRadius: '4px',
+				padding : '4px',
+				margin: '4px'
+			}
+		}, {
+			name : 'label',
+			id : 'colorInputLabel',
+			textContent: 'pick color',
+			attributes: [
+				{name: 'for', value : 'colorInput'}
+			],
+			styles : {
+				color : 'black',
+				fontSize : '14pt',
+			}
+		}, {
+			name : 'input',
+			id : 'colorInput',
+			attributes: [
+				{name: 'type', value : 'color'}
+			],
+			styles : {
+				background : 'white',
+				fontSize : '14pt',
+				border : '1px solid #CCC',
+				borderRadius: '4px',
+				margin: '4px'
+			}
+		}]
 	}]
 }
 
@@ -136,8 +128,7 @@ function miscButton_click() {
 	if (ctrlList.pickerFrame.style.display == 'none') {
 		ctrlList.pickerFrame.style.display = 'flex';
 		ctrlList.expIndex.focus();
-	}
-	else if (ctrlList.expIndex.value != '') {
+	} else if (ctrlList.expIndex.value != '') {
 		let idx = parseInt(ctrlList.expIndex.value) - 1;
 		let color = ctrlList.colorInput.value.trim();
 
@@ -152,8 +143,7 @@ function miscButton_click() {
 
 			console.log('color changed successfully');
 		}
-	}
-	else {
+	} else {
 		ctrlList.colorInput.value = '';
 		ctrlList.pickerFrame.style.display = 'none';
 		console.log('no color was changed');
@@ -164,9 +154,9 @@ function miscButton_click() {
 function validateData(index, color) {
 	let tempState = Calc.getState();
 
-	if (isNaN(index)) return false;
-	if (index < 0 ||
-		 index >= tempState.expressions.list.length)
+	if (isNaN(index))
+		return false;
+	if (index < 0 || index >= tempState.expressions.list.length)
 		return false;
 
 	let item = tempState.expressions.list[index];
@@ -177,11 +167,11 @@ function validateData(index, color) {
 			if (hexColRegex.test(color)) {
 				return true;
 			}
-		}
-		else {
+		} else {
 			console.log(`no need to change colors of items of ${item.type} type`);
 		}
 	}
+
 	return false;
 }
 
