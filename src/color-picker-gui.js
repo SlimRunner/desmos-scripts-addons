@@ -195,7 +195,7 @@ function insertNodes(jsonTree, parentNode, outControls) {
 		}
 
 		if (item.hasOwnProperty('textContent')) {
-			outControls[item.id].innerText = item.textContent;
+			outControls[item.id].innerHTML = item.textContent;
 		}
 
 		if (item.hasOwnProperty('controls')) {
