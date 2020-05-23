@@ -17,36 +17,20 @@
 			attributes : [
 				{name: 'type', value: 'text/css'}
 			],
-			textContent : '.sli-hidden-dial {position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden;} .sli-color-button {background:#ededed;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
+			textContent : '.sli-color-button {background:#ededed;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
 		}]
 	}
 
 	// Object tree of GUI elements
 	const guiElements = {
 		controls : [{
-			name : 'div',
+			name : 'input',
 			id : 'colorButton',
-			classes : [
-				'dcg-btn-flat-gray',
-				'dcg-settings-pillbox',
-				'dcg-action-settings',
-				'sli-color-button'
-			],
-			controls : [{
-				name : 'i',
-				id : 'btnIcon',
-				classes : [
-					'dcg-icon-magic'
-				]
-			}]
-		}, {
-			name: 'input',
-			id: 'colorDial',
 			attributes: [
 				{name: 'type', value: 'color'}
 			],
-			classes: [
-				'sli-hidden-dial'
+			classes : [
+				'sli-color-button'
 			]
 		}]
 	}
@@ -78,24 +62,24 @@
 		showButton(isFound);
 		
 	});
-
+	
 	// colorButton click event
 	ctrlNodes.colorButton.addEventListener('mousedown', () => {
-		ctrlNodes.colorDial.focus();
-		ctrlNodes.colorDial.value = getCurrentColor();
-		ctrlNodes.colorDial.click();
+		ctrlNodes.colorButton.focus();
+		ctrlNodes.colorButton.value = getCurrentColor();
+		ctrlNodes.colorButton.click();
 	});
 
-	ctrlNodes.colorDial.addEventListener('change', () => {
+	ctrlNodes.colorButton.addEventListener('change', () => {
 		if (currMenuItem.type === 'expression') {
 			Calc.setExpression({
 				id: currMenuItem.id,
-				color: ctrlNodes.colorDial.value
+				color: ctrlNodes.colorButton.value
 			});
 		} else if (currMenuItem.type === 'table') {
 			let expr = Calc.getExpressions();
 			
-			expr[getCurrentIndex()].columns[currMenuItem.colIndex].color = ctrlNodes.colorDial.value;
+			expr[getCurrentIndex()].columns[currMenuItem.colIndex].color = ctrlNodes.colorButton.value;
 			
 			Calc.setExpression({
 				type:'table',
