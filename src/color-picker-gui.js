@@ -5,10 +5,8 @@
  *
 */
 
-/* temp resources
- * show system color dialog with regular button
- * https://stackoverflow.com/questions/29676017/open-browser-standard-colorpicker-with-javascript-without-type-color
-*/
+/***************************************************************************/
+// DATA AND OBJECTS
 
 //Object tree of stylesheet
 const guiCSS = {
@@ -121,6 +119,17 @@ function showButton(value) {
 	}
 }
 
+function setButtonLocation() {
+	let mnu = currMenuElement.getBoundingClientRect();
+	let btn = ctrlNodes.colorButton.getBoundingClientRect();
+	
+	let x = (mnu.right + GUI_GAP);
+	let y = (mnu.bottom - (mnu.height + btn.height) / 2);
+	
+	ctrlNodes.colorButton.style.left = `${x}px`;
+	ctrlNodes.colorButton.style.top = `${y}px`;
+}
+
 //returns true if the index references a valid expression type item and the color is a valid HTML hex color
 function validateData(index, color) {
 	let tempState = Calc.getState();
@@ -217,7 +226,7 @@ function hookMenu(callback) {
 			
 			let typeIdx = -1;
 			// list of queries to determine the type of the element (table/regular)
-			const seekList = ['.dcg-expressionitem.dcg-expressiontable.dcg-depressed', '.dcg-expressionitem.dcg-depressed'];
+			const seekList = ['.dcg-expressionitem.dcg-expressiontable.dcg-depressed,.dcg-expressionitem.dcg-expressiontable.dcg-hovered', '.dcg-expressionitem.dcg-depressed,.dcg-expressionitem.dcg-hovered'];
 			
 			// traverse seekList to find fitting element container
 			seekList.forEach((query, i) => {
@@ -285,17 +294,6 @@ function getCurrentColor() {
 	let index = calcExpressions.findIndex(elem => elem.id === currMenuItem.id);
 	
 	return calcExpressions[index].color;
-}
-
-function setButtonLocation() {
-	let mnu = currMenuElement.getBoundingClientRect();
-	let btn = ctrlNodes.colorButton.getBoundingClientRect();
-	
-	let x = (mnu.right + GUI_GAP);
-	let y = (mnu.bottom - (mnu.height + btn.height) / 2);
-	
-	ctrlNodes.colorButton.style.left = `${x}px`;
-	ctrlNodes.colorButton.style.top = `${y}px`;
 }
 
 // finds element that contains the color menu in Desmos
