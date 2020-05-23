@@ -244,7 +244,7 @@
 					case ITEM_TABLE:
 						expType = 'table';
 						expId = expElem[0].getAttribute('expr-id');
-						expCell = seekAttribute(expElem[0], '.dcg-cell.dcg-hovered', 'index')[0];
+						expCell = seekAttribute(expElem[0], '.dcg-cell.dcg-depressed,.dcg-cell.dcg-hovered', 'index')[0];
 						
 						expItem = {
 							type: expType,
@@ -294,7 +294,15 @@
 		let calcExpressions = Calc.getExpressions();
 		let index = calcExpressions.findIndex(elem => elem.id === currMenuItem.id);
 		
-		return calcExpressions[index].color;
+		if (currMenuItem.type === 'expression') {
+			return calcExpressions[index].color;
+			
+		} else if (currMenuItem.type === 'table') {
+			let expr = Calc.getExpressions();
+			
+			return calcExpressions[index].columns[currMenuItem.colIndex].color;
+		}
+		
 	}
 
 	// finds element that contains the color menu in Desmos
