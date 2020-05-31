@@ -93,7 +93,6 @@
 	
 	// event that triggers when user selects a color from color picker
 	ctrlNodes.colorButton.addEventListener('change', () => {
-		console.log('I changed');
 		if (currMenuItem.type === 'expression') {
 			Calc.setExpression({
 				id: currMenuItem.id,
