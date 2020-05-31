@@ -294,12 +294,16 @@
 
 	function getCurrentIndex () {
 		let calcExpressions = Calc.getExpressions();
-		return calcExpressions.findIndex(elem => elem.id === currMenuItem.id);
+		return calcExpressions.findIndex((elem) => {
+			return elem.id === currMenuItem.id;
+		});
 	}
 
 	function getCurrentColor() {
 		let calcExpressions = Calc.getExpressions();
-		let index = calcExpressions.findIndex(elem => elem.id === currMenuItem.id);
+		let index = calcExpressions.findIndex((elem) => {
+			return elem.id === currMenuItem.id;
+		});
 		
 		if (currMenuItem.type === 'expression') {
 			return calcExpressions[index].color;
