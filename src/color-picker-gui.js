@@ -51,26 +51,49 @@
 
 	let currMenuItem = null;
 	let currMenuElement = null;
+	let colButtonActive = false;
+	let colMenuActive = false;
 
+	// callback that executes when the color menu shows up
 	hookMenu( (itemElem, expItem, isFound) => {
+		
+		colMenuActive = isFound;
+		
 		if (isFound) {
 			currMenuItem = expItem;
 			currMenuElement = itemElem;
 			setButtonLocation();
 		}
 		
-		showButton(isFound);
+		if (!colButtonActive) {
+			showButton(isFound);
+		}
 		
 	});
 	
-	// colorButton click event
-	ctrlNodes.colorButton.addEventListener('mousedown', () => {
-		ctrlNodes.colorButton.focus();
-		ctrlNodes.colorButton.value = getCurrentColor();
-		ctrlNodes.colorButton.click();
+	// hides button when menu is gone and the mouse left the button client area
+	ctrlNodes.colorButton.addEventListener('mouseleave', () => {
+		if (!colMenuActive) {
+			colButtonActive = false;
+			showButton(false);
+		}
+		
 	});
-
+	
+	// changes button state to active so that button doesn't go away with menu
+	ctrlNodes.colorButton.addEventListener('mousedown', () => {
+		colButtonActive = true;
+	});
+	
+	// performs click changes button state to false and hides button
+	ctrlNodes.colorButton.addEventListener('click', () => {
+		colButtonActive = false;
+		showButton(false);
+	});
+	
+	// event that triggers when user selects a color from color picker
 	ctrlNodes.colorButton.addEventListener('change', () => {
+		console.log('I changed');
 		if (currMenuItem.type === 'expression') {
 			Calc.setExpression({
 				id: currMenuItem.id,
@@ -98,6 +121,7 @@
 		if (value) {
 			ctrlNodes.colorButton.style.visibility = 'visible';
 			ctrlNodes.colorButton.style.opacity = '1';
+			ctrlNodes.colorButton.value = getCurrentColor();
 		} else {
 			ctrlNodes.colorButton.style.visibility = 'hidden';
 			ctrlNodes.colorButton.style.opacity = '0';
