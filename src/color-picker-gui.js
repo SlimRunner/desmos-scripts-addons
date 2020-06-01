@@ -17,36 +17,20 @@
 			attributes : [
 				{name: 'type', value: 'text/css'}
 			],
-			textContent : '.sli-hidden-dial {position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden;} .sli-color-button {background:#ededed;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
+			textContent : '.sli-color-button {background:#ededed;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
 		}]
 	}
 
 	// Object tree of GUI elements
 	const guiElements = {
 		controls : [{
-			name : 'div',
+			name : 'input',
 			id : 'colorButton',
-			classes : [
-				'dcg-btn-flat-gray',
-				'dcg-settings-pillbox',
-				'dcg-action-settings',
-				'sli-color-button'
-			],
-			controls : [{
-				name : 'i',
-				id : 'btnIcon',
-				classes : [
-					'dcg-icon-magic'
-				]
-			}]
-		}, {
-			name: 'input',
-			id: 'colorDial',
 			attributes: [
 				{name: 'type', value: 'color'}
 			],
-			classes: [
-				'sli-hidden-dial'
+			classes : [
+				'sli-color-button'
 			]
 		}]
 	}
@@ -67,35 +51,57 @@
 
 	let currMenuItem = null;
 	let currMenuElement = null;
+	let colButtonActive = false;
+	let colMenuActive = false;
 
+	// callback that executes when the color menu shows up
 	hookMenu( (itemElem, expItem, isFound) => {
+		
+		colMenuActive = isFound;
+		
 		if (isFound) {
 			currMenuItem = expItem;
 			currMenuElement = itemElem;
 			setButtonLocation();
 		}
 		
-		showButton(isFound);
+		if (!colButtonActive) {
+			showButton(isFound);
+		}
 		
 	});
-
-	// colorButton click event
-	ctrlNodes.colorButton.addEventListener('mousedown', () => {
-		ctrlNodes.colorDial.focus();
-		ctrlNodes.colorDial.value = getCurrentColor();
-		ctrlNodes.colorDial.click();
+	
+	// hides button when menu is gone and the mouse left the button client area
+	ctrlNodes.colorButton.addEventListener('mouseleave', () => {
+		if (!colMenuActive) {
+			colButtonActive = false;
+			showButton(false);
+		}
+		
 	});
-
-	ctrlNodes.colorDial.addEventListener('change', () => {
+	
+	// changes button state to active so that button doesn't go away with menu
+	ctrlNodes.colorButton.addEventListener('mousedown', () => {
+		colButtonActive = true;
+	});
+	
+	// performs click changes button state to false and hides button
+	ctrlNodes.colorButton.addEventListener('click', () => {
+		colButtonActive = false;
+		showButton(false);
+	});
+	
+	// event that triggers when user selects a color from color picker
+	ctrlNodes.colorButton.addEventListener('change', () => {
 		if (currMenuItem.type === 'expression') {
 			Calc.setExpression({
 				id: currMenuItem.id,
-				color: ctrlNodes.colorDial.value
+				color: ctrlNodes.colorButton.value
 			});
 		} else if (currMenuItem.type === 'table') {
 			let expr = Calc.getExpressions();
 			
-			expr[getCurrentIndex()].columns[currMenuItem.colIndex].color = ctrlNodes.colorDial.value;
+			expr[getCurrentIndex()].columns[currMenuItem.colIndex].color = ctrlNodes.colorButton.value;
 			
 			Calc.setExpression({
 				type:'table',
@@ -114,6 +120,7 @@
 		if (value) {
 			ctrlNodes.colorButton.style.visibility = 'visible';
 			ctrlNodes.colorButton.style.opacity = '1';
+			ctrlNodes.colorButton.value = getCurrentColor();
 		} else {
 			ctrlNodes.colorButton.style.visibility = 'hidden';
 			ctrlNodes.colorButton.style.opacity = '0';
@@ -287,12 +294,16 @@
 
 	function getCurrentIndex () {
 		let calcExpressions = Calc.getExpressions();
-		return calcExpressions.findIndex(elem => elem.id === currMenuItem.id);
+		return calcExpressions.findIndex((elem) => {
+			return elem.id === currMenuItem.id;
+		});
 	}
 
 	function getCurrentColor() {
 		let calcExpressions = Calc.getExpressions();
-		let index = calcExpressions.findIndex(elem => elem.id === currMenuItem.id);
+		let index = calcExpressions.findIndex((elem) => {
+			return elem.id === currMenuItem.id;
+		});
 		
 		if (currMenuItem.type === 'expression') {
 			return calcExpressions[index].color;
