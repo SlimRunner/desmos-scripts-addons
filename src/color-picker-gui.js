@@ -14,8 +14,7 @@ var Calc;
   if (typeof window.wrappedJSObject.Calc === 'undefined') {
     console.log('Calc is not defined');
     window.setTimeout(loadCheck, 1000);
-  }
-  else {
+  } else {
     Calc = window.wrappedJSObject.Calc;
     console.log('Calc is defined');
     colorPicker();
@@ -144,7 +143,7 @@ function colorPicker () {
 			ctrlNodes.colorButton.style.visibility = 'hidden';
 			ctrlNodes.colorButton.style.opacity = '0';
 		}
-	}
+	} // !showButton ()
 
 	function setButtonLocation() {
 		let mnu = currMenuElement.getBoundingClientRect();
@@ -155,7 +154,7 @@ function colorPicker () {
 		
 		ctrlNodes.colorButton.style.left = `${x}px`;
 		ctrlNodes.colorButton.style.top = `${y}px`;
-	}
+	} // !setButtonLocation ()
 
 	//returns true if the index references a valid expression type item and the color is a valid HTML hex color
 	function validateData(index, color) {
@@ -180,7 +179,7 @@ function colorPicker () {
 		}
 
 		return false;
-	}
+	} // !validateData ()
 
 	/***************************************************************************/
 	// DOM MANAGEMENT
@@ -212,8 +211,9 @@ function colorPicker () {
 				insertNodes(item, outControls[item.id], outControls);
 			}
 			
-		}
-	}
+		} // !for
+		
+	} // !insertNodes ()
 	
 	// calls provided callback whenever an expression menu in Desmos is deployed
 	function hookMenu(callback) {
@@ -237,10 +237,11 @@ function colorPicker () {
 								isFound = true;
 							}
 							
-						}
-					});
+						} // !if
+						
+					}); // !forEach
 					
-				}
+				} // !if
 				++idx;
 			} while (idx < obsRec.length && !isFound);
 			
@@ -276,7 +277,8 @@ function colorPicker () {
 							type: expType,
 							id: expId.toString(),
 							colIndex: expCell
-						}
+						};
+						
 						break;
 					case ITEM_EXPRESSION:
 						expType = 'expression';
@@ -285,17 +287,18 @@ function colorPicker () {
 						expItem = {
 							type: expType,
 							id: expId.toString()
-						}
+						};
+						
 						break;
 					default:
 						
-				}
+				} // !switch
 				
-			}
+			} // if (isFound)
 			
 			callback(menuElem, expItem, isFound);
-			//console.table(watchList);
-		});
+			
+		}); // !MutationObserver
 		
 		let menuContainer = findOptionsMenu();
 		
@@ -309,14 +312,14 @@ function colorPicker () {
 			
 		}
 		
-	}
+	} // !hookMenu ()
 
 	function getCurrentIndex () {
 		let calcExpressions = Calc.getExpressions();
 		return calcExpressions.findIndex((elem) => {
 			return elem.id === currMenuItem.id;
 		});
-	}
+	} // !getCurrentIndex ()
 
 	function getCurrentColor() {
 		let calcExpressions = Calc.getExpressions();
@@ -333,7 +336,7 @@ function colorPicker () {
 			return calcExpressions[index].columns[currMenuItem.colIndex].color;
 		}
 		
-	}
+	} // !getCurrentColor ()
 
 	// finds element that contains the color menu in Desmos
 	function findOptionsMenu() {
@@ -347,7 +350,7 @@ function colorPicker () {
 			return null;
 			
 		}
-	}
+	} // !findOptionsMenu ()
 
 	// performs a css query on an element and aggregates all found values of a specified attribute
 	function seekAttribute(parent, query, attName) {
@@ -366,5 +369,6 @@ function colorPicker () {
 		}
 		
 		return output;
-	}
-}
+	} // !seekAttribute ()
+	
+} // !colorPicker ()
