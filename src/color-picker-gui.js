@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name     	DesmosColorPicker
+// @name     	DesmosArtTools
 // @namespace	slidav.Desmos
 // @version  	1.0
 // @author		SlimRunner (David Flores)
@@ -11,15 +11,17 @@
 var Calc;
 
 (function loadCheck () {
-  if (typeof window.wrappedJSObject.Calc === 'undefined') {
-    console.log('Calc is not defined');
-    window.setTimeout(loadCheck, 1000);
-  } else {
-    Calc = window.wrappedJSObject.Calc;
-    console.log('Calc is defined');
-    colorPicker();
-    console.log('Custom color picker has been loaded');
-    console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
+	if (typeof window.wrappedJSObject.Calc === 'undefined') {
+		console.log('Calc is not defined');
+		window.setTimeout(loadCheck, 1000);
+		
+		// TODO: Add a counter that stops the script if certain failed attemts are reached
+	} else {
+		Calc = window.wrappedJSObject.Calc;
+		console.log('Calc is defined');
+		colorPicker();
+		console.log('Custom color picker has been loaded');
+		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
 	}
 })();
 
