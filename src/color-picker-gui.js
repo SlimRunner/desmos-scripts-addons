@@ -1,11 +1,30 @@
-/*
- * Author: SlimRunner
- *
- * Console script to help change colors of individual graphs easily
- *
-*/
+// ==UserScript==
+// @name     	DesmosColorPicker
+// @namespace	slidav.Desmos
+// @version  	1.0
+// @author		SlimRunner (David Flores)
+// @description	Adds a color picker to Desmos
+// @grant    	none
+// @match			https://*.desmos.com/calculator*
+// ==/UserScript==
 
-(function () {
+var Calc;
+
+(function loadCheck () {
+  if (typeof window.wrappedJSObject.Calc === 'undefined') {
+    console.log('Calc is not defined');
+    window.setTimeout(loadCheck, 1000);
+  }
+  else {
+    Calc = window.wrappedJSObject.Calc;
+    console.log('Calc is defined');
+    colorPicker();
+    console.log('Custom color picker has been loaded');
+    console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
+	}
+})();
+
+function colorPicker () {
 	/***************************************************************************/
 	// DATA AND OBJECTS
 
@@ -36,7 +55,7 @@
 	}
 
 	/***************************************************************************/
-	//MAIN CODE
+	// GUI MANAGEMENT
 
 	const GUI_GAP = 8;
 
@@ -113,7 +132,7 @@
 	});
 
 	/***************************************************************************/
-	//FUNCTIONS
+	// GUI MANAGEMENT
 
 	// shows or hides button to access custom properties
 	function showButton(value) {
@@ -163,39 +182,39 @@
 		return false;
 	}
 
+	/***************************************************************************/
+	// DOM MANAGEMENT
+
 	//parses a custom made JSON object into DOM objects with their properties set up
 	function insertNodes(jsonTree, parentNode, outControls) {
 		for (let item of jsonTree.controls) {
 			outControls[item.id] = document.createElement(item.name);
 			outControls[item.id].setAttribute('id', item.id);
 			parentNode.appendChild(outControls[item.id]);
-
+			
 			if (item.hasOwnProperty('classes')) {
 				item.classes.forEach(elem => outControls[item.id].classList.add(elem));
 			}
-
+			
 			if (item.hasOwnProperty('styles')) {
 				Object.assign(outControls[item.id].style, item.styles);
 			}
-
+			
 			if (item.hasOwnProperty('attributes')) {
 				item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
 			}
-
+			
 			if (item.hasOwnProperty('textContent')) {
 				outControls[item.id].innerHTML = item.textContent;
 			}
-
+			
 			if (item.hasOwnProperty('controls')) {
 				insertNodes(item, outControls[item.id], outControls);
 			}
-
+			
 		}
 	}
-
-	/***************************************************************************/
-	// ELEMENT SEEKING FUNCTIONS
-
+	
 	// calls provided callback whenever an expression menu in Desmos is deployed
 	function hookMenu(callback) {
 		// initializes observer
@@ -348,4 +367,4 @@
 		
 		return output;
 	}
-})()
+}
