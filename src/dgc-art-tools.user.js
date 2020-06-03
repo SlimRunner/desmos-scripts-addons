@@ -37,7 +37,7 @@ function colorPicker () {
 			attributes : [
 				{name: 'type', value: 'text/css'}
 			],
-			textContent : '.sli-color-button {background:#ededed;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
+			textContent : '.sli-color-button{background:#ededed;padding:5px;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
 		}]
 	}
 
@@ -50,7 +50,8 @@ function colorPicker () {
 				{name: 'type', value: 'color'}
 			],
 			classes : [
-				'sli-color-button'
+				'sli-color-button',
+				'dcg-btn-flat-gray'
 			]
 		}]
 	}
