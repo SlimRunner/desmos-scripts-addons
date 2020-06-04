@@ -1,11 +1,33 @@
-/*
- * Author: SlimRunner
- *
- * Console script to help change colors of individual graphs easily
- *
-*/
+// ==UserScript==
+// @name     	DesmosArtTools
+// @namespace	slidav.Desmos
+// @version  	1.0
+// @author		SlimRunner (David Flores)
+// @description	Adds a color picker to Desmos
+// @grant    	none
+// @match			https://*.desmos.com/calculator*
+// ==/UserScript==
 
-(function () {
+/*jshint esversion: 6 */
+
+var Calc;
+
+(function loadCheck () {
+	if (typeof window.wrappedJSObject.Calc === 'undefined') {
+		console.log('Calc is not defined');
+		window.setTimeout(loadCheck, 1000);
+		
+		// TODO: Add a counter that stops the script if certain failed attemts are reached
+	} else {
+		Calc = window.wrappedJSObject.Calc;
+		console.log('Calc is defined');
+		colorPicker();
+		console.log('Custom color picker has been loaded');
+		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
+	}
+})();
+
+function colorPicker () {
 	/***************************************************************************/
 	// DATA AND OBJECTS
 
@@ -17,9 +39,9 @@
 			attributes : [
 				{name: 'type', value: 'text/css'}
 			],
-			textContent : '.sli-color-button {background:#ededed;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
+			textContent : '.sli-color-button{background:#ededed;padding:5px;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
 		}]
-	}
+	};
 
 	// Object tree of GUI elements
 	const guiElements = {
@@ -30,13 +52,14 @@
 				{name: 'type', value: 'color'}
 			],
 			classes : [
-				'sli-color-button'
+				'sli-color-button',
+				'dcg-btn-flat-gray'
 			]
 		}]
-	}
+	};
 
 	/***************************************************************************/
-	//MAIN CODE
+	// GUI MANAGEMENT
 
 	const GUI_GAP = 8;
 
@@ -113,7 +136,7 @@
 	});
 
 	/***************************************************************************/
-	//FUNCTIONS
+	// GUI MANAGEMENT
 
 	// shows or hides button to access custom properties
 	function showButton(value) {
@@ -125,7 +148,7 @@
 			ctrlNodes.colorButton.style.visibility = 'hidden';
 			ctrlNodes.colorButton.style.opacity = '0';
 		}
-	}
+	} // !showButton ()
 
 	function setButtonLocation() {
 		let mnu = currMenuElement.getBoundingClientRect();
@@ -136,32 +159,10 @@
 		
 		ctrlNodes.colorButton.style.left = `${x}px`;
 		ctrlNodes.colorButton.style.top = `${y}px`;
-	}
+	} // !setButtonLocation ()
 
-	//returns true if the index references a valid expression type item and the color is a valid HTML hex color
-	function validateData(index, color) {
-		let tempState = Calc.getState();
-
-		if (isNaN(index))
-			return false;
-		if (index < 0 || index >= tempState.expressions.list.length)
-			return false;
-
-		let item = tempState.expressions.list[index];
-
-		if (item.hasOwnProperty('type')) {
-			if (item.type === 'expression') {
-				let hexColRegex = /^#[A-Fa-f0-9]{6}$|^#[A-Fa-f0-9]{3}$/m;
-				if (hexColRegex.test(color)) {
-					return true;
-				}
-			} else {
-				console.log(`no need to change colors of items of ${item.type} type`);
-			}
-		}
-
-		return false;
-	}
+	/***************************************************************************/
+	// DOM MANAGEMENT
 
 	//parses a custom made JSON object into DOM objects with their properties set up
 	function insertNodes(jsonTree, parentNode, outControls) {
@@ -169,33 +170,31 @@
 			outControls[item.id] = document.createElement(item.name);
 			outControls[item.id].setAttribute('id', item.id);
 			parentNode.appendChild(outControls[item.id]);
-
+			
 			if (item.hasOwnProperty('classes')) {
 				item.classes.forEach(elem => outControls[item.id].classList.add(elem));
 			}
-
+			
 			if (item.hasOwnProperty('styles')) {
 				Object.assign(outControls[item.id].style, item.styles);
 			}
-
+			
 			if (item.hasOwnProperty('attributes')) {
 				item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
 			}
-
+			
 			if (item.hasOwnProperty('textContent')) {
 				outControls[item.id].innerHTML = item.textContent;
 			}
-
+			
 			if (item.hasOwnProperty('controls')) {
 				insertNodes(item, outControls[item.id], outControls);
 			}
-
-		}
-	}
-
-	/***************************************************************************/
-	// ELEMENT SEEKING FUNCTIONS
-
+			
+		} // !for
+		
+	} // !insertNodes ()
+	
 	// calls provided callback whenever an expression menu in Desmos is deployed
 	function hookMenu(callback) {
 		// initializes observer
@@ -218,10 +217,11 @@
 								isFound = true;
 							}
 							
-						}
-					});
+						} // !if
+						
+					}); // !forEach
 					
-				}
+				} // !if
 				++idx;
 			} while (idx < obsRec.length && !isFound);
 			
@@ -257,7 +257,8 @@
 							type: expType,
 							id: expId.toString(),
 							colIndex: expCell
-						}
+						};
+						
 						break;
 					case ITEM_EXPRESSION:
 						expType = 'expression';
@@ -266,17 +267,18 @@
 						expItem = {
 							type: expType,
 							id: expId.toString()
-						}
+						};
+						
 						break;
 					default:
 						
-				}
+				} // !switch
 				
-			}
+			} // if (isFound)
 			
 			callback(menuElem, expItem, isFound);
-			//console.table(watchList);
-		});
+			
+		}); // !MutationObserver
 		
 		let menuContainer = findOptionsMenu();
 		
@@ -290,14 +292,14 @@
 			
 		}
 		
-	}
+	} // !hookMenu ()
 
 	function getCurrentIndex () {
 		let calcExpressions = Calc.getExpressions();
 		return calcExpressions.findIndex((elem) => {
 			return elem.id === currMenuItem.id;
 		});
-	}
+	} // !getCurrentIndex ()
 
 	function getCurrentColor() {
 		let calcExpressions = Calc.getExpressions();
@@ -309,12 +311,11 @@
 			return calcExpressions[index].color;
 			
 		} else if (currMenuItem.type === 'table') {
-			let expr = Calc.getExpressions();
-			
 			return calcExpressions[index].columns[currMenuItem.colIndex].color;
+			
 		}
 		
-	}
+	} // !getCurrentColor ()
 
 	// finds element that contains the color menu in Desmos
 	function findOptionsMenu() {
@@ -328,7 +329,7 @@
 			return null;
 			
 		}
-	}
+	} // !findOptionsMenu ()
 
 	// performs a css query on an element and aggregates all found values of a specified attribute
 	function seekAttribute(parent, query, attName) {
@@ -347,5 +348,6 @@
 		}
 		
 		return output;
-	}
-})()
+	} // !seekAttribute ()
+	
+} // !colorPicker ()
