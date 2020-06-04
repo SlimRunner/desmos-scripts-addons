@@ -8,6 +8,8 @@
 // @match			https://*.desmos.com/calculator*
 // ==/UserScript==
 
+/*jshint esversion: 6 */
+
 var Calc;
 
 (function loadCheck () {
@@ -39,7 +41,7 @@ function colorPicker () {
 			],
 			textContent : '.sli-color-button{background:#ededed;padding:5px;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
 		}]
-	}
+	};
 
 	// Object tree of GUI elements
 	const guiElements = {
@@ -54,7 +56,7 @@ function colorPicker () {
 				'dcg-btn-flat-gray'
 			]
 		}]
-	}
+	};
 
 	/***************************************************************************/
 	// GUI MANAGEMENT
@@ -158,31 +160,6 @@ function colorPicker () {
 		ctrlNodes.colorButton.style.left = `${x}px`;
 		ctrlNodes.colorButton.style.top = `${y}px`;
 	} // !setButtonLocation ()
-
-	//returns true if the index references a valid expression type item and the color is a valid HTML hex color
-	function validateData(index, color) {
-		let tempState = Calc.getState();
-
-		if (isNaN(index))
-			return false;
-		if (index < 0 || index >= tempState.expressions.list.length)
-			return false;
-
-		let item = tempState.expressions.list[index];
-
-		if (item.hasOwnProperty('type')) {
-			if (item.type === 'expression') {
-				let hexColRegex = /^#[A-Fa-f0-9]{6}$|^#[A-Fa-f0-9]{3}$/m;
-				if (hexColRegex.test(color)) {
-					return true;
-				}
-			} else {
-				console.log(`no need to change colors of items of ${item.type} type`);
-			}
-		}
-
-		return false;
-	} // !validateData ()
 
 	/***************************************************************************/
 	// DOM MANAGEMENT
@@ -334,9 +311,8 @@ function colorPicker () {
 			return calcExpressions[index].color;
 			
 		} else if (currMenuItem.type === 'table') {
-			let expr = Calc.getExpressions();
-			
 			return calcExpressions[index].columns[currMenuItem.colIndex].color;
+			
 		}
 		
 	} // !getCurrentColor ()
