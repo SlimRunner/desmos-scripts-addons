@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.0
+// @version  	1.0.1
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
 // @match			https://*.desmos.com/calculator*
+// @downloadURL	https://gist.github.com/SlimRunner/aacc9cea998a3a8da31eae9d487412d7/raw/dgc-art-tools-dev.user.js
+// @updateURL	https://gist.github.com/SlimRunner/aacc9cea998a3a8da31eae9d487412d7/raw/dgc-art-tools-dev.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
