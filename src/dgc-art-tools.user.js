@@ -6,8 +6,8 @@
 // @description	Adds a color picker to Desmos
 // @grant    	none
 // @match			https://*.desmos.com/calculator*
-// @downloadURL	https://gist.github.com/SlimRunner/aacc9cea998a3a8da31eae9d487412d7/raw/dgc-art-tools-dev.user.js
-// @updateURL	https://gist.github.com/SlimRunner/aacc9cea998a3a8da31eae9d487412d7/raw/dgc-art-tools-dev.user.js
+// @downloadURL	https://gist.github.com/SlimRunner/aacc9cea998a3a8da31eae9d487412d7/raw/dgc-art-tools.user.js
+// @updateURL	https://gist.github.com/SlimRunner/aacc9cea998a3a8da31eae9d487412d7/raw/dgc-art-tools.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
