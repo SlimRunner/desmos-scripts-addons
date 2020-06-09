@@ -59,7 +59,7 @@ function colorPicker () {
 	};
 
 	/***************************************************************************/
-	// GUI MANAGEMENT
+	// INITIALIZATION
 
 	const GUI_GAP = 8;
 
@@ -93,6 +93,9 @@ function colorPicker () {
 		}
 		
 	});
+	
+	/***************************************************************************/
+	// EVENTS
 	
 	// hides button when menu is gone and the mouse left the button client area
 	ctrlNodes.colorButton.addEventListener('mouseleave', () => {
@@ -143,10 +146,24 @@ function colorPicker () {
 		if (value) {
 			ctrlNodes.colorButton.style.visibility = 'visible';
 			ctrlNodes.colorButton.style.opacity = '1';
-			ctrlNodes.colorButton.value = getCurrentColor();
+			
+			try {
+				ctrlNodes.colorButton.value = getHexColor(getCurrentColor());
+			} catch (e) {
+				console.log(e.message);
+			} finally {
+				// nothing to do
+			}
+			
+			Calc.observeEvent('change', () => {
+				ctrlNodes.colorButton.value = getHexColor(getCurrentColor());
+			});
+			
 		} else {
 			ctrlNodes.colorButton.style.visibility = 'hidden';
 			ctrlNodes.colorButton.style.opacity = '0';
+			
+			Calc.unobserveEvent('change');
 		}
 	} // !showButton ()
 
@@ -160,7 +177,24 @@ function colorPicker () {
 		ctrlNodes.colorButton.style.left = `${x}px`;
 		ctrlNodes.colorButton.style.top = `${y}px`;
 	} // !setButtonLocation ()
-
+	
+	function parseColor(input) {
+		//SE: SO, id: 11068240, author: niet-the-dark-absol
+		let elem = document.createElement('div')
+		let rgxm;
+		
+		elem.style.color = input;
+		rgxm = getComputedStyle(elem).color.match(
+			/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i
+		);
+		
+		if (rgxm) {
+			return [rgxm[1], rgxm[2], rgxm[3]];
+		} else {
+			throw new Error(`Color ${input} could not be parsed.`);
+		}
+	} // !parseColor ()
+	
 	/***************************************************************************/
 	// DOM MANAGEMENT
 
@@ -351,3 +385,221 @@ function colorPicker () {
 	} // !seekAttribute ()
 	
 } // !colorPicker ()
+
+/***************************************************************************/
+// HELPER FUNCTIONS
+
+// returns a valid 6-digit hex from the input
+function getHexColor (input) {
+	if (typeof input !== 'string') {
+		throw	Error('input must be a string');
+	}
+	
+	const fullHex = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;
+	const halfHex = /^#([0-9a-z])([0-9a-z])([0-9a-z])$/i;
+	const cssRGB = /^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i;
+	const cssRGBA = /^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+.?\d*|\d*.?\d+)\s*\)$/i;
+	
+	if (fullHex.test(input)) {
+		return input;
+	}
+	
+	// check if input is 3-digit hex
+	let rgxm = input.match(halfHex);
+	
+	if (rgxm) {
+		let r = rgxm[1] + rgxm[1];
+		let g = rgxm[2] + rgxm[2];
+		let b = rgxm[3] + rgxm[3];
+		
+		return `#${hex6Pad(r)}${hex6Pad(g)}${hex6Pad(b)}`;
+	}
+	
+	// check if input is RGB or RGBA css function
+ 	rgxm = input.match(cssRGB);
+	if (!rgxm) rgxm = input.match(cssRGBA);
+	
+	if (rgxm) {
+		let r = parseInt(rgxm[1]).toString(16);
+		let g = parseInt(rgxm[2]).toString(16);
+		let b = parseInt(rgxm[3]).toString(16);
+		
+		return `#${hex6Pad(r)}${hex6Pad(g)}${hex6Pad(b)}`;
+	}
+	
+	// return value for named color or throw error
+	return parseNamedColor(input);
+} // !getHexColor ()
+
+// returns a padded couplet from a 6-digit hex
+function hex6Pad(value) {
+	if (typeof value !== 'string') {
+		throw	Error('value must be a string');
+	}
+	
+	if (value.length === 1) {
+		return '0' + value;
+	} else {
+		return value;
+	}
+} // !hex6Pad ()
+
+// returns hex value from given named color
+function parseNamedColor(input) {
+	const NAME_TABLE = {
+		'black' : '#000000',
+		'navy' : '#000080',
+		'darkblue' : '#00008b',
+		'mediumblue' : '#0000cd',
+		'blue' : '#0000ff',
+		'darkgreen' : '#006400',
+		'green' : '#008000',
+		'teal' : '#008080',
+		'darkcyan' : '#008b8b',
+		'deepskyblue' : '#00bfff',
+		'darkturquoise' : '#00ced1',
+		'mediumspringgreen' : '#00fa9a',
+		'lime' : '#00ff00',
+		'springgreen' : '#00ff7f',
+		'aqua' : '#00ffff',
+		'cyan' : '#00ffff',
+		'midnightblue' : '#191970',
+		'dodgerblue' : '#1e90ff',
+		'lightseagreen' : '#20b2aa',
+		'forestgreen' : '#228b22',
+		'seagreen' : '#2e8b57',
+		'darkslategray' : '#2f4f4f',
+		'darkslategrey' : '#2f4f4f',
+		'limegreen' : '#32cd32',
+		'mediumseagreen' : '#3cb371',
+		'turquoise' : '#40e0d0',
+		'royalblue' : '#4169e1',
+		'steelblue' : '#4682b4',
+		'darkslateblue' : '#483d8b',
+		'mediumturquoise' : '#48d1cc',
+		'indigo' : '#4b0082',
+		'darkolivegreen' : '#556b2f',
+		'cadetblue' : '#5f9ea0',
+		'cornflowerblue' : '#6495ed',
+		'rebeccapurple' : '#663399',
+		'mediumaquamarine' : '#66cdaa',
+		'dimgray' : '#696969',
+		'dimgrey' : '#696969',
+		'slateblue' : '#6a5acd',
+		'olivedrab' : '#6b8e23',
+		'slategray' : '#708090',
+		'slategrey' : '#708090',
+		'lightslategray' : '#778899',
+		'lightslategrey' : '#778899',
+		'mediumslateblue' : '#7b68ee',
+		'lawngreen' : '#7cfc00',
+		'chartreuse' : '#7fff00',
+		'aquamarine' : '#7fffd4',
+		'maroon' : '#800000',
+		'purple' : '#800080',
+		'olive' : '#808000',
+		'gray' : '#808080',
+		'grey' : '#808080',
+		'skyblue' : '#87ceeb',
+		'lightskyblue' : '#87cefa',
+		'blueviolet' : '#8a2be2',
+		'darkred' : '#8b0000',
+		'darkmagenta' : '#8b008b',
+		'saddlebrown' : '#8b4513',
+		'darkseagreen' : '#8fbc8f',
+		'lightgreen' : '#90ee90',
+		'mediumpurple' : '#9370db',
+		'darkviolet' : '#9400d3',
+		'palegreen' : '#98fb98',
+		'darkorchid' : '#9932cc',
+		'yellowgreen' : '#9acd32',
+		'sienna' : '#a0522d',
+		'brown' : '#a52a2a',
+		'darkgray' : '#a9a9a9',
+		'darkgrey' : '#a9a9a9',
+		'lightblue' : '#add8e6',
+		'greenyellow' : '#adff2f',
+		'paleturquoise' : '#afeeee',
+		'lightsteelblue' : '#b0c4de',
+		'powderblue' : '#b0e0e6',
+		'firebrick' : '#b22222',
+		'darkgoldenrod' : '#b8860b',
+		'mediumorchid' : '#ba55d3',
+		'rosybrown' : '#bc8f8f',
+		'darkkhaki' : '#bdb76b',
+		'silver' : '#c0c0c0',
+		'mediumvioletred' : '#c71585',
+		'indianred' : '#cd5c5c',
+		'peru' : '#cd853f',
+		'chocolate' : '#d2691e',
+		'tan' : '#d2b48c',
+		'lightgray' : '#d3d3d3',
+		'lightgrey' : '#d3d3d3',
+		'thistle' : '#d8bfd8',
+		'orchid' : '#da70d6',
+		'goldenrod' : '#daa520',
+		'palevioletred' : '#db7093',
+		'crimson' : '#dc143c',
+		'gainsboro' : '#dcdcdc',
+		'plum' : '#dda0dd',
+		'burlywood' : '#deb887',
+		'lightcyan' : '#e0ffff',
+		'lavender' : '#e6e6fa',
+		'darksalmon' : '#e9967a',
+		'violet' : '#ee82ee',
+		'palegoldenrod' : '#eee8aa',
+		'lightcoral' : '#f08080',
+		'khaki' : '#f0e68c',
+		'aliceblue' : '#f0f8ff',
+		'honeydew' : '#f0fff0',
+		'azure' : '#f0ffff',
+		'sandybrown' : '#f4a460',
+		'wheat' : '#f5deb3',
+		'beige' : '#f5f5dc',
+		'whitesmoke' : '#f5f5f5',
+		'mintcream' : '#f5fffa',
+		'ghostwhite' : '#f8f8ff',
+		'salmon' : '#fa8072',
+		'antiquewhite' : '#faebd7',
+		'linen' : '#faf0e6',
+		'lightgoldenrodyellow' : '#fafad2',
+		'oldlace' : '#fdf5e6',
+		'red' : '#ff0000',
+		'fuchsia' : '#ff00ff',
+		'magenta' : '#ff00ff',
+		'deeppink' : '#ff1493',
+		'orangered' : '#ff4500',
+		'tomato' : '#ff6347',
+		'hotpink' : '#ff69b4',
+		'coral' : '#ff7f50',
+		'darkorange' : '#ff8c00',
+		'lightsalmon' : '#ffa07a',
+		'orange' : '#ffa500',
+		'lightpink' : '#ffb6c1',
+		'pink' : '#ffc0cb',
+		'gold' : '#ffd700',
+		'peachpuff' : '#ffdab9',
+		'navajowhite' : '#ffdead',
+		'moccasin' : '#ffe4b5',
+		'bisque' : '#ffe4c4',
+		'mistyrose' : '#ffe4e1',
+		'blanchedalmond' : '#ffebcd',
+		'papayawhip' : '#ffefd5',
+		'lavenderblush' : '#fff0f5',
+		'seashell' : '#fff5ee',
+		'cornsilk' : '#fff8dc',
+		'lemonchiffon' : '#fffacd',
+		'floralwhite' : '#fffaf0',
+		'snow' : '#fffafa',
+		'yellow' : '#ffff00',
+		'lightyellow' : '#ffffe0',
+		'ivory' : '#fffff0',
+		'white' : '#ffffff'
+	}; // !NAME_TABLE
+	
+	if (NAME_TABLE.hasOwnProperty(input.toLowerCase())) {
+		return NAME_TABLE[input.toLowerCase()];
+	} else {
+		throw Error(input + ' is not a supported named color');
+	}
+} // !parseNamedColor ()
