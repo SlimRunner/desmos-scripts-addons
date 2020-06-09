@@ -59,7 +59,7 @@ function colorPicker () {
 	};
 
 	/***************************************************************************/
-	// GUI MANAGEMENT
+	// INITIALIZATION
 
 	const GUI_GAP = 8;
 
@@ -93,6 +93,9 @@ function colorPicker () {
 		}
 		
 	});
+	
+	/***************************************************************************/
+	// EVENTS
 	
 	// hides button when menu is gone and the mouse left the button client area
 	ctrlNodes.colorButton.addEventListener('mouseleave', () => {
@@ -143,7 +146,15 @@ function colorPicker () {
 		if (value) {
 			ctrlNodes.colorButton.style.visibility = 'visible';
 			ctrlNodes.colorButton.style.opacity = '1';
-			ctrlNodes.colorButton.value = getCurrentColor();
+			
+			try {
+				ctrlNodes.colorButton.value = parseColor(getCurrentColor());
+			} catch (e) {
+				console.log(e.message);
+			} finally {
+				// nothing to do
+			}
+			
 		} else {
 			ctrlNodes.colorButton.style.visibility = 'hidden';
 			ctrlNodes.colorButton.style.opacity = '0';
@@ -160,7 +171,24 @@ function colorPicker () {
 		ctrlNodes.colorButton.style.left = `${x}px`;
 		ctrlNodes.colorButton.style.top = `${y}px`;
 	} // !setButtonLocation ()
-
+	
+	function parseColor(input) {
+		//SE: SO, id: 11068240, author: niet-the-dark-absol
+		let elem = document.createElement('div')
+		let rgxm;
+		
+		elem.style.color = input;
+		rgxm = getComputedStyle(elem).color.match(
+			/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i
+		);
+		
+		if (rgxm) {
+			return [rgxm[1], rgxm[2], rgxm[3]];
+		} else {
+			throw new Error(`Color ${input} could not be parsed.`);
+		}
+	} // !parseColor ()
+	
 	/***************************************************************************/
 	// DOM MANAGEMENT
 
