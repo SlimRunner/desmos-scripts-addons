@@ -155,9 +155,15 @@ function colorPicker () {
 				// nothing to do
 			}
 			
+			Calc.observeEvent('change', () => {
+				ctrlNodes.colorButton.value = getHexColor(getCurrentColor());
+			});
+			
 		} else {
 			ctrlNodes.colorButton.style.visibility = 'hidden';
 			ctrlNodes.colorButton.style.opacity = '0';
+			
+			Calc.unobserveEvent('change');
 		}
 	} // !showButton ()
 
