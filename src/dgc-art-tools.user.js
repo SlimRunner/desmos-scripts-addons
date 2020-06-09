@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.0.1
+// @version  	1.0.2
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -397,6 +397,8 @@ function getHexColor (input) {
 		throw	Error('input must be a string');
 	}
 	
+	input = input.trim();
+	
 	const fullHex = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;
 	const halfHex = /^#([0-9a-z])([0-9a-z])([0-9a-z])$/i;
 	const cssRGB = /^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i;
@@ -414,7 +416,7 @@ function getHexColor (input) {
 		let g = rgxm[2] + rgxm[2];
 		let b = rgxm[3] + rgxm[3];
 		
-		return `#${hex6Pad(r)}${hex6Pad(g)}${hex6Pad(b)}`;
+		return `#${r}${g}${b}`;
 	}
 	
 	// check if input is RGB or RGBA css function
