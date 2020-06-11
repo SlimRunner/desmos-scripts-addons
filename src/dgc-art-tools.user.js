@@ -13,16 +13,21 @@
 /*jshint esversion: 6 */
 
 var Calc;
+var Desmos;
 
 (function loadCheck () {
-	if (typeof window.wrappedJSObject.Calc === 'undefined') {
-		console.log('Calc is not defined');
+	if (
+		typeof window.wrappedJSObject.Calc === 'undefined' &&
+		typeof window.wrappedJSObject.Desmos === 'undefined'
+	) {
+		console.log('Desmos objects are not defined');
 		window.setTimeout(loadCheck, 1000);
 		
 		// TODO: Add a counter that stops the script if certain failed attemts are reached
 	} else {
 		Calc = window.wrappedJSObject.Calc;
-		console.log('Calc is defined');
+		Desmos = window.wrappedJSObject.Desmos;
+		console.log('Desmos is ready ✔️');
 		colorPicker();
 		console.log('Custom color picker has been loaded');
 		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
@@ -180,56 +185,8 @@ function colorPicker () {
 		ctrlNodes.colorButton.style.top = `${y}px`;
 	} // !setButtonLocation ()
 	
-	function parseColor(input) {
-		//SE: SO, id: 11068240, author: niet-the-dark-absol
-		let elem = document.createElement('div')
-		let rgxm;
-		
-		elem.style.color = input;
-		rgxm = getComputedStyle(elem).color.match(
-			/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i
-		);
-		
-		if (rgxm) {
-			return [rgxm[1], rgxm[2], rgxm[3]];
-		} else {
-			throw new Error(`Color ${input} could not be parsed.`);
-		}
-	} // !parseColor ()
-	
 	/***************************************************************************/
 	// DOM MANAGEMENT
-
-	//parses a custom made JSON object into DOM objects with their properties set up
-	function insertNodes(jsonTree, parentNode, outControls) {
-		for (let item of jsonTree.controls) {
-			outControls[item.id] = document.createElement(item.name);
-			outControls[item.id].setAttribute('id', item.id);
-			parentNode.appendChild(outControls[item.id]);
-			
-			if (item.hasOwnProperty('classes')) {
-				item.classes.forEach(elem => outControls[item.id].classList.add(elem));
-			}
-			
-			if (item.hasOwnProperty('styles')) {
-				Object.assign(outControls[item.id].style, item.styles);
-			}
-			
-			if (item.hasOwnProperty('attributes')) {
-				item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
-			}
-			
-			if (item.hasOwnProperty('textContent')) {
-				outControls[item.id].innerHTML = item.textContent;
-			}
-			
-			if (item.hasOwnProperty('controls')) {
-				insertNodes(item, outControls[item.id], outControls);
-			}
-			
-		} // !for
-		
-	} // !insertNodes ()
 	
 	// calls provided callback whenever an expression menu in Desmos is deployed
 	function hookMenu(callback) {
@@ -352,7 +309,7 @@ function colorPicker () {
 		}
 		
 	} // !getCurrentColor ()
-
+	
 	// finds element that contains the color menu in Desmos
 	function findOptionsMenu() {
 		
@@ -365,31 +322,67 @@ function colorPicker () {
 			return null;
 			
 		}
+		
 	} // !findOptionsMenu ()
-
-	// performs a css query on an element and aggregates all found values of a specified attribute
-	function seekAttribute(parent, query, attName) {
-		let output = [];
-		let nodes = parent.querySelectorAll(query);
-		
-		if (nodes.length > 0) {
-			nodes.forEach((node, i) => {
-				if (typeof node.getAttributeNames === 'function') {
-					if (node.getAttributeNames().indexOf(attName)) {
-						output.push(node.getAttribute(attName));
-					}
-				}
-			});
-			
-		}
-		
-		return output;
-	} // !seekAttribute ()
 	
 } // !colorPicker ()
 
 /***************************************************************************/
 // HELPER FUNCTIONS
+
+//parses a custom made JSON object into DOM objects with their properties set up
+function insertNodes(jsonTree, parentNode, outControls) {
+	for (let item of jsonTree.controls) {
+		outControls[item.id] = document.createElement(item.name);
+		outControls[item.id].setAttribute('id', item.id);
+		parentNode.appendChild(outControls[item.id]);
+		
+		if (item.hasOwnProperty('classes')) {
+			item.classes.forEach(elem => outControls[item.id].classList.add(elem));
+		}
+		
+		if (item.hasOwnProperty('styles')) {
+			Object.assign(outControls[item.id].style, item.styles);
+		}
+		
+		if (item.hasOwnProperty('attributes')) {
+			item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
+		}
+		
+		if (item.hasOwnProperty('textContent')) {
+			outControls[item.id].innerHTML = item.textContent;
+		}
+		
+		if (item.hasOwnProperty('controls')) {
+			insertNodes(item, outControls[item.id], outControls);
+		}
+		
+	} // !for
+	
+} // !insertNodes ()
+
+
+
+// performs a css query on an element and aggregates all found values of a specified attribute
+function seekAttribute(parent, query, attName) {
+	let output = [];
+	let nodes = parent.querySelectorAll(query);
+	
+	if (nodes.length > 0) {
+		nodes.forEach((node, i) => {
+			if (typeof node.getAttributeNames === 'function') {
+				if (node.getAttributeNames().indexOf(attName)) {
+					output.push(node.getAttribute(attName));
+				}
+			}
+		});
+		
+	}
+	
+	return output;
+} // !seekAttribute ()
+
+
 
 // returns a valid 6-digit hex from the input
 function getHexColor (input) {
@@ -435,6 +428,8 @@ function getHexColor (input) {
 	return parseNamedColor(input);
 } // !getHexColor ()
 
+
+
 // returns a padded couplet from a 6-digit hex
 function hex6Pad(value) {
 	if (typeof value !== 'string') {
@@ -447,6 +442,8 @@ function hex6Pad(value) {
 		return value;
 	}
 } // !hex6Pad ()
+
+
 
 // returns hex value from given named color
 function parseNamedColor(input) {
