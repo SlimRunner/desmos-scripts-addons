@@ -16,20 +16,31 @@ var Calc;
 var Desmos;
 
 (function loadCheck () {
+	
+	if (typeof attempts === 'undefined') {
+		this.attempts = 0;
+	} else {
+		attempts++;
+	}
+	
 	if (
-		typeof window.wrappedJSObject.Calc === 'undefined' &&
+		typeof window.wrappedJSObject.Calc === 'undefined' ||
 		typeof window.wrappedJSObject.Desmos === 'undefined'
 	) {
-		console.log('Desmos objects are not defined');
-		window.setTimeout(loadCheck, 1000);
 		
-		// TODO: Add a counter that stops the script if certain failed attemts are reached
+		if (attempts < 10) {
+			console.log('Loading Desmos objects...');
+			window.setTimeout(loadCheck, 1000);
+		} else {
+			console.log("Abort: The script couldn't load properly :/");
+		}
+		
 	} else {
 		Calc = window.wrappedJSObject.Calc;
 		Desmos = window.wrappedJSObject.Desmos;
 		console.log('Desmos is ready ✔️');
 		colorPicker();
-		console.log('Custom color picker has been loaded');
+		console.log('Custom art tools were loaded properly');
 		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
 	}
 })();
