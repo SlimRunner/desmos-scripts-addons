@@ -60,7 +60,7 @@ function customPropMenu () {
 			textContent : `
 			.sli-prop-menu {
 				display: grid;
-				grid-template-columns: repeat(1, 1fr);
+				grid-template-columns: repeat(2, 1fr);
 				gap: 8px;
 				
 				position: fixed !important;
@@ -99,6 +99,14 @@ function customPropMenu () {
 				attributes: [
 					{name: 'type', value: 'color'}
 				],
+				classes : [
+					'sli-menu-button',
+					'dcg-btn-flat-gray'
+				]
+			}, {
+				name : 'button',
+				id : 'opacityButton',
+				textContent: ':)',
 				classes : [
 					'sli-menu-button',
 					'dcg-btn-flat-gray'
