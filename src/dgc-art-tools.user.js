@@ -128,12 +128,12 @@ function customPropMenu () {
 	let ctrlNodes = [];
 	// furnishes the control list and also adds the elements to the DOM
 	insertNodes(guiElements, document.body, ctrlNodes);
-
+	
 	let currMenuItem = null;
 	let currMenuElement = null;
 	let colButtonActive = false;
 	let colMenuActive = false;
-
+	
 	// callback that executes when the color menu shows up
 	hookMenu( (itemElem, expItem, isFound) => {
 		
@@ -154,8 +154,10 @@ function customPropMenu () {
 	/***************************************************************************/
 	// EVENTS
 	
+	let buttonList = [ctrlNodes.colorButton, ctrlNodes.opacityButton]
+	
 	// hides button when menu is gone and the mouse left the button client area
-	ctrlNodes.colorButton.addEventListener('mouseleave', () => {
+	bindListeners(buttonList, 'mouseleave', () => {
 		if (!colMenuActive) {
 			colButtonActive = false;
 			showButton(false);
@@ -164,12 +166,12 @@ function customPropMenu () {
 	});
 	
 	// changes button state to active so that button doesn't go away with menu
-	ctrlNodes.colorButton.addEventListener('mousedown', () => {
+	bindListeners(buttonList, 'mousedown', () => {
 		colButtonActive = true;
 	});
 	
 	// performs click changes button state to false and hides button
-	ctrlNodes.colorButton.addEventListener('click', () => {
+	bindListeners(buttonList, 'click', () => {
 		colButtonActive = false;
 		showButton(false);
 	});
@@ -412,6 +414,14 @@ function insertNodes(jsonTree, parentNode, outControls) {
 	} // !for
 	
 } // !insertNodes ()
+
+
+
+function bindListeners(elemList, eventName, callback) {
+	for (var elem of elemList) {
+		elem.addEventListener(eventName, callback);
+	}
+}
 
 
 
