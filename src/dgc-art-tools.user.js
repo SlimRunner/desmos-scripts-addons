@@ -131,22 +131,22 @@ function customPropMenu () {
 	
 	let currMenuItem = null;
 	let currMenuElement = null;
-	let colButtonActive = false;
-	let colMenuActive = false;
+	let propMenuActive = false;
+	let desmosMenuActive = false;
 	
 	// callback that executes when the color menu shows up
 	hookMenu( (itemElem, expItem, isFound) => {
 		
-		colMenuActive = isFound;
+		desmosMenuActive = isFound;
 		
 		if (isFound) {
 			currMenuItem = expItem;
 			currMenuElement = itemElem;
-			setButtonLocation();
+			setMenuLocation();
 		}
 		
-		if (!colButtonActive) {
-			showButton(isFound);
+		if (!propMenuActive) {
+			showPropMenu(isFound);
 		}
 		
 	});
@@ -158,22 +158,22 @@ function customPropMenu () {
 	
 	// hides button when menu is gone and the mouse left the button client area
 	bindListeners(buttonList, 'mouseleave', () => {
-		if (!colMenuActive) {
-			colButtonActive = false;
-			showButton(false);
+		if (!desmosMenuActive) {
+			propMenuActive = false;
+			showPropMenu(false);
 		}
 		
 	});
 	
 	// changes button state to active so that button doesn't go away with menu
 	bindListeners(buttonList, 'mousedown', () => {
-		colButtonActive = true;
+		propMenuActive = true;
 	});
 	
 	// performs click changes button state to false and hides button
 	bindListeners(buttonList, 'click', () => {
-		colButtonActive = false;
-		showButton(false);
+		propMenuActive = false;
+		showPropMenu(false);
 	});
 	
 	// event that triggers when user selects a color from color picker
@@ -201,7 +201,7 @@ function customPropMenu () {
 	// GUI MANAGEMENT
 
 	// shows or hides button to access custom properties
-	function showButton(value) {
+	function showPropMenu(value) {
 		if (value) {
 			ctrlNodes.propMenu.style.visibility = 'visible';
 			ctrlNodes.propMenu.style.opacity = '1';
@@ -224,9 +224,9 @@ function customPropMenu () {
 			
 			Calc.unobserveEvent('change');
 		}
-	} // !showButton ()
+	} // !showPropMenu ()
 
-	function setButtonLocation() {
+	function setMenuLocation() {
 		const BORDER_SIZE = 2;
 		
 		let mnu = currMenuElement.getBoundingClientRect();
@@ -237,7 +237,7 @@ function customPropMenu () {
 		
 		ctrlNodes.propMenu.style.left = `${x}px`;
 		ctrlNodes.propMenu.style.top = `${y}px`;
-	} // !setButtonLocation ()
+	} // !setMenuLocation ()
 	
 	/***************************************************************************/
 	// DOM MANAGEMENT
