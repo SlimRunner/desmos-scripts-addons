@@ -57,22 +57,53 @@ function customPropMenu () {
 			attributes : [
 				{name: 'type', value: 'text/css'}
 			],
-			textContent : '.sli-color-button{background:#ededed;padding:5px;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
+			textContent : `
+			.sli-prop-menu {
+				display: grid;
+				grid-template-columns: repeat(1, 1fr);
+				gap: 8px;
+				
+				position: fixed !important;
+				left: 0;
+				top: 0;
+				z-index: 99;
+				visibility: hidden;
+				opacity: 0;
+				transition: opacity 0.1s ease-out;
+				
+				padding: 8px !important;
+			}
+			
+			.sli-menu-button {
+				background: #ededed;
+				padding: 5px;
+				width: 38px;
+				height: 38px;
+			}
+			`
 		}]
 	};
 
 	// Object tree of GUI elements
 	const guiElements = {
 		controls : [{
-			name : 'input',
-			id : 'colorButton',
-			attributes: [
-				{name: 'type', value: 'color'}
-			],
+			name : 'div',
+			id : 'propMenu',
 			classes : [
-				'sli-color-button',
-				'dcg-btn-flat-gray'
-			]
+				'sli-prop-menu',
+				'dcg-options-menu'
+			],
+			controls : [{
+				name : 'input',
+				id : 'colorButton',
+				attributes: [
+					{name: 'type', value: 'color'}
+				],
+				classes : [
+					'sli-menu-button',
+					'dcg-btn-flat-gray'
+				]
+			}]
 		}]
 	};
 
@@ -162,8 +193,8 @@ function customPropMenu () {
 	// shows or hides button to access custom properties
 	function showButton(value) {
 		if (value) {
-			ctrlNodes.colorButton.style.visibility = 'visible';
-			ctrlNodes.colorButton.style.opacity = '1';
+			ctrlNodes.propMenu.style.visibility = 'visible';
+			ctrlNodes.propMenu.style.opacity = '1';
 			
 			try {
 				ctrlNodes.colorButton.value = getHexColor(getCurrentColor());
@@ -178,22 +209,24 @@ function customPropMenu () {
 			});
 			
 		} else {
-			ctrlNodes.colorButton.style.visibility = 'hidden';
-			ctrlNodes.colorButton.style.opacity = '0';
+			ctrlNodes.propMenu.style.visibility = 'hidden';
+			ctrlNodes.propMenu.style.opacity = '0';
 			
 			Calc.unobserveEvent('change');
 		}
 	} // !showButton ()
 
 	function setButtonLocation() {
+		const BORDER_SIZE = 2;
+		
 		let mnu = currMenuElement.getBoundingClientRect();
 		let btn = ctrlNodes.colorButton.getBoundingClientRect();
 		
-		let x = (mnu.right + GUI_GAP);
-		let y = (mnu.bottom - (mnu.height + btn.height) / 2);
+		let x = mnu.left + mnu.width + GUI_GAP;
+		let y = mnu.top;
 		
-		ctrlNodes.colorButton.style.left = `${x}px`;
-		ctrlNodes.colorButton.style.top = `${y}px`;
+		ctrlNodes.propMenu.style.left = `${x}px`;
+		ctrlNodes.propMenu.style.top = `${y}px`;
 	} // !setButtonLocation ()
 	
 	/***************************************************************************/
