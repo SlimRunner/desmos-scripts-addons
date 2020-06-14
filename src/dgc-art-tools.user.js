@@ -80,6 +80,38 @@ function customPropMenu () {
 				width: 38px;
 				height: 38px;
 			}
+			
+			.sli-mq-container {
+				position: fixed;
+				left: 0;
+				top: 0;
+				z-index:99;
+				visibility: hidden;
+				opacity: 0;
+				transition: opacity 0.1s ease-out;
+				
+				font-size: 13pt;
+			}
+			
+			.sli-mq-field {
+				background: white;
+				width: 100%;
+				padding: 8px;
+			}
+			
+			.sli-page-shade {
+			  position: fixed;
+			  left: 0;
+			  top: 0;
+			  width: 100%;
+			  height: 100%;
+			  z-index: 97;
+			  padding: 10px;
+			  background: rgba(0,0,0,0.4);
+			  visibility: hidden;
+			  opacity: 0;
+			  transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
+			}
 			`
 		}]
 	};
@@ -87,6 +119,7 @@ function customPropMenu () {
 	// Object tree of GUI elements
 	const guiElements = {
 		controls : [{
+			/*****************************/
 			name : 'div',
 			id : 'propMenu',
 			classes : [
@@ -113,12 +146,26 @@ function customPropMenu () {
 				]
 			}]
 		}, {
+			/*****************************/
 			name : 'div',
 			id : 'mqContainer',
+			classes : [
+				'sli-mq-container'
+			],
 			controls : [{
 				name : 'span',
-				id : 'mqField'
+				id : 'mqField',
+				classes : [
+					'sli-mq-field'
+				]
 			}]
+		}, {
+			/*****************************/
+			name: 'div',
+			id: 'dialogBackground',
+			classes: [
+				'sli-page-shade'
+			],
 		}]
 	};
 
