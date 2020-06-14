@@ -20,7 +20,7 @@ var Desmos;
 	if (typeof attempts === 'undefined') {
 		this.attempts = 0;
 	} else {
-		attempts++;
+		this.attempts++;
 	}
 	
 	if (
@@ -28,7 +28,7 @@ var Desmos;
 		typeof window.wrappedJSObject.Desmos === 'undefined'
 	) {
 		
-		if (attempts < 10) {
+		if (this.attempts < 10) {
 			console.log('Loading Desmos objects...');
 			window.setTimeout(loadCheck, 1000);
 		} else {
@@ -154,7 +154,7 @@ function customPropMenu () {
 	/***************************************************************************/
 	// EVENTS
 	
-	let buttonList = [ctrlNodes.colorButton, ctrlNodes.opacityButton]
+	let buttonList = [ctrlNodes.colorButton, ctrlNodes.opacityButton];
 	
 	// hides button when menu is gone and the mouse left the button client area
 	bindListeners(buttonList, 'mouseleave', () => {
@@ -417,11 +417,12 @@ function insertNodes(jsonTree, parentNode, outControls) {
 
 
 
+// binds the events of provided list of elements to a single callback
 function bindListeners(elemList, eventName, callback) {
 	for (var elem of elemList) {
 		elem.addEventListener(eventName, callback);
 	}
-}
+} // !bindListeners ()
 
 
 
