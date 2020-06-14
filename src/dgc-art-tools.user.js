@@ -112,6 +112,13 @@ function customPropMenu () {
 					'dcg-btn-flat-gray'
 				]
 			}]
+		}, {
+			name : 'div',
+			id : 'mqContainer',
+			controls : [{
+				name : 'span',
+				id : 'mqField'
+			}]
 		}]
 	};
 
@@ -340,7 +347,15 @@ function customPropMenu () {
 		}
 		
 	} // !hookMenu ()
-
+	
+	function findExprElementById(id) {
+		return getElementsByAttValue(document, '.dcg-expressionitem', 'expr-id', id);
+	}
+	
+	function findSelectedExprElement() {
+		return getElementsByAttribute(document, '.dcg-expressionitem.dcg-selected', 'expr-id');
+	}
+	
 	function getCurrentIndex () {
 		let calcExpressions = Calc.getExpressions();
 		return calcExpressions.findIndex((elem) => {
@@ -426,17 +441,16 @@ function bindListeners(elemList, eventName, callback) {
 
 
 
-// performs a css query on an element and aggregates all found values of a specified attribute
+// performs a query on parent and aggregates all found values of a specified attribute
 function seekAttribute(parent, query, attName) {
 	let output = [];
 	let nodes = parent.querySelectorAll(query);
 	
 	if (nodes.length > 0) {
 		nodes.forEach((node, i) => {
-			if (typeof node.getAttributeNames === 'function') {
-				if (node.getAttributeNames().indexOf(attName)) {
-					output.push(node.getAttribute(attName));
-				}
+			if (typeof node.getAttributeNames !== 'function') return 0;
+			if (node.getAttributeNames().indexOf(attName) !== -1) {
+				output.push(node.getAttribute(attName));
 			}
 		});
 		
@@ -444,6 +458,48 @@ function seekAttribute(parent, query, attName) {
 	
 	return output;
 } // !seekAttribute ()
+
+
+
+// performs a query on parent and aggregates all found nodes that have the specified attribute (attName)
+function getElementsByAttribute(parent, query, attName) {
+	let output = [];
+	let nodes = parent.querySelectorAll(query);
+	
+	if (nodes.length > 0) {
+		nodes.forEach((node, i) => {
+			if (typeof node.getAttribute !== 'function') return 0;
+			if (node.getAttributeNames().indexOf(attName) !== -1) {
+				output.push(node);
+			} 
+		});
+		
+	}
+	
+	return output;
+}
+
+
+
+// performs a query on parent and aggregates all found nodes that match specified pair attribute-value (attName, val)
+function getElementsByAttValue(parent, query, attName, val) {
+	// for alternative for "modern" browsers see
+	// https://stackoverflow.com/a/16775485
+	let output = [];
+	let nodes = parent.querySelectorAll(query);
+	
+	if (nodes.length > 0) {
+		nodes.forEach((node, i) => {
+			if (typeof node.getAttribute !== 'function') return 0;
+			if (node.getAttribute(attName) == val) {
+				output.push(node);
+			}
+		});
+		
+	}
+	
+	return output;
+}
 
 
 
