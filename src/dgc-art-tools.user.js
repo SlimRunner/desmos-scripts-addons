@@ -45,6 +45,8 @@ var Desmos;
 	}
 })();
 
+// TODO: add a function that initializes the dialog items and then returns an object that controls the behavior of the elements and has a function that returns the result of the dialog.
+
 function customPropMenu () {
 	/***************************************************************************/
 	// DATA AND OBJECTS
@@ -79,6 +81,11 @@ function customPropMenu () {
 				padding: 5px;
 				width: 38px;
 				height: 38px;
+			}
+			
+			.sli-dcg-icon-align {
+				text-align: center;
+				line-height: 2em;
 			}
 			
 			.sli-mq-container {
@@ -137,13 +144,20 @@ function customPropMenu () {
 					'dcg-btn-flat-gray'
 				]
 			}, {
-				name : 'button',
+				name : 'div',
 				id : 'opacityButton',
-				textContent: ':)',
 				classes : [
 					'sli-menu-button',
-					'dcg-btn-flat-gray'
-				]
+					'dcg-btn-flat-gray',
+					'sli-dcg-icon-align'
+				],
+				controls : [{
+					name : 'i',
+					id : 'opacityIcon',
+					classes : [
+						'dcg-icon-shaded-inequality-dash'
+					]
+				}]
 			}]
 		}, {
 			/*****************************/
