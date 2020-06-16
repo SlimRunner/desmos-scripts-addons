@@ -375,7 +375,7 @@ function colorPicker () {
 		if (nodes.length > 0) {
 			nodes.forEach((node, i) => {
 				if (typeof node.getAttributeNames === 'function') {
-					if (node.getAttributeNames().indexOf(attName)) {
+					if (node.getAttributeNames().indexOf(attName) !== -1) {
 						output.push(node.getAttribute(attName));
 					}
 				}
