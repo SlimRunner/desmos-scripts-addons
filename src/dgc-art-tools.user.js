@@ -46,11 +46,164 @@ var Desmos;
 })();
 
 // TODO: add a function that initializes the dialog items and then returns an object that controls the behavior of the elements and has a function that returns the result of the dialog.
+// IDEA: Instead of doing what the above comment says, it might be a better idea to embed the MathQuill field inside the floating menu and prevent it from going away as long as the field has focus.
+
+
+/***************************************************************************/
+// DIALOG DATA STRUCTURE
+
+function InDial() {
+	throw Error('This object cannot be instantiated');
+}
+
+function MQField (elem, editCallback) {
+	this.boundElem = elem;
+	this.mathField = Desmos.MathQuill.MathField(elem, {
+		handlers: {
+			edit: function() { // useful event handlers
+				editCallback();
+			}
+		}
+	});
+}
+
+InDial.stylesheet = [];
+InDial.elements = [];
+InDial.isInitialized = false;
+InDial.onChange = null;
+InDial.MQ = null;
+
+InDial.initialize = function () {
+	const guiCSS = {
+		controls : [{
+			name : 'style',
+			id : 'mqDialogSheet',
+			attributes : [
+				{name: 'type', value: 'text/css'}
+			],
+			textContent : `
+			.sli-mq-container {
+				position: fixed;
+				left: 0;
+				top: 0;
+				/* z-index:99; */
+				/* visibility: hidden; */
+				/* opacity: 0; */
+				/* transition: opacity 0.1s ease-out; */
+				
+				font-size: 13pt;
+			}
+			
+			.sli-mq-field {
+				background: white;
+				width: 100%;
+				padding: 8px;
+			}
+			
+			.sli-mq-page-shade {
+			  position: fixed;
+			  left: 0;
+			  top: 0;
+			  width: 100%;
+			  height: 100%;
+			  z-index: 99;
+			  padding: 10px;
+			  background: rgba(0,0,0,0.4);
+			  visibility: hidden;
+			  opacity: 0;
+			  transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
+			}
+			`
+		}]
+	};
+	
+	const guiElements = {
+		controls: [{
+			/*****************************/
+			name: 'div',
+			id: 'mqDialBack',
+			classes: [
+				'sli-mq-page-shade'
+			],
+			controls : [{
+				/*****************************/
+				name : 'div',
+				id : 'mqContainer',
+				classes : [
+					'sli-mq-container'
+				],
+				controls : [{
+					name : 'span',
+					id : 'mqField',
+					classes : [
+						'sli-mq-field'
+					]
+				}]
+			}]
+		}]
+	};
+	
+	if (InDial.isInitialized) return 1;
+	
+	insertNodes(guiCSS, document.head, InDial.stylesheet);
+	insertNodes(guiElements, document.body, InDial.elements);
+	
+	// initializes latex field
+	InDial.MQ = new MQField(InDial.elements.mqField, () => {
+		if (typeof InDial.MQ === 'object') {
+			// live updates would go here
+		}
+	});
+	
+	InDial.elements.mqDialBack.addEventListener('click', () => {
+		InDial.hide();
+		if (typeof InDial.onChange === 'function') {
+			InDial.onChange();
+		}
+	});
+	
+	InDial.elements.mqField.addEventListener('keypress', (e) => {
+		if (e.keyCode === 13) {
+			InDial.hide();
+			if (typeof InDial.onChange === 'function') {
+				InDial.onChange();
+			}
+	
+		}
+	});
+	
+	InDial.elements.mqField.addEventListener('click', (e) => {
+		e.stopPropagation();
+	});
+	
+	InDial.isInitialized = true;
+	return 0;
+};
+
+Object.assign(InDial, {
+	show : function (value, coords, callback) {
+		InDial.onChange = callback;
+		InDial.MQ.mathField.latex(value || '');
+		
+		InDial.elements.mqContainer.style.left = `${coords.x}px`;
+		InDial.elements.mqContainer.style.top = `${coords.y}px`;
+		InDial.elements.mqContainer.style.width = `${coords.width}px`;
+		
+		InDial.elements.mqDialBack.style.visibility = 'visible';
+		InDial.elements.mqDialBack.style.opacity = '1';
+	},
+	hide : function () {
+		InDial.elements.mqDialBack.style.visibility = 'hidden';
+		InDial.elements.mqDialBack.style.opacity = '0';
+	}
+});
+
+InDial.initialize();
 
 function customPropMenu () {
 	/***************************************************************************/
 	// DATA AND OBJECTS
-
+	
 	//Object tree of stylesheet
 	const guiCSS = {
 		controls : [{
@@ -86,38 +239,6 @@ function customPropMenu () {
 			.sli-dcg-icon-align {
 				text-align: center;
 				line-height: 2em;
-			}
-			
-			.sli-mq-container {
-				position: fixed;
-				left: 0;
-				top: 0;
-				z-index:99;
-				visibility: hidden;
-				opacity: 0;
-				transition: opacity 0.1s ease-out;
-				
-				font-size: 13pt;
-			}
-			
-			.sli-mq-field {
-				background: white;
-				width: 100%;
-				padding: 8px;
-			}
-			
-			.sli-page-shade {
-			  position: fixed;
-			  left: 0;
-			  top: 0;
-			  width: 100%;
-			  height: 100%;
-			  z-index: 97;
-			  padding: 10px;
-			  background: rgba(0,0,0,0.4);
-			  visibility: hidden;
-			  opacity: 0;
-			  transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
 			}
 			`
 		}]
@@ -159,27 +280,6 @@ function customPropMenu () {
 					]
 				}]
 			}]
-		}, {
-			/*****************************/
-			name : 'div',
-			id : 'mqContainer',
-			classes : [
-				'sli-mq-container'
-			],
-			controls : [{
-				name : 'span',
-				id : 'mqField',
-				classes : [
-					'sli-mq-field'
-				]
-			}]
-		}, {
-			/*****************************/
-			name: 'div',
-			id: 'dialogBackground',
-			classes: [
-				'sli-page-shade'
-			],
 		}]
 	};
 
@@ -242,6 +342,27 @@ function customPropMenu () {
 	bindListeners(buttonList, 'click', () => {
 		propMenuActive = false;
 		showPropMenu(false);
+	});
+	
+	ctrlNodes.opacityButton.addEventListener('click', () => {
+		let expr = Calc.getState().expressions.list;
+		let idx = getCurrentIndex();
+		let expElem = getElementsByAttValue(document.body, '.dcg-expressionitem', 'expr-id', currMenuItem.id)[0].getBoundingClientRect();
+		
+		if (currMenuItem.type === 'expression' && expr[idx].fill === true) {
+			InDial.show(
+				expr[idx].stringFillOpacity,
+				{x: expElem.right, y: expElem.top, width: 400},
+				() => {
+					Calc.setExpression({
+						id: currMenuItem.id,
+						fillOpacity: InDial.MQ.mathField.latex()
+					});
+				}
+			);
+			
+		}
+		
 	});
 	
 	// event that triggers when user selects a color from color picker
