@@ -45,10 +45,6 @@ var Desmos;
 	}
 })();
 
-// TODO: add a function that initializes the dialog items and then returns an object that controls the behavior of the elements and has a function that returns the result of the dialog.
-// IDEA: Instead of doing what the above comment says, it might be a better idea to embed the MathQuill field inside the floating menu and prevent it from going away as long as the field has focus.
-
-
 /***************************************************************************/
 // DIALOG DATA STRUCTURE
 
