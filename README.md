@@ -4,11 +4,11 @@ This is a web-script designed to provide a graphical interface to access feature
 
 ```javascript
 state = Calc.getState();
-state.expressions.list[i - 1].color = "#8fb3fc";
+state.expressions.list[i - 1].color = "#000000";
 Calc.setState(state, {allowUndo: true});
 ```
 
-where `i` is the number or index of your graph expression. Probably you can do this once without problem, but if you are setting up a graph for artistic purposes, it can get tedious rather quickly.
+where `i` is the number or index of your graph expression and the string assigned any valid HTML color. Probably you can do this once without problem, but if you are setting up a graph for artistic purposes where you are constantly changing colors, it can get tedious rather quickly.
 
 The list of features currently supported by the script are:
 
@@ -18,7 +18,7 @@ The list of features currently supported by the script are:
 
 ## Getting Started - Users
 
-The installation process is a breeze with the help of a browser extension, and automatic updates are enabled using GitHug Gist for hosting. Here is the process.
+The installation process is a breeze with the help of a browser extension, and automatic updates are enabled using GitHub Gist for hosting. The process is as follows:
 
 ### Prerequisites
 
