@@ -145,6 +145,9 @@ InDial.initialize = function () {
 	
 	if (InDial.isInitialized) return 1;
 	
+	// variable keeps track of click behavior to avoid stopping event propagation on MathQuill field (doing so breaks it).
+	let mouseTrack = 0;
+	
 	insertNodes(guiCSS, document.head, InDial.stylesheet);
 	insertNodes(guiElements, document.body, InDial.elements);
 	
@@ -155,11 +158,21 @@ InDial.initialize = function () {
 		}
 	});
 	
-	InDial.elements.mqDialBack.addEventListener('click', () => {
-		InDial.hide();
-		if (typeof InDial.onChange === 'function') {
-			InDial.onChange();
+	InDial.elements.mqDialBack.addEventListener('mousedown', () => {
+		if (!mouseTrack) mouseTrack = 2;
+	});
+	
+	InDial.elements.mqDialBack.addEventListener('mouseup', () => {
+		
+		if (mouseTrack === 2) {
+			InDial.hide();
+			if (typeof InDial.onChange === 'function') {
+				InDial.onChange();
+			}
 		}
+		
+		mouseTrack = 0;
+		
 	});
 	
 	InDial.elements.mqField.addEventListener('keypress', (e) => {
@@ -172,9 +185,19 @@ InDial.initialize = function () {
 		}
 	});
 	
-	InDial.elements.mqField.addEventListener('click', (e) => {
-		e.stopPropagation();
-	});
+	bindListeners([
+		InDial.elements.mqField,
+		InDial.elements.mqContainer
+	], 'mousedown', (e) => {
+		mouseTrack = 1;
+	})
+	
+	bindListeners([
+		InDial.elements.mqField,
+		InDial.elements.mqContainer
+	], 'mouseup', (e) => {
+		mouseTrack = 0;
+	})
 	
 	InDial.isInitialized = true;
 	return 0;
@@ -366,7 +389,9 @@ function customPropMenu () {
 	ctrlNodes.opacityButton.addEventListener('click', () => {
 		let expr = Calc.getState().expressions.list;
 		let idx = getCurrentIndex();
-		let expElem = getElementsByAttValue(document.body, '.dcg-expressionitem', 'expr-id', currMenuItem.id)[0].getBoundingClientRect();
+		let expElem = findExprElementById(
+			currMenuItem.id
+		)[0].getBoundingClientRect();
 		
 		if (
 			currMenuItem.type === 'expression' &&
@@ -391,7 +416,9 @@ function customPropMenu () {
 	ctrlNodes.thiccButton.addEventListener('click', () => {
 		let expr = Calc.getState().expressions.list; 
 		let idx = getCurrentIndex();
-		let expElem = getElementsByAttValue(document.body, '.dcg-expressionitem', 'expr-id', currMenuItem.id)[0].getBoundingClientRect();
+		let expElem = findExprElementById(
+			currMenuItem.id
+		)[0].getBoundingClientRect();
 		
 		InDial.show(
 			expr[idx].lineWidth,
