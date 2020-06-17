@@ -215,7 +215,7 @@ function customPropMenu () {
 			textContent : `
 			.sli-prop-menu {
 				display: grid;
-				grid-template-columns: repeat(2, 1fr);
+				grid-template-columns: repeat(3, 1fr);
 				gap: 8px;
 				
 				position: fixed !important;
@@ -279,6 +279,21 @@ function customPropMenu () {
 						'dcg-icon-shaded-inequality-dash'
 					]
 				}]
+			}, {
+				name : 'div',
+				id : 'thiccButton',
+				classes : [
+					'sli-menu-button',
+					'dcg-btn-flat-gray',
+					'sli-dcg-icon-align'
+				],
+				controls : [{
+					name : 'i',
+					id : 'opacityIcon',
+					classes : [
+						'dcg-icon-pencil'
+					]
+				}]
 			}]
 		}]
 	};
@@ -322,7 +337,11 @@ function customPropMenu () {
 	/***************************************************************************/
 	// EVENTS
 	
-	let buttonList = [ctrlNodes.colorButton, ctrlNodes.opacityButton];
+	let buttonList = [
+		ctrlNodes.colorButton,
+		ctrlNodes.opacityButton,
+		ctrlNodes.thiccButton
+	];
 	
 	// hides button when menu is gone and the mouse left the button client area
 	bindListeners(buttonList, 'mouseleave', () => {
@@ -349,7 +368,11 @@ function customPropMenu () {
 		let idx = getCurrentIndex();
 		let expElem = getElementsByAttValue(document.body, '.dcg-expressionitem', 'expr-id', currMenuItem.id)[0].getBoundingClientRect();
 		
-		if (currMenuItem.type === 'expression' && expr[idx].fill === true) {
+		if (
+			currMenuItem.type === 'expression' &&
+			(expr[idx].fill === true ||
+			expr[idx].latex.indexOf('\\operatorname{polygon}') !== -1)
+		) {
 			InDial.show(
 				expr[idx].stringFillOpacity,
 				{x: expElem.right, y: expElem.top, width: 400},
@@ -362,6 +385,25 @@ function customPropMenu () {
 			);
 			
 		}
+		
+	});
+	
+	ctrlNodes.thiccButton.addEventListener('click', () => {
+		let expr = Calc.getState().expressions.list; 
+		let idx = getCurrentIndex();
+		let expElem = getElementsByAttValue(document.body, '.dcg-expressionitem', 'expr-id', currMenuItem.id)[0].getBoundingClientRect();
+		
+		InDial.show(
+			expr[idx].lineWidth,
+			{x: expElem.right, y: expElem.top, width: 400},
+			() => {
+				let state = Calc.getState();
+				state.expressions.list[getCurrentIndex()].lineWidth = InDial.MQ.mathField.latex();
+				Calc.setState(state, {
+					allowUndo : true
+				});
+			}
+		);
 		
 	});
 	
