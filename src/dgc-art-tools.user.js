@@ -186,14 +186,14 @@ InDial.initialize = function () {
 		InDial.elements.mqContainer
 	], 'mousedown', (e) => {
 		mouseTrack = 1;
-	})
+	});
 	
 	bindListeners([
 		InDial.elements.mqField,
 		InDial.elements.mqContainer
 	], 'mouseup', (e) => {
 		mouseTrack = 0;
-	})
+	});
 	
 	InDial.isInitialized = true;
 	return 0;
