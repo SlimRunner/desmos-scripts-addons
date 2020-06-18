@@ -169,7 +169,7 @@ InDial.initialize = function () {
 		
 		mouseTrack = 0;
 		
-	});
+	});``
 	
 	InDial.elements.mqField.addEventListener('keypress', (e) => {
 		if (e.keyCode === 13) {
@@ -463,6 +463,7 @@ function customPropMenu () {
 			}
 			
 			Calc.observeEvent('change', () => {
+				prepareMenu();
 				ctNodes.colorButton.value = getHexColor(getCurrentColor());
 			});
 			
