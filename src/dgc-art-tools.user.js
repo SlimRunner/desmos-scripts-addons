@@ -169,7 +169,7 @@ InDial.initialize = function () {
 		
 		mouseTrack = 0;
 		
-	});``
+	});
 	
 	InDial.elements.mqField.addEventListener('keypress', (e) => {
 		if (e.keyCode === 13) {
@@ -277,7 +277,8 @@ function customPropMenu () {
 				name : 'input',
 				id : 'colorButton',
 				attributes: [
-					{name: 'type', value: 'color'}
+					{name: 'type', value: 'color'},
+					{name: 'title', value: 'Color Picker'}
 				],
 				classes : [
 					'sli-menu-button',
@@ -286,6 +287,9 @@ function customPropMenu () {
 			}, {
 				name : 'div',
 				id : 'opacityButton',
+				attributes: [
+					{name: 'title', value: 'Opacity'}
+				],
 				classes : [
 					'sli-menu-button',
 					'dcg-btn-flat-gray',
@@ -295,12 +299,15 @@ function customPropMenu () {
 					name : 'i',
 					id : 'opacityIcon',
 					classes : [
-						'dcg-icon-shaded-inequality-dash'
+						'dcg-icon-shaded-inequality-shade2'
 					]
 				}]
 			}, {
 				name : 'div',
 				id : 'thiccButton',
+				attributes: [
+					{name: 'title', value: 'Line Width'}
+				],
 				classes : [
 					'sli-menu-button',
 					'dcg-btn-flat-gray',
