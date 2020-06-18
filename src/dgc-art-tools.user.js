@@ -389,23 +389,16 @@ function customPropMenu () {
 			currMenuItem.id
 		)[0].getBoundingClientRect();
 		
-		if (
-			currMenuItem.type === 'expression' &&
-			(expr[idx].fill === true ||
-			expr[idx].latex.indexOf('\\operatorname{polygon}') !== -1)
-		) {
-			InDial.show(
-				expr[idx].stringFillOpacity,
-				{x: expElem.right, y: expElem.top, width: 400},
-				() => {
-					Calc.setExpression({
-						id: currMenuItem.id,
-						fillOpacity: InDial.MQ.mathField.latex()
-					});
-				}
-			);
-			
-		}
+		InDial.show(
+			expr[idx].stringFillOpacity,
+			{x: expElem.right, y: expElem.top, width: 400},
+			() => {
+				Calc.setExpression({
+					id: currMenuItem.id,
+					fillOpacity: InDial.MQ.mathField.latex()
+				});
+			}
+		);
 		
 	});
 	
