@@ -327,9 +327,9 @@ function customPropMenu () {
 	insertNodes(guiCSS, document.head, styleNode);
 
 	// initializes an array to hold the DOM objects (controls)
-	let ctrlNodes = [];
+	let ctNodes = [];
 	// furnishes the control list and also adds the elements to the DOM
-	insertNodes(guiElements, document.body, ctrlNodes);
+	insertNodes(guiElements, document.body, ctNodes);
 	
 	let currMenuItem = null;
 	let currMenuElement = null;
@@ -357,9 +357,9 @@ function customPropMenu () {
 	// EVENTS
 	
 	let buttonList = [
-		ctrlNodes.colorButton,
-		ctrlNodes.opacityButton,
-		ctrlNodes.thiccButton
+		ctNodes.colorButton,
+		ctNodes.opacityButton,
+		ctNodes.thiccButton
 	];
 	
 	// hides button when menu is gone and the mouse left the button client area
@@ -382,7 +382,7 @@ function customPropMenu () {
 		showPropMenu(false);
 	});
 	
-	ctrlNodes.opacityButton.addEventListener('click', () => {
+	ctNodes.opacityButton.addEventListener('click', () => {
 		let expr = Calc.getState().expressions.list;
 		let idx = getCurrentIndex();
 		let expElem = findExprElementById(
@@ -409,7 +409,7 @@ function customPropMenu () {
 		
 	});
 	
-	ctrlNodes.thiccButton.addEventListener('click', () => {
+	ctNodes.thiccButton.addEventListener('click', () => {
 		let expr = Calc.getState().expressions.list; 
 		let idx = getCurrentIndex();
 		let expElem = findExprElementById(
@@ -431,16 +431,16 @@ function customPropMenu () {
 	});
 	
 	// event that triggers when user selects a color from color picker
-	ctrlNodes.colorButton.addEventListener('change', () => {
+	ctNodes.colorButton.addEventListener('change', () => {
 		if (currMenuItem.type === 'expression') {
 			Calc.setExpression({
 				id: currMenuItem.id,
-				color: ctrlNodes.colorButton.value
+				color: ctNodes.colorButton.value
 			});
 		} else if (currMenuItem.type === 'table') {
 			let expr = Calc.getExpressions();
 			
-			expr[getCurrentIndex()].columns[currMenuItem.colIndex].color = ctrlNodes.colorButton.value;
+			expr[getCurrentIndex()].columns[currMenuItem.colIndex].color = ctNodes.colorButton.value;
 			
 			Calc.setExpression({
 				type:'table',
@@ -457,11 +457,12 @@ function customPropMenu () {
 	// shows or hides button to access custom properties
 	function showPropMenu(value) {
 		if (value) {
-			ctrlNodes.propMenu.style.visibility = 'visible';
-			ctrlNodes.propMenu.style.opacity = '1';
+			prepareMenu();
+			ctNodes.propMenu.style.visibility = 'visible';
+			ctNodes.propMenu.style.opacity = '1';
 			
 			try {
-				ctrlNodes.colorButton.value = getHexColor(getCurrentColor());
+				ctNodes.colorButton.value = getHexColor(getCurrentColor());
 			} catch (e) {
 				console.log(e.message);
 			} finally {
@@ -469,12 +470,12 @@ function customPropMenu () {
 			}
 			
 			Calc.observeEvent('change', () => {
-				ctrlNodes.colorButton.value = getHexColor(getCurrentColor());
+				ctNodes.colorButton.value = getHexColor(getCurrentColor());
 			});
 			
 		} else {
-			ctrlNodes.propMenu.style.visibility = 'hidden';
-			ctrlNodes.propMenu.style.opacity = '0';
+			ctNodes.propMenu.style.visibility = 'hidden';
+			ctNodes.propMenu.style.opacity = '0';
 			
 			Calc.unobserveEvent('change');
 		}
@@ -484,14 +485,44 @@ function customPropMenu () {
 		const BORDER_SIZE = 2;
 		
 		let mnu = currMenuElement.getBoundingClientRect();
-		let btn = ctrlNodes.colorButton.getBoundingClientRect();
+		let btn = ctNodes.colorButton.getBoundingClientRect();
 		
 		let x = mnu.left + mnu.width + GUI_GAP;
 		let y = mnu.top;
 		
-		ctrlNodes.propMenu.style.left = `${x}px`;
-		ctrlNodes.propMenu.style.top = `${y}px`;
+		ctNodes.propMenu.style.left = `${x}px`;
+		ctNodes.propMenu.style.top = `${y}px`;
 	} // !setMenuLocation ()
+	
+	function isFillable(exprItem) {
+		return exprItem.type === 'expression' &&
+			(
+				exprItem.fill === true ||
+				exprItem.latex.indexOf('\\operatorname{polygon}') !== -1
+			);
+	}
+	
+	function prepareMenu() {
+		let expr = Calc.getState().expressions.list[getCurrentIndex()];
+		let elemSize = 0;
+		
+		if (isFillable(expr)) {
+			ctNodes.opacityButton.style.display = 'block';
+			++elemSize;
+		} else {
+			ctNodes.opacityButton.style.display = 'none';
+		}
+		
+		// we can simplify size for now
+		elemSize += 2;
+		
+		/*
+		// otherwise get number of childs
+		let elemSize = Array.from(ctNodes.propMenu.childNodes).filter(elem => elem.style.display !== 'none').length;
+		*/
+		
+		ctNodes.propMenu.style.gridTemplateColumns = `repeat(${elemSize}, 1fr)`;
+	}
 	
 	/***************************************************************************/
 	// DOM MANAGEMENT
@@ -597,11 +628,11 @@ function customPropMenu () {
 	
 	function findExprElementById(id) {
 		return getElementsByAttValue(document, '.dcg-expressionitem', 'expr-id', id);
-	}
+	} // !findExprElementById ()
 	
 	function findSelectedExprElement() {
 		return getElementsByAttribute(document, '.dcg-expressionitem.dcg-selected', 'expr-id');
-	}
+	} // !findSelectedExprElement ()
 	
 	function getCurrentIndex () {
 		let calcExpressions = Calc.getExpressions();
