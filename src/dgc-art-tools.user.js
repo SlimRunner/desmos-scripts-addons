@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.1.2
+// @version  	1.1.3
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -61,6 +61,7 @@ InDial.initialize = function () {
 			}
 			
 			.sli-mq-field {
+				display: none;
 				background: white;
 				width: 100%;
 				padding: 8px;
@@ -178,10 +179,12 @@ Object.assign(InDial, {
 		InDial.elements.mqContainer.style.top = `${coords.y}px`;
 		InDial.elements.mqContainer.style.width = `${coords.width}px`;
 		
+		InDial.elements.mqField.style.display = 'block';
 		InDial.elements.mqDialBack.style.visibility = 'visible';
 		InDial.elements.mqDialBack.style.opacity = '1';
 	},
 	hide : function () {
+		InDial.elements.mqField.style.display = 'none';
 		InDial.elements.mqDialBack.style.visibility = 'hidden';
 		InDial.elements.mqDialBack.style.opacity = '0';
 	}
