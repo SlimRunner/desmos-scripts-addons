@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.1.1
+// @version  	1.1.2
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -14,37 +14,6 @@
 
 var Calc;
 var Desmos;
-
-(function loadCheck () {
-	
-	if (typeof attempts === 'undefined') {
-		this.attempts = 0;
-	} else {
-		this.attempts++;
-	}
-	
-	if (
-		typeof window.wrappedJSObject.Calc === 'undefined' ||
-		typeof window.wrappedJSObject.Desmos === 'undefined'
-	) {
-		
-		if (this.attempts < 10) {
-			console.log('Loading Desmos objects...');
-			window.setTimeout(loadCheck, 1000);
-		} else {
-			console.log("Abort: The script couldn't load properly :/");
-		}
-		
-	} else {
-		Calc = window.wrappedJSObject.Calc;
-		Desmos = window.wrappedJSObject.Desmos;
-		console.log('Desmos is ready ✔️');
-		customPropMenu();
-		InDial.initialize();
-		console.log('Custom art tools were loaded properly');
-		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
-	}
-})();
 
 /***************************************************************************/
 // DIALOG DATA STRUCTURE
@@ -1001,3 +970,37 @@ function parseNamedColor(input) {
 		throw Error(input + ' is not a supported named color');
 	}
 } // !parseNamedColor ()
+
+/***************************************************************************/
+// SCRIPT INITIALIZATION
+
+(function loadCheck () {
+	
+	if (typeof attempts === 'undefined') {
+		this.attempts = 0;
+	} else {
+		this.attempts++;
+	}
+	
+	if (
+		typeof window.wrappedJSObject.Calc === 'undefined' ||
+		typeof window.wrappedJSObject.Desmos === 'undefined'
+	) {
+		
+		if (this.attempts < 10) {
+			console.log('Loading Desmos objects...');
+			window.setTimeout(loadCheck, 1000);
+		} else {
+			console.log("Abort: The script couldn't load properly :/");
+		}
+		
+	} else {
+		Calc = window.wrappedJSObject.Calc;
+		Desmos = window.wrappedJSObject.Desmos;
+		console.log('Desmos is ready ✔️');
+		customPropMenu();
+		InDial.initialize();
+		console.log('Custom art tools were loaded properly');
+		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
+	}
+})();
