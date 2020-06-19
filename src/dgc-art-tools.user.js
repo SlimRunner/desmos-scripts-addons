@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.1.0
+// @version  	1.1.1
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -40,6 +40,7 @@ var Desmos;
 		Desmos = window.wrappedJSObject.Desmos;
 		console.log('Desmos is ready ✔️');
 		customPropMenu();
+		InDial.initialize();
 		console.log('Custom art tools were loaded properly');
 		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
 	}
@@ -216,8 +217,6 @@ Object.assign(InDial, {
 		InDial.elements.mqDialBack.style.opacity = '0';
 	}
 });
-
-InDial.initialize();
 
 function customPropMenu () {
 	/***************************************************************************/
