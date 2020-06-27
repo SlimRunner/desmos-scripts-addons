@@ -550,22 +550,17 @@ function customPropMenu () {
 	
 	function prepareMenu() {
 		let expr = Calc.getState().expressions.list[getCurrentIndex()];
-		let elemSize = 0;
 		
 		if (isFillable(expr)) {
 			ctNodes.opacityButton.style.display = 'block';
-			++elemSize;
 		} else {
 			ctNodes.opacityButton.style.display = 'none';
 		}
 		
-		// we can simplify size for now
-		elemSize += 2;
-		
-		/*
-		// otherwise get number of childs
-		let elemSize = Array.from(ctNodes.propMenu.childNodes).filter(elem => elem.style.display !== 'none').length;
-		*/
+		// get number of displayed childs
+		let elemSize = Math.min(3, Array.from (
+			ctNodes.propMenu.childNodes
+		).filter(elem => elem.style.display !== 'none').length);
 		
 		ctNodes.propMenu.style.gridTemplateColumns = `repeat(${elemSize}, 1fr)`;
 	}
