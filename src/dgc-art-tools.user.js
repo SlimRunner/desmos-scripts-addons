@@ -1095,7 +1095,7 @@ function parseNamedColor(input) {
 	) {
 		
 		if (this.attempts < 10) {
-			console.log('Loading Desmos objects...');
+			console.log('Desmos is loading...');
 			window.setTimeout(loadCheck, 1000);
 		} else {
 			console.log("Abort: The script couldn't load properly :/");
