@@ -1105,8 +1105,8 @@ function parseNamedColor(input) {
 		Calc = window.wrappedJSObject.Calc;
 		Desmos = window.wrappedJSObject.Desmos;
 		console.log('Desmos is ready ✔️');
-		customPropMenu();
 		InDial.initialize();
+		customPropMenu();
 		console.log('Custom art tools were loaded properly');
 		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
 	}
