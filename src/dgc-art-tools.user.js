@@ -30,6 +30,8 @@ function MQField (elem, editCallback) {
 		}
 	});
 }
+// !MQField ()
+
 
 // Dialog for LaTeX input
 let InDial = {};
@@ -514,7 +516,8 @@ function customPropMenu () {
 			
 			Calc.unobserveEvent('change');
 		}
-	} // !showPropMenu ()
+	}
+	// !showPropMenu ()
 	
 	
 	
@@ -529,7 +532,8 @@ function customPropMenu () {
 		
 		ctNodes.propMenu.style.left = `${x}px`;
 		ctNodes.propMenu.style.top = `${y}px`;
-	} // !setMenuLocation ()
+	}
+	// !setMenuLocation ()
 	
 	
 	
@@ -539,7 +543,8 @@ function customPropMenu () {
 				exprItem.fill === true ||
 				exprItem.latex.indexOf('\\operatorname{polygon}') !== -1
 			);
-	} // !isFillable ()
+	}
+	// !isFillable ()
 	
 	
 	
@@ -563,7 +568,8 @@ function customPropMenu () {
 		*/
 		
 		ctNodes.propMenu.style.gridTemplateColumns = `repeat(${elemSize}, 1fr)`;
-	} // !prepareMenu ()
+	}
+	// !prepareMenu ()
 	
 	
 	
@@ -667,23 +673,35 @@ function customPropMenu () {
 			
 		}
 		
-	} // !hookMenu ()
+	}
+	// !hookMenu ()
+	
+	
 	
 	function findExprElementById(id) {
 		return getElementsByAttValue(document, '.dcg-expressionitem', 'expr-id', id);
-	} // !findExprElementById ()
+	}
+	// !findExprElementById ()
+	
+	
 	
 	function findSelectedExprElement() {
 		return getElementsByAttribute(document, '.dcg-expressionitem.dcg-selected', 'expr-id');
-	} // !findSelectedExprElement ()
+	}
+	// !findSelectedExprElement ()
+	
+	
 	
 	function getCurrentIndex () {
 		let calcExpressions = Calc.getExpressions();
 		return calcExpressions.findIndex((elem) => {
 			return elem.id === currMenuItem.id;
 		});
-	} // !getCurrentIndex ()
-
+	}
+	// !getCurrentIndex ()
+	
+	
+	
 	function getCurrentColor() {
 		let calcExpressions = Calc.getExpressions();
 		let index = calcExpressions.findIndex((elem) => {
@@ -698,7 +716,10 @@ function customPropMenu () {
 			
 		}
 		
-	} // !getCurrentColor ()
+	}
+	// !getCurrentColor ()
+	
+	
 	
 	// finds element that contains the color menu in Desmos
 	function findOptionsMenu() {
@@ -713,9 +734,11 @@ function customPropMenu () {
 			
 		}
 		
-	} // !findOptionsMenu ()
+	}
+	// !findOptionsMenu ()
 	
-} // !colorPicker ()
+}
+// !customPropMenu ()
 
 /***************************************************************************/
 // HELPER FUNCTIONS
@@ -749,7 +772,8 @@ function insertNodes(jsonTree, parentNode, outControls) {
 		
 	} // !for
 	
-} // !insertNodes ()
+}
+// !insertNodes ()
 
 
 
@@ -758,7 +782,8 @@ function bindListeners(elemList, eventName, callback) {
 	for (var elem of elemList) {
 		elem.addEventListener(eventName, callback);
 	}
-} // !bindListeners ()
+}
+// !bindListeners ()
 
 
 
@@ -778,7 +803,8 @@ function seekAttribute(parent, query, attName) {
 	}
 	
 	return output;
-} // !seekAttribute ()
+}
+// !seekAttribute ()
 
 
 
@@ -799,6 +825,7 @@ function getElementsByAttribute(parent, query, attName) {
 	
 	return output;
 }
+// !getElementsByAttribute ()
 
 
 
@@ -821,6 +848,7 @@ function getElementsByAttValue(parent, query, attName, val) {
 	
 	return output;
 }
+// !getElementsByAttValue ()
 
 
 
@@ -866,7 +894,8 @@ function getHexColor (input) {
 	
 	// return value for named color or throw error
 	return parseNamedColor(input);
-} // !getHexColor ()
+}
+// !getHexColor ()
 
 
 
@@ -881,7 +910,8 @@ function hex6Pad(value) {
 	} else {
 		return value;
 	}
-} // !hex6Pad ()
+}
+// !hex6Pad ()
 
 
 
@@ -1043,7 +1073,10 @@ function parseNamedColor(input) {
 	} else {
 		throw Error(input + ' is not a supported named color');
 	}
-} // !parseNamedColor ()
+}
+// !parseNamedColor ()
+
+
 
 /***************************************************************************/
 // SCRIPT INITIALIZATION
