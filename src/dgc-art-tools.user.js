@@ -362,33 +362,33 @@ function customPropMenu () {
 	// INITIALIZATION
 
 	const GUI_GAP = 8;
-
+	
+	// initializes arrays to hold the DOM objects (controls and stylesheet)
 	let styleNode = [];
+	let ctNodes = [];
+	
 	// adds a stylesheet to the head element
 	insertNodes(guiCSS, document.head, styleNode);
-
-	// initializes an array to hold the DOM objects (controls)
-	let ctNodes = [];
 	// furnishes the control list and also adds the elements to the DOM
 	insertNodes(guiElements, document.body, ctNodes);
 	
-	let currMenuItem = null;
-	let currMenuElement = null;
-	let propMenuActive = false;
-	let desmosMenuActive = false;
+	let activeExpr = null;
+	let activeExprElem = null;
+	let isMenuActive = false;
+	let isDesmosMenuActive = false;
 	
 	// callback that executes when the color menu shows up
 	hookMenu( (itemElem, expItem, isFound) => {
 		
-		desmosMenuActive = isFound;
+		isDesmosMenuActive = isFound;
 		
 		if (isFound) {
-			currMenuItem = expItem;
-			currMenuElement = itemElem;
+			activeExpr = expItem;
+			activeExprElem = itemElem;
 			setMenuLocation();
 		}
 		
-		if (!propMenuActive) {
+		if (!isMenuActive) {
 			showPropMenu(isFound);
 		}
 		
@@ -405,8 +405,8 @@ function customPropMenu () {
 	
 	// hides button when menu is gone and the mouse left the button client area
 	bindListeners(buttonList, 'mouseleave', () => {
-		if (!desmosMenuActive) {
-			propMenuActive = false;
+		if (!isDesmosMenuActive) {
+			isMenuActive = false;
 			showPropMenu(false);
 		}
 		
@@ -414,12 +414,12 @@ function customPropMenu () {
 	
 	// changes button state to active so that button doesn't go away with menu
 	bindListeners(buttonList, 'mousedown', () => {
-		propMenuActive = true;
+		isMenuActive = true;
 	});
 	
 	// performs click changes button state to false and hides button
 	bindListeners(buttonList, 'click', () => {
-		propMenuActive = false;
+		isMenuActive = false;
 		showPropMenu(false);
 	});
 	
@@ -427,7 +427,7 @@ function customPropMenu () {
 		let expr = Calc.getState().expressions.list;
 		let idx = getCurrentIndex();
 		let expElem = findExprElementById(
-			currMenuItem.id
+			activeExpr.id
 		)[0].getBoundingClientRect();
 		
 		InDial.show(
@@ -436,7 +436,7 @@ function customPropMenu () {
 			(dialRes) => {
 				if (dialRes === InDial.DialogResult.Cancel) return 0;
 				Calc.setExpression({
-					id: currMenuItem.id,
+					id: activeExpr.id,
 					fillOpacity: InDial.MQ.mathField.latex()
 				});
 			}
@@ -448,7 +448,7 @@ function customPropMenu () {
 		let expr = Calc.getState().expressions.list; 
 		let idx = getCurrentIndex();
 		let expElem = findExprElementById(
-			currMenuItem.id
+			activeExpr.id
 		)[0].getBoundingClientRect();
 		
 		InDial.show(
@@ -468,19 +468,19 @@ function customPropMenu () {
 	
 	// event that triggers when user selects a color from color picker
 	ctNodes.colorButton.addEventListener('change', () => {
-		if (currMenuItem.type === 'expression') {
+		if (activeExpr.type === 'expression') {
 			Calc.setExpression({
-				id: currMenuItem.id,
+				id: activeExpr.id,
 				color: ctNodes.colorButton.value
 			});
-		} else if (currMenuItem.type === 'table') {
+		} else if (activeExpr.type === 'table') {
 			let expr = Calc.getExpressions();
 			
-			expr[getCurrentIndex()].columns[currMenuItem.colIndex].color = ctNodes.colorButton.value;
+			expr[getCurrentIndex()].columns[activeExpr.colIndex].color = ctNodes.colorButton.value;
 			
 			Calc.setExpression({
 				type:'table',
-				id: currMenuItem.id,
+				id: activeExpr.id,
 				columns: expr[getCurrentIndex()].columns
 			});
 		}
@@ -524,7 +524,7 @@ function customPropMenu () {
 	function setMenuLocation() {
 		const BORDER_SIZE = 2;
 		
-		let mnu = currMenuElement.getBoundingClientRect();
+		let mnu = activeExprElem.getBoundingClientRect();
 		let btn = ctNodes.colorButton.getBoundingClientRect();
 		
 		let x = mnu.left + mnu.width + GUI_GAP;
@@ -690,7 +690,7 @@ function customPropMenu () {
 	function getCurrentIndex () {
 		let calcExpressions = Calc.getExpressions();
 		return calcExpressions.findIndex((elem) => {
-			return elem.id === currMenuItem.id;
+			return elem.id === activeExpr.id;
 		});
 	}
 	// !getCurrentIndex ()
@@ -700,14 +700,14 @@ function customPropMenu () {
 	function getCurrentColor() {
 		let calcExpressions = Calc.getExpressions();
 		let index = calcExpressions.findIndex((elem) => {
-			return elem.id === currMenuItem.id;
+			return elem.id === activeExpr.id;
 		});
 		
-		if (currMenuItem.type === 'expression') {
+		if (activeExpr.type === 'expression') {
 			return calcExpressions[index].color;
 			
-		} else if (currMenuItem.type === 'table') {
-			return calcExpressions[index].columns[currMenuItem.colIndex].color;
+		} else if (activeExpr.type === 'table') {
+			return calcExpressions[index].columns[activeExpr.colIndex].color;
 			
 		}
 		
