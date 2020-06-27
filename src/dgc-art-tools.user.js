@@ -515,7 +515,9 @@ function customPropMenu () {
 			Calc.unobserveEvent('change');
 		}
 	} // !showPropMenu ()
-
+	
+	
+	
 	function setMenuLocation() {
 		const BORDER_SIZE = 2;
 		
@@ -529,13 +531,17 @@ function customPropMenu () {
 		ctNodes.propMenu.style.top = `${y}px`;
 	} // !setMenuLocation ()
 	
+	
+	
 	function isFillable(exprItem) {
 		return exprItem.type === 'expression' &&
 			(
 				exprItem.fill === true ||
 				exprItem.latex.indexOf('\\operatorname{polygon}') !== -1
 			);
-	}
+	} // !isFillable ()
+	
+	
 	
 	function prepareMenu() {
 		let expr = Calc.getState().expressions.list[getCurrentIndex()];
@@ -557,7 +563,9 @@ function customPropMenu () {
 		*/
 		
 		ctNodes.propMenu.style.gridTemplateColumns = `repeat(${elemSize}, 1fr)`;
-	}
+	} // !prepareMenu ()
+	
+	
 	
 	/***************************************************************************/
 	// DOM MANAGEMENT
