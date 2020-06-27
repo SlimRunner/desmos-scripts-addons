@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.1.3
+// @version  	1.1.4
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -12,26 +12,27 @@
 
 /*jshint esversion: 6 */
 
+// Global variables imported from host (initialized in loadCheck)
 var Calc;
 var Desmos;
 
 /***************************************************************************/
 // DIALOG DATA STRUCTURE
 
-function InDial() {
-	throw Error('This object cannot be instantiated');
-}
-
+// Object that manages a MathQuill field and its bounded element
 function MQField (elem, editCallback) {
 	this.boundElem = elem;
 	this.mathField = Desmos.MathQuill.MathField(elem, {
 		handlers: {
-			edit: function() { // useful event handlers
+			edit: function () {
 				editCallback();
 			}
 		}
 	});
 }
+
+// Dialog for LaTeX input
+let InDial = {};
 
 InDial.stylesheet = [];
 InDial.elements = [];
@@ -39,138 +40,194 @@ InDial.isInitialized = false;
 InDial.onChange = null;
 InDial.MQ = null;
 
-InDial.initialize = function () {
-	const guiCSS = {
-		controls : [{
-			name : 'style',
-			id : 'mqDialogSheet',
-			attributes : [
-				{name: 'type', value: 'text/css'}
-			],
-			textContent : `
-			.sli-mq-container {
-				position: fixed;
-				left: 0;
-				top: 0;
-				/* z-index:99; */
-				/* visibility: hidden; */
-				/* opacity: 0; */
-				/* transition: opacity 0.1s ease-out; */
-				
-				font-size: 13pt;
-			}
-			
-			.sli-mq-field {
-				display: none;
-				background: white;
-				width: 100%;
-				padding: 8px;
-			}
-			
-			.sli-mq-page-shade {
-			  position: fixed;
-			  left: 0;
-			  top: 0;
-			  width: 100%;
-			  height: 100%;
-			  z-index: 99;
-			  padding: 10px;
-			  background: rgba(0,0,0,0.4);
-			  visibility: hidden;
-			  opacity: 0;
-			  transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
-			}
-			`
-		}]
-	};
+InDial.DialogResult = Object.defineProperties({}, {
+	OK : {
+		value: 1,
+		writable: false,
+		enumerable: true,
+		configurable: true
+	},
 	
-	const guiElements = {
-		controls: [{
-			/*****************************/
-			name: 'div',
-			id: 'mqDialBack',
-			classes: [
-				'sli-mq-page-shade'
-			],
-			controls : [{
-				/*****************************/
-				name : 'div',
-				id : 'mqContainer',
-				classes : [
-					'sli-mq-container'
-				],
-				controls : [{
-					name : 'span',
-					id : 'mqField',
-					classes : [
-						'sli-mq-field'
-					]
-				}]
-			}]
-		}]
-	};
-	
-	if (InDial.isInitialized) return 1;
-	
-	// variable keeps track of click behavior to avoid stopping event propagation on MathQuill field (doing so breaks it).
-	let mouseTrack = 0;
-	
-	insertNodes(guiCSS, document.head, InDial.stylesheet);
-	insertNodes(guiElements, document.body, InDial.elements);
-	
-	// initializes latex field
-	InDial.MQ = new MQField(InDial.elements.mqField, () => {
-		if (typeof InDial.MQ === 'object') {
-			// live updates would go here
-		}
-	});
-	
-	InDial.elements.mqDialBack.addEventListener('mousedown', () => {
-		if (!mouseTrack) mouseTrack = 2;
-	});
-	
-	InDial.elements.mqDialBack.addEventListener('mouseup', () => {
-		
-		if (mouseTrack === 2) {
-			InDial.hide();
-			if (typeof InDial.onChange === 'function') {
-				InDial.onChange();
-			}
-		}
-		
-		mouseTrack = 0;
-		
-	});
-	
-	InDial.elements.mqField.addEventListener('keypress', (e) => {
-		if (e.keyCode === 13) {
-			InDial.hide();
-			if (typeof InDial.onChange === 'function') {
-				InDial.onChange();
-			}
-	
-		}
-	});
-	
-	bindListeners([
-		InDial.elements.mqField,
-		InDial.elements.mqContainer
-	], 'mousedown', (e) => {
-		mouseTrack = 1;
-	});
-	
-	bindListeners([
-		InDial.elements.mqField,
-		InDial.elements.mqContainer
-	], 'mouseup', (e) => {
-		mouseTrack = 0;
-	});
-	
-	InDial.isInitialized = true;
-	return 0;
-};
+	Cancel : {
+		value: 2,
+		writable: false,
+		enumerable: true,
+		configurable: true
+	}
+});
 
 Object.assign(InDial, {
+	
+	initialize : function () {
+		const guiCSS = {
+			controls : [{
+				name : 'style',
+				id : 'mqDialogSheet',
+				attributes : [
+					{name: 'type', value: 'text/css'}
+				],
+				textContent : `
+				.sli-mq-container {
+					position: fixed;
+					left: 0;
+					top: 0;
+					/* z-index:99; */
+					/* visibility: hidden; */
+					/* opacity: 0; */
+					/* transition: opacity 0.1s ease-out; */
+					
+					font-size: 13pt;
+				}
+				
+				.sli-mq-field {
+					display: none;
+					background: white;
+					width: 100%;
+					padding: 8px;
+				}
+				
+				.sli-mq-page-shade {
+				  position: fixed;
+				  left: 0;
+				  top: 0;
+				  width: 100%;
+				  height: 100%;
+				  z-index: 99;
+				  padding: 10px;
+				  background: rgba(0,0,0,0.4);
+				  visibility: hidden;
+				  opacity: 0;
+				  transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
+				}
+				`
+			}]
+		};
+		
+		const guiElements = {
+			controls: [{
+				/*****************************/
+				name: 'div',
+				id: 'mqDialBack',
+				classes: [
+					'sli-mq-page-shade'
+				],
+				controls : [{
+					/*****************************/
+					name : 'div',
+					id : 'mqContainer',
+					classes : [
+						'sli-mq-container'
+					],
+					controls : [{
+						name : 'span',
+						id : 'mqField',
+						classes : [
+							'sli-mq-field'
+						]
+					}]
+				}]
+			}]
+		};
+		
+		// prevents initializing this object twice
+		if (InDial.isInitialized) throw Error('Cannot initialize object twice.');
+		
+		// Insert nodes into DOM
+		insertNodes(guiCSS, document.head, InDial.stylesheet);
+		insertNodes(guiElements, document.body, InDial.elements);
+		
+		// initializes latex field
+		InDial.MQ = new MQField(InDial.elements.mqField, () => {
+			if (typeof InDial.MQ === 'object') {
+				// live updates would go here
+			}
+		});
+		
+		// Mouse interaction states with dialog
+		let MouseState = Object.defineProperties({}, {
+			NORMAL_STATE : {
+				value: 0,
+				writable: false,
+				enumerable: true,
+				configurable: true
+			},
+			
+			SELECT_STATE : {
+				value: 1,
+				writable: false,
+				enumerable: true,
+				configurable: true
+			},
+			
+			EXIT_STATE : {
+				value: 2,
+				writable: false,
+				enumerable: true,
+				configurable: true
+			}
+		});
+		
+		// keeps track of click behavior to avoid stopping event propagation on MathQuill field (doing so breaks it).
+		let mouseTrack = MouseState.NORMAL_STATE;
+		
+		InDial.elements.mqDialBack.addEventListener('mousedown', () => {
+			if (mouseTrack === MouseState.NORMAL_STATE) {
+				mouseTrack = MouseState.EXIT_STATE;
+			}
+		});
+		
+		InDial.elements.mqDialBack.addEventListener('mouseup', () => {
+			
+			if (mouseTrack === MouseState.EXIT_STATE) {
+				InDial.hide();
+				if (typeof InDial.onChange === 'function') {
+					InDial.onChange();
+				}
+			}
+			
+			mouseTrack = MouseState.NORMAL_STATE;
+			
+		});
+		
+		InDial.elements.mqField.addEventListener('keyup', (e) => {
+			switch (true) {
+				case e.key === 'Escape':
+					InDial.hide();
+					if (typeof InDial.onChange === 'function') {
+						InDial.onChange(InDial.DialogResult.Cancel);
+					}
+					break;
+				case e.key === 'Enter':
+					InDial.hide();
+					if (typeof InDial.onChange === 'function') {
+						InDial.onChange(InDial.DialogResult.OK);
+					}
+					break;
+				default:
+					
+			}
+		});
+		
+		bindListeners([
+			InDial.elements.mqField,
+			InDial.elements.mqContainer
+		], 'mousedown', (e) => {
+			mouseTrack = MouseState.SELECT_STATE;
+		});
+		
+		bindListeners([
+			InDial.elements.mqField,
+			InDial.elements.mqContainer
+		], 'mouseup', (e) => {
+			mouseTrack = MouseState.NORMAL_STATE;
+		});
+		
+		InDial.isInitialized = true;
+		return 0;
+	},
+	
+	
+	
 	show : function (value, coords, callback) {
 		InDial.onChange = callback;
 		InDial.MQ.mathField.latex(value || '');
@@ -183,11 +240,15 @@ Object.assign(InDial, {
 		InDial.elements.mqDialBack.style.visibility = 'visible';
 		InDial.elements.mqDialBack.style.opacity = '1';
 	},
+	
+	
+	
 	hide : function () {
 		InDial.elements.mqField.style.display = 'none';
 		InDial.elements.mqDialBack.style.visibility = 'hidden';
 		InDial.elements.mqDialBack.style.opacity = '0';
 	}
+	
 });
 
 function customPropMenu () {
@@ -370,7 +431,8 @@ function customPropMenu () {
 		InDial.show(
 			expr[idx].stringFillOpacity,
 			{x: expElem.right, y: expElem.top, width: 400},
-			() => {
+			(dialRes) => {
+				if (dialRes === InDial.DialogResult.Cancel) return 0;
 				Calc.setExpression({
 					id: currMenuItem.id,
 					fillOpacity: InDial.MQ.mathField.latex()
@@ -390,7 +452,8 @@ function customPropMenu () {
 		InDial.show(
 			expr[idx].lineWidth,
 			{x: expElem.right, y: expElem.top, width: 400},
-			() => {
+			(dialRes) => {
+				if (dialRes === InDial.DialogResult.Cancel) return 0;
 				let state = Calc.getState();
 				state.expressions.list[getCurrentIndex()].lineWidth = InDial.MQ.mathField.latex();
 				Calc.setState(state, {
