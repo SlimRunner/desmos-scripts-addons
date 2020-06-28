@@ -338,7 +338,7 @@ function customPropMenu () {
 				}]
 			}, {
 				name : 'div',
-				id : 'thiccButton',
+				id : 'widthButton',
 				attributes: [
 					{name: 'title', value: 'Line Width'}
 				],
@@ -400,7 +400,7 @@ function customPropMenu () {
 	let buttonList = [
 		ctNodes.colorButton,
 		ctNodes.opacityButton,
-		ctNodes.thiccButton
+		ctNodes.widthButton
 	];
 	
 	// hides button when menu is gone and the mouse left the button client area
@@ -444,7 +444,7 @@ function customPropMenu () {
 		
 	});
 	
-	ctNodes.thiccButton.addEventListener('click', () => {
+	ctNodes.widthButton.addEventListener('click', () => {
 		let expr = Calc.getState().expressions.list; 
 		let idx = getCurrentIndex();
 		let expElem = findExprElementById(
@@ -555,6 +555,12 @@ function customPropMenu () {
 			ctNodes.opacityButton.style.display = 'block';
 		} else {
 			ctNodes.opacityButton.style.display = 'none';
+		}
+		
+		if (expr.type === 'table') {
+			ctNodes.widthButton.style.display = 'none';
+		} else {
+			ctNodes.widthButton.style.display = 'block';
 		}
 		
 		// get number of displayed childs
