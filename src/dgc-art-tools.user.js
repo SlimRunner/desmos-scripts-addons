@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.0.3
+// @version  	1.1.4
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -12,27 +12,251 @@
 
 /*jshint esversion: 6 */
 
+// Global variables imported from host (initialized in loadCheck)
 var Calc;
+var Desmos;
 
-(function loadCheck () {
-	if (typeof window.wrappedJSObject.Calc === 'undefined') {
-		console.log('Calc is not defined');
-		window.setTimeout(loadCheck, 1000);
-		
-		// TODO: Add a counter that stops the script if certain failed attemts are reached
-	} else {
-		Calc = window.wrappedJSObject.Calc;
-		console.log('Calc is defined');
-		colorPicker();
-		console.log('Custom color picker has been loaded');
-		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
+/***************************************************************************/
+// DIALOG DATA STRUCTURE
+
+// Object that manages a MathQuill field and its bounded element
+function MQField (elem, editCallback) {
+	this.boundElem = elem;
+	this.mathField = Desmos.MathQuill.MathField(elem, {
+		handlers: {
+			edit: function () {
+				editCallback();
+			}
+		}
+	});
+}
+// !MQField ()
+
+
+// Dialog for LaTeX input
+let InDial = {};
+
+InDial.stylesheet = [];
+InDial.elements = [];
+InDial.isInitialized = false;
+InDial.onChange = null;
+InDial.MQ = null;
+
+InDial.DialogResult = Object.defineProperties({}, {
+	OK : {
+		value: 1,
+		writable: false,
+		enumerable: true,
+		configurable: true
+	},
+	
+	Cancel : {
+		value: 2,
+		writable: false,
+		enumerable: true,
+		configurable: true
 	}
-})();
+});
 
-function colorPicker () {
+Object.assign(InDial, {
+	
+	initialize : function () {
+		const guiCSS = {
+			controls : [{
+				name : 'style',
+				id : 'mqDialogSheet',
+				attributes : [
+					{name: 'type', value: 'text/css'}
+				],
+				textContent : `
+				.sli-mq-container {
+					position: fixed;
+					left: 0;
+					top: 0;
+					/* z-index:99; */
+					/* visibility: hidden; */
+					/* opacity: 0; */
+					/* transition: opacity 0.1s ease-out; */
+					
+					font-size: 13pt;
+				}
+				
+				.sli-mq-field {
+					display: none;
+					background: white;
+					width: 100%;
+					padding: 8px;
+				}
+				
+				.sli-mq-page-shade {
+				  position: fixed;
+				  left: 0;
+				  top: 0;
+				  width: 100%;
+				  height: 100%;
+				  z-index: 99;
+				  padding: 10px;
+				  background: rgba(0,0,0,0.4);
+				  visibility: hidden;
+				  opacity: 0;
+				  transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
+				}
+				`
+			}]
+		};
+		
+		const guiElements = {
+			controls: [{
+				/*****************************/
+				name: 'div',
+				id: 'mqDialBack',
+				classes: [
+					'sli-mq-page-shade'
+				],
+				controls : [{
+					/*****************************/
+					name : 'div',
+					id : 'mqContainer',
+					classes : [
+						'sli-mq-container'
+					],
+					controls : [{
+						name : 'span',
+						id : 'mqField',
+						classes : [
+							'sli-mq-field'
+						]
+					}]
+				}]
+			}]
+		};
+		
+		// prevents initializing this object twice
+		if (InDial.isInitialized) throw Error('Cannot initialize object twice.');
+		
+		// Insert nodes into DOM
+		insertNodes(guiCSS, document.head, InDial.stylesheet);
+		insertNodes(guiElements, document.body, InDial.elements);
+		
+		// initializes latex field
+		InDial.MQ = new MQField(InDial.elements.mqField, () => {
+			if (typeof InDial.MQ === 'object') {
+				// live updates would go here
+			}
+		});
+		
+		// Mouse interaction states with dialog
+		let MouseState = Object.defineProperties({}, {
+			NORMAL_STATE : {
+				value: 0,
+				writable: false,
+				enumerable: true,
+				configurable: true
+			},
+			
+			SELECT_STATE : {
+				value: 1,
+				writable: false,
+				enumerable: true,
+				configurable: true
+			},
+			
+			EXIT_STATE : {
+				value: 2,
+				writable: false,
+				enumerable: true,
+				configurable: true
+			}
+		});
+		
+		// keeps track of click behavior to avoid stopping event propagation on MathQuill field (doing so breaks it).
+		let mouseTrack = MouseState.NORMAL_STATE;
+		
+		InDial.elements.mqDialBack.addEventListener('mousedown', () => {
+			if (mouseTrack === MouseState.NORMAL_STATE) {
+				mouseTrack = MouseState.EXIT_STATE;
+			}
+		});
+		
+		InDial.elements.mqDialBack.addEventListener('mouseup', () => {
+			
+			if (mouseTrack === MouseState.EXIT_STATE) {
+				InDial.hide();
+				if (typeof InDial.onChange === 'function') {
+					InDial.onChange();
+				}
+			}
+			
+			mouseTrack = MouseState.NORMAL_STATE;
+			
+		});
+		
+		InDial.elements.mqField.addEventListener('keyup', (e) => {
+			switch (true) {
+				case e.key === 'Escape':
+					InDial.hide();
+					if (typeof InDial.onChange === 'function') {
+						InDial.onChange(InDial.DialogResult.Cancel);
+					}
+					break;
+				case e.key === 'Enter':
+					InDial.hide();
+					if (typeof InDial.onChange === 'function') {
+						InDial.onChange(InDial.DialogResult.OK);
+					}
+					break;
+				default:
+					
+			}
+		});
+		
+		bindListeners([
+			InDial.elements.mqField,
+			InDial.elements.mqContainer
+		], 'mousedown', (e) => {
+			mouseTrack = MouseState.SELECT_STATE;
+		});
+		
+		bindListeners([
+			InDial.elements.mqField,
+			InDial.elements.mqContainer
+		], 'mouseup', (e) => {
+			mouseTrack = MouseState.NORMAL_STATE;
+		});
+		
+		InDial.isInitialized = true;
+		return 0;
+	},
+	
+	
+	
+	show : function (value, coords, callback) {
+		InDial.onChange = callback;
+		InDial.MQ.mathField.latex(value || '');
+		
+		InDial.elements.mqContainer.style.left = `${coords.x}px`;
+		InDial.elements.mqContainer.style.top = `${coords.y}px`;
+		InDial.elements.mqContainer.style.width = `${coords.width}px`;
+		
+		InDial.elements.mqField.style.display = 'block';
+		InDial.elements.mqDialBack.style.visibility = 'visible';
+		InDial.elements.mqDialBack.style.opacity = '1';
+	},
+	
+	
+	
+	hide : function () {
+		InDial.elements.mqField.style.display = 'none';
+		InDial.elements.mqDialBack.style.visibility = 'hidden';
+		InDial.elements.mqDialBack.style.opacity = '0';
+	}
+	
+});
+
+function customPropMenu () {
 	/***************************************************************************/
 	// DATA AND OBJECTS
-
+	
 	//Object tree of stylesheet
 	const guiCSS = {
 		controls : [{
@@ -41,22 +265,96 @@ function colorPicker () {
 			attributes : [
 				{name: 'type', value: 'text/css'}
 			],
-			textContent : '.sli-color-button{background:#ededed;padding:5px;position:fixed;left:0;top:0;width:38px;height:38px;z-index:99;visibility:hidden;opacity:0;transition:opacity 0.1s ease-out}'
+			textContent : `
+			.sli-prop-menu {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 8px;
+				
+				position: fixed !important;
+				left: 0;
+				top: 0;
+				z-index: 99;
+				visibility: hidden;
+				opacity: 0;
+				transition: opacity 0.1s ease-out;
+				
+				padding: 8px !important;
+			}
+			
+			.sli-menu-button {
+				background: #ededed;
+				padding: 5px;
+				width: 38px;
+				height: 38px;
+			}
+			
+			.sli-dcg-icon-align {
+				text-align: center;
+				line-height: 2em;
+			}
+			`
 		}]
 	};
 
 	// Object tree of GUI elements
 	const guiElements = {
 		controls : [{
-			name : 'input',
-			id : 'colorButton',
-			attributes: [
-				{name: 'type', value: 'color'}
-			],
+			/*****************************/
+			name : 'div',
+			id : 'propMenu',
 			classes : [
-				'sli-color-button',
-				'dcg-btn-flat-gray'
-			]
+				'sli-prop-menu',
+				'dcg-options-menu'
+			],
+			controls : [{
+				name : 'input',
+				id : 'colorButton',
+				attributes: [
+					{name: 'type', value: 'color'},
+					{name: 'title', value: 'Color Picker'}
+				],
+				classes : [
+					'sli-menu-button',
+					'dcg-btn-flat-gray'
+				]
+			}, {
+				name : 'div',
+				id : 'opacityButton',
+				attributes: [
+					{name: 'title', value: 'Opacity'}
+				],
+				classes : [
+					'sli-menu-button',
+					'dcg-btn-flat-gray',
+					'sli-dcg-icon-align'
+				],
+				controls : [{
+					name : 'i',
+					id : 'opacityIcon',
+					classes : [
+						'dcg-icon-shaded-inequality-shade2'
+					]
+				}]
+			}, {
+				name : 'div',
+				id : 'thiccButton',
+				attributes: [
+					{name: 'title', value: 'Line Width'}
+				],
+				classes : [
+					'sli-menu-button',
+					'dcg-btn-flat-gray',
+					'sli-dcg-icon-align'
+				],
+				controls : [{
+					name : 'i',
+					id : 'opacityIcon',
+					classes : [
+						'dcg-icon-pencil'
+					]
+				}]
+			}]
 		}]
 	};
 
@@ -64,34 +362,34 @@ function colorPicker () {
 	// INITIALIZATION
 
 	const GUI_GAP = 8;
-
+	
+	// initializes arrays to hold the DOM objects (controls and stylesheet)
 	let styleNode = [];
+	let ctNodes = [];
+	
 	// adds a stylesheet to the head element
 	insertNodes(guiCSS, document.head, styleNode);
-
-	// initializes an array to hold the DOM objects (controls)
-	let ctrlNodes = [];
 	// furnishes the control list and also adds the elements to the DOM
-	insertNodes(guiElements, document.body, ctrlNodes);
-
-	let currMenuItem = null;
-	let currMenuElement = null;
-	let colButtonActive = false;
-	let colMenuActive = false;
-
+	insertNodes(guiElements, document.body, ctNodes);
+	
+	let activeExpr = null;
+	let activeExprElem = null;
+	let isMenuActive = false;
+	let isDesmosMenuActive = false;
+	
 	// callback that executes when the color menu shows up
 	hookMenu( (itemElem, expItem, isFound) => {
 		
-		colMenuActive = isFound;
+		isDesmosMenuActive = isFound;
 		
 		if (isFound) {
-			currMenuItem = expItem;
-			currMenuElement = itemElem;
-			setButtonLocation();
+			activeExpr = expItem;
+			activeExprElem = itemElem;
+			setMenuLocation();
 		}
 		
-		if (!colButtonActive) {
-			showButton(isFound);
+		if (!isMenuActive) {
+			showPropMenu(isFound);
 		}
 		
 	});
@@ -99,41 +397,90 @@ function colorPicker () {
 	/***************************************************************************/
 	// EVENTS
 	
+	let buttonList = [
+		ctNodes.colorButton,
+		ctNodes.opacityButton,
+		ctNodes.thiccButton
+	];
+	
 	// hides button when menu is gone and the mouse left the button client area
-	ctrlNodes.colorButton.addEventListener('mouseleave', () => {
-		if (!colMenuActive) {
-			colButtonActive = false;
-			showButton(false);
+	bindListeners(buttonList, 'mouseleave', () => {
+		if (!isDesmosMenuActive) {
+			isMenuActive = false;
+			showPropMenu(false);
 		}
 		
 	});
 	
 	// changes button state to active so that button doesn't go away with menu
-	ctrlNodes.colorButton.addEventListener('mousedown', () => {
-		colButtonActive = true;
+	bindListeners(buttonList, 'mousedown', () => {
+		isMenuActive = true;
 	});
 	
 	// performs click changes button state to false and hides button
-	ctrlNodes.colorButton.addEventListener('click', () => {
-		colButtonActive = false;
-		showButton(false);
+	bindListeners(buttonList, 'click', () => {
+		isMenuActive = false;
+		showPropMenu(false);
+	});
+	
+	ctNodes.opacityButton.addEventListener('click', () => {
+		let expr = Calc.getState().expressions.list;
+		let idx = getCurrentIndex();
+		let expElem = findExprElementById(
+			activeExpr.id
+		)[0].getBoundingClientRect();
+		
+		InDial.show(
+			expr[idx].stringFillOpacity,
+			{x: expElem.right, y: expElem.top, width: 400},
+			(dialRes) => {
+				if (dialRes === InDial.DialogResult.Cancel) return 0;
+				Calc.setExpression({
+					id: activeExpr.id,
+					fillOpacity: InDial.MQ.mathField.latex()
+				});
+			}
+		);
+		
+	});
+	
+	ctNodes.thiccButton.addEventListener('click', () => {
+		let expr = Calc.getState().expressions.list; 
+		let idx = getCurrentIndex();
+		let expElem = findExprElementById(
+			activeExpr.id
+		)[0].getBoundingClientRect();
+		
+		InDial.show(
+			expr[idx].lineWidth,
+			{x: expElem.right, y: expElem.top, width: 400},
+			(dialRes) => {
+				if (dialRes === InDial.DialogResult.Cancel) return 0;
+				let state = Calc.getState();
+				state.expressions.list[getCurrentIndex()].lineWidth = InDial.MQ.mathField.latex();
+				Calc.setState(state, {
+					allowUndo : true
+				});
+			}
+		);
+		
 	});
 	
 	// event that triggers when user selects a color from color picker
-	ctrlNodes.colorButton.addEventListener('change', () => {
-		if (currMenuItem.type === 'expression') {
+	ctNodes.colorButton.addEventListener('change', () => {
+		if (activeExpr.type === 'expression') {
 			Calc.setExpression({
-				id: currMenuItem.id,
-				color: ctrlNodes.colorButton.value
+				id: activeExpr.id,
+				color: ctNodes.colorButton.value
 			});
-		} else if (currMenuItem.type === 'table') {
+		} else if (activeExpr.type === 'table') {
 			let expr = Calc.getExpressions();
 			
-			expr[getCurrentIndex()].columns[currMenuItem.colIndex].color = ctrlNodes.colorButton.value;
+			expr[getCurrentIndex()].columns[activeExpr.colIndex].color = ctNodes.colorButton.value;
 			
 			Calc.setExpression({
 				type:'table',
-				id: currMenuItem.id,
+				id: activeExpr.id,
 				columns: expr[getCurrentIndex()].columns
 			});
 		}
@@ -144,13 +491,14 @@ function colorPicker () {
 	// GUI MANAGEMENT
 
 	// shows or hides button to access custom properties
-	function showButton(value) {
+	function showPropMenu(value) {
 		if (value) {
-			ctrlNodes.colorButton.style.visibility = 'visible';
-			ctrlNodes.colorButton.style.opacity = '1';
+			prepareMenu();
+			ctNodes.propMenu.style.visibility = 'visible';
+			ctNodes.propMenu.style.opacity = '1';
 			
 			try {
-				ctrlNodes.colorButton.value = getHexColor(getCurrentColor());
+				ctNodes.colorButton.value = getHexColor(getCurrentColor());
 			} catch (e) {
 				console.log(e.message);
 			} finally {
@@ -158,78 +506,70 @@ function colorPicker () {
 			}
 			
 			Calc.observeEvent('change', () => {
-				ctrlNodes.colorButton.value = getHexColor(getCurrentColor());
+				prepareMenu();
+				ctNodes.colorButton.value = getHexColor(getCurrentColor());
 			});
 			
 		} else {
-			ctrlNodes.colorButton.style.visibility = 'hidden';
-			ctrlNodes.colorButton.style.opacity = '0';
+			ctNodes.propMenu.style.visibility = 'hidden';
+			ctNodes.propMenu.style.opacity = '0';
 			
 			Calc.unobserveEvent('change');
 		}
-	} // !showButton ()
-
-	function setButtonLocation() {
-		let mnu = currMenuElement.getBoundingClientRect();
-		let btn = ctrlNodes.colorButton.getBoundingClientRect();
-		
-		let x = (mnu.right + GUI_GAP);
-		let y = (mnu.bottom - (mnu.height + btn.height) / 2);
-		
-		ctrlNodes.colorButton.style.left = `${x}px`;
-		ctrlNodes.colorButton.style.top = `${y}px`;
-	} // !setButtonLocation ()
+	}
+	// !showPropMenu ()
 	
-	function parseColor(input) {
-		//SE: SO, id: 11068240, author: niet-the-dark-absol
-		let elem = document.createElement('div')
-		let rgxm;
+	
+	
+	function setMenuLocation() {
+		const BORDER_SIZE = 2;
 		
-		elem.style.color = input;
-		rgxm = getComputedStyle(elem).color.match(
-			/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i
-		);
+		let mnu = activeExprElem.getBoundingClientRect();
+		let btn = ctNodes.colorButton.getBoundingClientRect();
 		
-		if (rgxm) {
-			return [rgxm[1], rgxm[2], rgxm[3]];
+		let x = mnu.left + mnu.width + GUI_GAP;
+		let y = mnu.top;
+		
+		ctNodes.propMenu.style.left = `${x}px`;
+		ctNodes.propMenu.style.top = `${y}px`;
+	}
+	// !setMenuLocation ()
+	
+	
+	
+	function isFillable(exprItem) {
+		return exprItem.type === 'expression' &&
+			(
+				exprItem.fill === true ||
+				exprItem.latex.indexOf('\\operatorname{polygon}') !== -1
+			);
+	}
+	// !isFillable ()
+	
+	
+	
+	function prepareMenu() {
+		let expr = Calc.getState().expressions.list[getCurrentIndex()];
+		
+		if (isFillable(expr)) {
+			ctNodes.opacityButton.style.display = 'block';
 		} else {
-			throw new Error(`Color ${input} could not be parsed.`);
+			ctNodes.opacityButton.style.display = 'none';
 		}
-	} // !parseColor ()
+		
+		// get number of displayed childs
+		let elemSize = Math.min(3, Array.from (
+			ctNodes.propMenu.childNodes
+		).filter(elem => elem.style.display !== 'none').length);
+		
+		ctNodes.propMenu.style.gridTemplateColumns = `repeat(${elemSize}, 1fr)`;
+	}
+	// !prepareMenu ()
+	
+	
 	
 	/***************************************************************************/
 	// DOM MANAGEMENT
-
-	//parses a custom made JSON object into DOM objects with their properties set up
-	function insertNodes(jsonTree, parentNode, outControls) {
-		for (let item of jsonTree.controls) {
-			outControls[item.id] = document.createElement(item.name);
-			outControls[item.id].setAttribute('id', item.id);
-			parentNode.appendChild(outControls[item.id]);
-			
-			if (item.hasOwnProperty('classes')) {
-				item.classes.forEach(elem => outControls[item.id].classList.add(elem));
-			}
-			
-			if (item.hasOwnProperty('styles')) {
-				Object.assign(outControls[item.id].style, item.styles);
-			}
-			
-			if (item.hasOwnProperty('attributes')) {
-				item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
-			}
-			
-			if (item.hasOwnProperty('textContent')) {
-				outControls[item.id].innerHTML = item.textContent;
-			}
-			
-			if (item.hasOwnProperty('controls')) {
-				insertNodes(item, outControls[item.id], outControls);
-			}
-			
-		} // !for
-		
-	} // !insertNodes ()
 	
 	// calls provided callback whenever an expression menu in Desmos is deployed
 	function hookMenu(callback) {
@@ -328,31 +668,54 @@ function colorPicker () {
 			
 		}
 		
-	} // !hookMenu ()
-
+	}
+	// !hookMenu ()
+	
+	
+	
+	function findExprElementById(id) {
+		return getElementsByAttValue(document, '.dcg-expressionitem', 'expr-id', id);
+	}
+	// !findExprElementById ()
+	
+	
+	
+	function findSelectedExprElement() {
+		return getElementsByAttribute(document, '.dcg-expressionitem.dcg-selected', 'expr-id');
+	}
+	// !findSelectedExprElement ()
+	
+	
+	
 	function getCurrentIndex () {
 		let calcExpressions = Calc.getExpressions();
 		return calcExpressions.findIndex((elem) => {
-			return elem.id === currMenuItem.id;
+			return elem.id === activeExpr.id;
 		});
-	} // !getCurrentIndex ()
-
+	}
+	// !getCurrentIndex ()
+	
+	
+	
 	function getCurrentColor() {
 		let calcExpressions = Calc.getExpressions();
 		let index = calcExpressions.findIndex((elem) => {
-			return elem.id === currMenuItem.id;
+			return elem.id === activeExpr.id;
 		});
 		
-		if (currMenuItem.type === 'expression') {
+		if (activeExpr.type === 'expression') {
 			return calcExpressions[index].color;
 			
-		} else if (currMenuItem.type === 'table') {
-			return calcExpressions[index].columns[currMenuItem.colIndex].color;
+		} else if (activeExpr.type === 'table') {
+			return calcExpressions[index].columns[activeExpr.colIndex].color;
 			
 		}
 		
-	} // !getCurrentColor ()
-
+	}
+	// !getCurrentColor ()
+	
+	
+	
 	// finds element that contains the color menu in Desmos
 	function findOptionsMenu() {
 		
@@ -365,31 +728,124 @@ function colorPicker () {
 			return null;
 			
 		}
-	} // !findOptionsMenu ()
-
-	// performs a css query on an element and aggregates all found values of a specified attribute
-	function seekAttribute(parent, query, attName) {
-		let output = [];
-		let nodes = parent.querySelectorAll(query);
 		
-		if (nodes.length > 0) {
-			nodes.forEach((node, i) => {
-				if (typeof node.getAttributeNames === 'function') {
-					if (node.getAttributeNames().indexOf(attName) !== -1) {
-						output.push(node.getAttribute(attName));
-					}
-				}
-			});
-			
-		}
-		
-		return output;
-	} // !seekAttribute ()
+	}
+	// !findOptionsMenu ()
 	
-} // !colorPicker ()
+}
+// !customPropMenu ()
 
 /***************************************************************************/
 // HELPER FUNCTIONS
+
+//parses a custom made JSON object into DOM objects with their properties set up
+function insertNodes(jsonTree, parentNode, outControls) {
+	for (let item of jsonTree.controls) {
+		outControls[item.id] = document.createElement(item.name);
+		outControls[item.id].setAttribute('id', item.id);
+		parentNode.appendChild(outControls[item.id]);
+		
+		if (item.hasOwnProperty('classes')) {
+			item.classes.forEach(elem => outControls[item.id].classList.add(elem));
+		}
+		
+		if (item.hasOwnProperty('styles')) {
+			Object.assign(outControls[item.id].style, item.styles);
+		}
+		
+		if (item.hasOwnProperty('attributes')) {
+			item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
+		}
+		
+		if (item.hasOwnProperty('textContent')) {
+			outControls[item.id].innerHTML = item.textContent;
+		}
+		
+		if (item.hasOwnProperty('controls')) {
+			insertNodes(item, outControls[item.id], outControls);
+		}
+		
+	} // !for
+	
+}
+// !insertNodes ()
+
+
+
+// binds the events of provided list of elements to a single callback
+function bindListeners(elemList, eventName, callback) {
+	for (var elem of elemList) {
+		elem.addEventListener(eventName, callback);
+	}
+}
+// !bindListeners ()
+
+
+
+// performs a query on parent and aggregates all found values of a specified attribute
+function seekAttribute(parent, query, attName) {
+	let output = [];
+	let nodes = parent.querySelectorAll(query);
+	
+	if (nodes.length > 0) {
+		nodes.forEach((node, i) => {
+			if (typeof node.getAttributeNames !== 'function') return 0;
+			if (node.getAttributeNames().indexOf(attName) !== -1) {
+				output.push(node.getAttribute(attName));
+			}
+		});
+		
+	}
+	
+	return output;
+}
+// !seekAttribute ()
+
+
+
+// performs a query on parent and aggregates all found nodes that have the specified attribute (attName)
+function getElementsByAttribute(parent, query, attName) {
+	let output = [];
+	let nodes = parent.querySelectorAll(query);
+	
+	if (nodes.length > 0) {
+		nodes.forEach((node, i) => {
+			if (typeof node.getAttribute !== 'function') return 0;
+			if (node.getAttributeNames().indexOf(attName) !== -1) {
+				output.push(node);
+			} 
+		});
+		
+	}
+	
+	return output;
+}
+// !getElementsByAttribute ()
+
+
+
+// performs a query on parent and aggregates all found nodes that match specified pair attribute-value (attName, val)
+function getElementsByAttValue(parent, query, attName, val) {
+	// for alternative for "modern" browsers see
+	// https://stackoverflow.com/a/16775485
+	let output = [];
+	let nodes = parent.querySelectorAll(query);
+	
+	if (nodes.length > 0) {
+		nodes.forEach((node, i) => {
+			if (typeof node.getAttribute !== 'function') return 0;
+			if (node.getAttribute(attName) == val) {
+				output.push(node);
+			}
+		});
+		
+	}
+	
+	return output;
+}
+// !getElementsByAttValue ()
+
+
 
 // returns a valid 6-digit hex from the input
 function getHexColor (input) {
@@ -433,7 +889,10 @@ function getHexColor (input) {
 	
 	// return value for named color or throw error
 	return parseNamedColor(input);
-} // !getHexColor ()
+}
+// !getHexColor ()
+
+
 
 // returns a padded couplet from a 6-digit hex
 function hex6Pad(value) {
@@ -446,7 +905,10 @@ function hex6Pad(value) {
 	} else {
 		return value;
 	}
-} // !hex6Pad ()
+}
+// !hex6Pad ()
+
+
 
 // returns hex value from given named color
 function parseNamedColor(input) {
@@ -606,4 +1068,41 @@ function parseNamedColor(input) {
 	} else {
 		throw Error(input + ' is not a supported named color');
 	}
-} // !parseNamedColor ()
+}
+// !parseNamedColor ()
+
+
+
+/***************************************************************************/
+// SCRIPT INITIALIZATION
+
+(function loadCheck () {
+	
+	if (typeof attempts === 'undefined') {
+		this.attempts = 0;
+	} else {
+		this.attempts++;
+	}
+	
+	if (
+		typeof window.wrappedJSObject.Calc === 'undefined' ||
+		typeof window.wrappedJSObject.Desmos === 'undefined'
+	) {
+		
+		if (this.attempts < 10) {
+			console.log('Desmos is loading...');
+			window.setTimeout(loadCheck, 1000);
+		} else {
+			console.log("Abort: The script couldn't load properly :/");
+		}
+		
+	} else {
+		Calc = window.wrappedJSObject.Calc;
+		Desmos = window.wrappedJSObject.Desmos;
+		console.log('Desmos is ready ✔️');
+		InDial.initialize();
+		customPropMenu();
+		console.log('Custom art tools were loaded properly');
+		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
+	}
+})();

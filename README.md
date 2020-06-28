@@ -13,6 +13,8 @@ where `i` is the number or index of your graph expression and the string assigne
 The list of features currently supported by the script are:
 
 * assign a color with the default color picker
+* assign opacity to an expression using LaTeX
+* assign line width to an expression using LaTeX
 
 ## Getting Started - Users
 
@@ -33,3 +35,14 @@ First you need to install [TamperMonkey](https://www.tampermonkey.net/), a brows
 
 * This script was tested first on GreasyMonkey, but it never worked. Feel free to try other user-script managers, but there are no guarantee that it will work.
 * Whenever you change the color of a table column with computed values, the values will disappear. In order for them to be re-computed you must force a refresh on the values. The easiest way is to hide and show any column.
+* Changing the line width of an expression will cause the whole graph to refresh because of constraints imposed by the Desmos API itself.
+* The button for opacity is hidden under certain circumstances. The reason is that the Desmos API rejects opacity requests to the Calc object if the expression isn't a fillable expression. Due to this, I have decided to hide the button unless you have chosen to fill the expression or the expression is a polygon<sup><a href="note-1">[1]</a></sup>. The following is what constitutes a fillable expression:
+	* an valid expression using the `polygon` function
+	* a valid parametric expression
+* The line-width button isn't restricted because this property never gets rejected by the Calc object under any circumstance. This is true even when the expression can't have it's line-width altered (like inequalities). This button is never hidden.
+* It is important to note that even if the property (opacity or line-width) was properly injected into the Calc object, **Desmos' UI may not prompt you to auto-add a non-existent token** under certain circumstances.
+	* Line-width new tokens will never trigger the auto-add feature.
+	* Opacity new tokens will only trigger the auto-add feature when the expression is both fillable and is currently filled.
+
+#### Notes:
+[[1]](#note-1): Opacity button for polygons will **always** be visible because when you just freshly added a polygon expression, it will not have a fill property when querying the Calc object expressions. The property, however, gets added as soon as you toggle the fill checkbox.
