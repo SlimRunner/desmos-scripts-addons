@@ -41,8 +41,6 @@ First you need to install [TamperMonkey](https://www.tampermonkey.net/), a brows
 	* a valid parametric expression
 * The line-width button isn't restricted because this property never gets rejected by the Calc object under any circumstance. This is true even when the expression can't have it's line-width altered (like inequalities). This button is never hidden.
 * It is important to note that even if the property (opacity or line-width) was properly injected into the Calc object, **Desmos' UI may not prompt you to auto-add a non-existent token** under certain circumstances.
-	* Line-width new tokens will never trigger the auto-add feature.
-	* Opacity new tokens will only trigger the auto-add feature when the expression is both fillable and is currently filled.
 
 #### Notes:
 [[1]](#note-1): Opacity button for polygons will **always** be visible because when you just freshly added a polygon expression, it will not have a fill property when querying the Calc object expressions. The property, however, gets added as soon as you toggle the fill checkbox.
