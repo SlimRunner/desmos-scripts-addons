@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.1.4
+// @version  	1.1.5
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -39,6 +39,7 @@ let InDial = {};
 InDial.stylesheet = [];
 InDial.elements = [];
 InDial.isInitialized = false;
+InDial.initialValue = '';
 InDial.onChange = null;
 InDial.MQ = null;
 
@@ -61,6 +62,8 @@ InDial.DialogResult = Object.defineProperties({}, {
 Object.assign(InDial, {
 	
 	initialize : function () {
+		let DiRes = InDial.DialogResult; // alias
+		
 		const guiCSS = {
 			controls : [{
 				name : 'style',
@@ -169,21 +172,29 @@ Object.assign(InDial, {
 			}
 		});
 		
+		
+		let isInputDiff = () => {
+			return InDial.initialValue !== InDial.MQ.mathField.latex();
+		}
+		
+		
 		// keeps track of click behavior to avoid stopping event propagation on MathQuill field (doing so breaks it).
 		let mouseTrack = MouseState.NORMAL_STATE;
 		
+		// Press click on gray area
 		InDial.elements.mqDialBack.addEventListener('mousedown', () => {
 			if (mouseTrack === MouseState.NORMAL_STATE) {
 				mouseTrack = MouseState.EXIT_STATE;
 			}
 		});
 		
+		// Release click on gray area
 		InDial.elements.mqDialBack.addEventListener('mouseup', () => {
 			
 			if (mouseTrack === MouseState.EXIT_STATE) {
 				InDial.hide();
 				if (typeof InDial.onChange === 'function') {
-					InDial.onChange();
+					InDial.onChange(DiRes.Cancel);
 				}
 			}
 			
@@ -191,18 +202,21 @@ Object.assign(InDial, {
 			
 		});
 		
+		// Release key on latex field
 		InDial.elements.mqField.addEventListener('keyup', (e) => {
 			switch (true) {
 				case e.key === 'Escape':
 					InDial.hide();
 					if (typeof InDial.onChange === 'function') {
-						InDial.onChange(InDial.DialogResult.Cancel);
+						InDial.onChange(DiRes.Cancel);
 					}
 					break;
 				case e.key === 'Enter':
 					InDial.hide();
 					if (typeof InDial.onChange === 'function') {
-						InDial.onChange(InDial.DialogResult.OK);
+						InDial.onChange(
+							isInputDiff() ? DiRes.OK : DiRes.Cancel
+						);
 					}
 					break;
 				default:
@@ -210,6 +224,7 @@ Object.assign(InDial, {
 			}
 		});
 		
+		// Press click on latex field
 		bindListeners([
 			InDial.elements.mqField,
 			InDial.elements.mqContainer
@@ -217,6 +232,7 @@ Object.assign(InDial, {
 			mouseTrack = MouseState.SELECT_STATE;
 		});
 		
+		// Release key on latex field
 		bindListeners([
 			InDial.elements.mqField,
 			InDial.elements.mqContainer
@@ -231,6 +247,7 @@ Object.assign(InDial, {
 	
 	
 	show : function (value, coords, callback) {
+		InDial.initialValue = value || '';
 		InDial.onChange = callback;
 		InDial.MQ.mathField.latex(value || '');
 		
