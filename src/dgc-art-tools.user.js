@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.1.5
+// @version  	1.1.6
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -148,6 +148,12 @@ Object.assign(InDial, {
 			}
 		});
 		
+		// give time to MathQuill to add its elements
+		setTimeout(() => {
+			InDial.elements.mqTextArea = InDial.elements.mqField.getElementsByTagName('textarea')[0];
+			InDial.elements.mqTextArea.setAttribute('tabindex', '-1');
+		}, 200);
+		
 		// Mouse interaction states with dialog
 		let MouseState = Object.defineProperties({}, {
 			NORMAL_STATE : {
@@ -241,6 +247,7 @@ Object.assign(InDial, {
 		});
 		
 		InDial.isInitialized = true;
+		InDial.hide();
 		return 0;
 	},
 	
@@ -251,21 +258,23 @@ Object.assign(InDial, {
 		InDial.onChange = callback;
 		InDial.MQ.mathField.latex(value || '');
 		
+		InDial.elements.mqDialBack.appendChild(InDial.elements.mqContainer);
 		InDial.elements.mqContainer.style.left = `${coords.x}px`;
 		InDial.elements.mqContainer.style.top = `${coords.y}px`;
 		InDial.elements.mqContainer.style.width = `${coords.width}px`;
 		
-		InDial.elements.mqField.style.display = 'block';
 		InDial.elements.mqDialBack.style.visibility = 'visible';
 		InDial.elements.mqDialBack.style.opacity = '1';
+		
+		InDial.elements.mqTextArea.focus();
 	},
 	
 	
 	
 	hide : function () {
-		InDial.elements.mqField.style.display = 'none';
 		InDial.elements.mqDialBack.style.visibility = 'hidden';
 		InDial.elements.mqDialBack.style.opacity = '0';
+		InDial.elements.mqDialBack.removeChild(InDial.elements.mqContainer);
 	}
 	
 });
