@@ -36,6 +36,7 @@ First you need to install [TamperMonkey](https://www.tampermonkey.net/), a brows
 * This script was tested first on GreasyMonkey, but it never worked. Feel free to try other user-script managers, but there are no guarantee that it will work.
 * Whenever you change the color of a table column with computed values, the values will disappear. In order for them to be re-computed you must force a refresh on the values. The easiest way is to hide and show any column.
 * Changing the line width of an expression will cause the whole graph to refresh because of constraints imposed by the Desmos API itself.
+* Table columns can't have its line-width modified under any circumstance. The line-width button won't show up with tables because of this.
 * The button for opacity is hidden under certain circumstances. The reason is that the Desmos API rejects opacity requests to the Calc object if the expression isn't a fillable expression. Due to this, I have decided to hide the button unless you have chosen to fill the expression or the expression is a polygon<sup><a href="note-1">[1]</a></sup>. The following is what constitutes a fillable expression:
 	* an valid expression using the `polygon` function
 	* a valid parametric expression
