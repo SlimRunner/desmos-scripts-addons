@@ -155,8 +155,6 @@ Object.assign(VtxAdder, {
 	
 	
 	bindExpression : function (idx) {
-		--idx;
-		
 		VtxAdder.ExprID = null;
 		
 		let expList = Calc.getExpressions();
@@ -183,9 +181,7 @@ Object.assign(VtxAdder, {
 	
 	
 	validateExpression : function (expr) {
-		
 		if (expr.type !== 'table'){
-			VtxAdder.ExprID = null;
 			return VtxAdder.TableState.INVALID;
 		} // !if
 		
@@ -254,7 +250,7 @@ Object.assign(VtxAdder, {
 /***************************************************************************/
 // MOUSE PEN
 function mousePen() {
-	const GUI_GAP = 8;
+	const GUI_GAP = 4;
 	
 	const guiCSS = {
 		controls : [{
@@ -287,9 +283,17 @@ function mousePen() {
 				height: 38px;
 			}
 			
+			.sli-dtt-drawer-button-pressed {
+				background: #528fc9;
+				webkit-box-shadow:
+					inset 0 0 4px 0 rgba(0, 0, 0, 0.4) !important;
+				box-shadow:
+					inset 0 0 4px 0 rgba(0, 0, 0, 0.4) !important;
+			}
+			
 			.sli-dtt-expr-button {
 				background: #ededed;
-				display : none;
+				display: none;
 				border-radius : 100% !important;
 				position: fixed;
 				left: 0;
@@ -311,7 +315,7 @@ function mousePen() {
 	const guiElements = {
 		controls : [{
 			name : 'div',
-			id : 'toggleDrawer',
+			id : 'drawerToggle',
 			classes : [
 				'sli-dtt-expr-button',
 				'dcg-btn-flat-gray',
@@ -319,7 +323,7 @@ function mousePen() {
 			],
 			controls : [{
 				name : 'i',
-				id : 'toggleDrawerIcon',
+				id : 'drawerToggleIcon',
 				classes : [
 					'dcg-icon-chevron-right'
 				]
@@ -332,7 +336,7 @@ function mousePen() {
 				'dcg-options-menu'
 			],
 			attributes : [
-				{name: 'tabindex', value: '-1'}
+				{name : 'tabindex', value : '-1'}
 			],
 			controls : [{
 				name : 'div',
@@ -382,6 +386,8 @@ function mousePen() {
 	
 	let panelElem = findExpressionPanel();
 	let activeButton = false;
+	let activeExprIdx = -1;
+	let hoverExprIdx = -1;
 	
 	panelElem.addEventListener('mousemove', function (e) {
 		if (typeof this.onHold === 'undefined') {
@@ -394,6 +400,7 @@ function mousePen() {
 				let expid = seekAttribute(panelElem, '.dcg-hovered', 'expr-id');
 				if (expid.length >= 1) {
 					// check if expression with expid ID is a valid table
+					hoverExprIdx = getExprIndex(expid[0])
 					let exprs = Calc.getExpressions()[getExprIndex(expid[0])];
 					if (
 						VtxAdder.validateExpression(exprs) !==
@@ -415,41 +422,134 @@ function mousePen() {
 		}
 	}); // !panelElem_mousemove
 	
-	ctNodes.toggleDrawer.addEventListener('mouseenter', () => {
+	ctNodes.drawerToggle.addEventListener('mouseenter', () => {
 		activeButton = true;
-	})
+	});
 	
-	ctNodes.toggleDrawer.addEventListener('mouseleave', () => {
+	ctNodes.drawerToggle.addEventListener('mouseleave', () => {
 		activeButton = false;
-	})
+	});
 	
-	ctNodes.toggleDrawer.addEventListener('click', () => {
+	ctNodes.drawerToggle.addEventListener('click', () => {
+		activeExprIdx = hoverExprIdx;
+		let idx = VtxAdder.getIndex();
+		let pressed = idx !== -1 && idx === activeExprIdx;
 		
-	})
+		// select a style for bind button depending on whether active expression has or not been bound
+		setBindButtonStyle(pressed);
+		
+		setDrawerLocation(ctNodes.drawerToggle);
+		showDrawer(true);
+	});
+	
+	ctNodes.drawerTableMenu.addEventListener('blur', () => {
+		showDrawer(false);
+	});
+	
+	ctNodes.bindToggle.addEventListener('click', () => {
+		if (VtxAdder.getIndex() === -1) {
+			if (!VtxAdder.bindExpression(activeExprIdx)) {
+				console.log('there was an error binding expression');
+			} else {
+				// add some style to the button so that it looks pressed
+				setBindButtonStyle(true);
+			}
+		} else {
+			VtxAdder.unbindExpression();
+			// remove pressed style from button
+			setBindButtonStyle(false);
+		}
+	});
+	
+	ctNodes.addPolyButton.addEventListener('click', () => {
+		VtxAdder.addPolygon(); // returns false when it can't add polygon
+	});
 	
 	/***************************************************************************/
 	// GUI MANAGEMENT
 	
-	function showTableButton(show, elem) {
+	// shows or hides div element with table options
+	function showDrawer(show) {
 		if (show) {
-			ctNodes.toggleDrawer.style.display = 'block';
-			setButtonLocation(elem);
+			refreshDrawerMenu();
+			ctNodes.drawerTableMenu.style.visibility = 'visible';
+			ctNodes.drawerTableMenu.style.opacity = '1';
+			ctNodes.drawerTableMenu.focus();
 		} else {
-			if (activeButton) return 0;
-			ctNodes.toggleDrawer.style.display = 'none';
+			ctNodes.drawerTableMenu.style.visibility = 'hidden';
+			ctNodes.drawerTableMenu.style.opacity = '0';
 		}
 	}
 	
+	
+	
+	// sets location of table-options div element next to the toggle button which is passed as elem
+	function setDrawerLocation(elem) {
+		let anchor = elem.getBoundingClientRect();
+		let btn = ctNodes.drawerToggle.getBoundingClientRect();
+		
+		let x = anchor.right + GUI_GAP * 2;
+		let y = (anchor.top + anchor.bottom - btn.height) / 2;
+		
+		ctNodes.drawerTableMenu.style.left = `${x}px`;
+		ctNodes.drawerTableMenu.style.top = `${y}px`;
+	}
+	
+	
+	
+	// shows or hides dynamic options within drawer menu
+	function refreshDrawerMenu() {
+		if (VtxAdder.getIndex() === activeExprIdx) {
+			ctNodes.addPolyButton.style.display = 'block';
+		} else {
+			ctNodes.addPolyButton.style.display = 'none';
+		}
+		
+		// get number of displayed childs
+		let elemSize = Math.min(3, Array.from (
+			ctNodes.drawerTableMenu.childNodes
+		).filter(elem => elem.style.display !== 'none').length);
+		
+		ctNodes.drawerTableMenu.style.gridTemplateColumns = `repeat(${elemSize}, 1fr)`;
+	}
+	
+	
+	
+	//
+	function setBindButtonStyle(pressed) {
+		if (pressed) {
+			ctNodes.bindToggle.classList.add('sli-dtt-drawer-button-pressed');
+		} else {
+			ctNodes.bindToggle.classList.remove('sli-dtt-drawer-button-pressed');
+		}
+	}
+	
+	
+	
+	// shows or hides drawer toggle button. Won't hide when activeButton is true
+	function showTableButton(show, elem) {
+		if (show) {
+			setButtonLocation(elem);
+			ctNodes.drawerToggle.style.display = 'block';
+		} else {
+			if (activeButton) return 0;
+			ctNodes.drawerToggle.style.display = 'none';
+		}
+	}
+	
+	
+	
+	// sets location of drawer-toggle button element inside elem
 	function setButtonLocation(elem) {
 		let mnu = elem.getBoundingClientRect();
-		let btn = ctNodes.toggleDrawer.getBoundingClientRect();
 		
-		let x = mnu.left + 4;
-		let y = mnu.top + 16;
+		let x = mnu.left + GUI_GAP;
+		let y = mnu.top + GUI_GAP * 4;
 		
-		ctNodes.toggleDrawer.style.left = `${x}px`;
-		ctNodes.toggleDrawer.style.top = `${y}px`;
+		ctNodes.drawerToggle.style.left = `${x}px`;
+		ctNodes.drawerToggle.style.top = `${y}px`;
 	}
+	
 	
 	/***************************************************************************/
 	// DOM MANAGEMENT
@@ -571,7 +671,6 @@ function getElementsByAttribute(parent, query, attName) {
 	) {
 		
 		if (this.attempts < 10) {
-			console.log('Desmos is loading...');
 			window.setTimeout(loadCheck, 1000);
 		} else {
 			console.log("Abort: The script couldn't load properly :/");
@@ -580,7 +679,6 @@ function getElementsByAttribute(parent, query, attName) {
 	} else {
 		Calc = window.wrappedJSObject.Calc;
 		Desmos = window.wrappedJSObject.Desmos;
-		console.log('Desmos is ready ✔️');
 		// INITIALIZE STUFF HERE
 		VtxAdder.initialize();
 		mousePen();
