@@ -1110,7 +1110,7 @@ function parseNamedColor(input) {
 
 (function loadCheck () {
 	
-	if (typeof attempts === 'undefined') {
+	if (typeof this.attempts === 'undefined') {
 		this.attempts = 0;
 	} else {
 		this.attempts++;
