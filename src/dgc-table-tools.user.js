@@ -10,6 +10,8 @@
 // @updateURL	https://gist.github.com/SlimRunner/0652e5d9bae31ec679b369393207ee0f/raw/dgc-table-tools.user.js
 // ==/UserScript==
 
+/*jshint esversion: 6 */
+
 // Global variables imported from host (initialized in loadCheck)
 var Calc;
 var Desmos;
@@ -395,7 +397,7 @@ function mousePen() {
 				let expid = seekAttribute(panelElem, '.dcg-hovered', 'expr-id');
 				if (expid.length >= 1) {
 					// check if expression with expid ID is a valid table
-					hoverExprIdx = getExprIndex(expid[0])
+					hoverExprIdx = getExprIndex(expid[0]);
 					let exprs = Calc.getExpressions()[getExprIndex(expid[0])];
 					if (
 						VtxAdder.validateExpression(exprs) !==
