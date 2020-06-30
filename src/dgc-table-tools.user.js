@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosTableTools
 // @namespace	slidav.Desmos
-// @version  	1.0.1
+// @version  	1.0.2
 // @author		SlimRunner (David Flores)
 // @description	Adds tools to manipulate tables
 // @grant    	none
@@ -444,7 +444,13 @@ function mousePen() {
 	});
 	
 	ctNodes.bindToggle.addEventListener('click', () => {
-		if (VtxAdder.getIndex() === -1) {
+		let exprs = Calc.getExpressions()[activeExprIdx];
+		
+		if (
+			VtxAdder.validateExpression(exprs) !==
+			VtxAdder.TableState.INVALID &&
+			VtxAdder.getIndex() !== activeExprIdx
+		) {
 			if (!VtxAdder.bindExpression(activeExprIdx)) {
 				console.log('there was an error binding expression');
 			} else {
