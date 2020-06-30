@@ -1,17 +1,14 @@
 // ==UserScript==
 // @name     	DesmosTableTools
 // @namespace	slidav.Desmos
-// @version  	1.0.0
+// @version  	1.0.1
 // @author		SlimRunner (David Flores)
 // @description	Adds tools to manipulate tables
 // @grant    	none
 // @match			https://*.desmos.com/calculator*
+// @downloadURL	https://gist.github.com/SlimRunner/0652e5d9bae31ec679b369393207ee0f/raw/dgc-table-tools.user.js
+// @updateURL	https://gist.github.com/SlimRunner/0652e5d9bae31ec679b369393207ee0f/raw/dgc-table-tools.user.js
 // ==/UserScript==
-
-// @downloadURL	https://gist.github.com/SlimRunner/GISTID/raw/dgc-table-tools.user.js
-// @updateURL	https://gist.github.com/SlimRunner/GISTID/raw/dgc-table-tools.user.js
-
-/*jshint esversion: 6 */
 
 // Global variables imported from host (initialized in loadCheck)
 var Calc;
@@ -243,8 +240,6 @@ Object.assign(VtxAdder, {
 	},
 	
 }); // !VtxAdder assign
-
-// VtxAdder.initialize();
 
 
 /***************************************************************************/
