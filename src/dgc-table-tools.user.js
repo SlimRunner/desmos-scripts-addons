@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosTableTools
 // @namespace	slidav.Desmos
-// @version  	1.0.2
+// @version  	1.0.3
 // @author		SlimRunner (David Flores)
 // @description	Adds tools to manipulate tables
 // @grant    	none
@@ -338,6 +338,9 @@ function mousePen() {
 			controls : [{
 				name : 'div',
 				id : 'bindToggle',
+				attributes: [
+					{name: 'title', value: 'bind/unbind table'}
+				],
 				classes : [
 					'sli-dtt-drawer-button',
 					'dcg-btn-flat-gray',
@@ -354,7 +357,7 @@ function mousePen() {
 				name : 'div',
 				id : 'addPolyButton',
 				attributes: [
-					{name: 'title', value: 'Opacity'}
+					{name: 'title', value: 'add polygon'}
 				],
 				classes : [
 					'sli-dtt-drawer-button',
