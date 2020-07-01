@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.1.6
+// @version  	1.1.7
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -885,20 +885,34 @@ function getHexColor (input) {
 		throw	Error('input must be a string');
 	}
 	
+	let rgxm;
 	input = input.trim();
 	
-	const fullHex = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;
-	const halfHex = /^#([0-9a-z])([0-9a-z])([0-9a-z])$/i;
+	const hex3 = /^#([0-9a-z])([0-9a-z])([0-9a-z])$/i;
+	const hex4 = /^#([0-9a-z])([0-9a-z])([0-9a-z])([0-9a-z])$/i;
+	const hex6 = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;
+	const hex8 = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;;
 	const cssRGB = /^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i;
 	const cssRGBA = /^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+.?\d*|\d*.?\d+)\s*\)$/i;
 	
-	if (fullHex.test(input)) {
+	if (hex6.test(input)) {
 		return input;
 	}
 	
-	// check if input is 3-digit hex
-	let rgxm = input.match(halfHex);
+	rgxm = input.match(hex8);
+	if (rgxm) {
+		let r = rgxm[1];
+		let g = rgxm[2];
+		let b = rgxm[3];
+		
+		return `#${r}${g}${b}`;
+	}
 	
+	// check if input is 3-digit hex or 4-digit hex
+	rgxm = input.match(hex3);
+	if (!rgxm) rgxm = input.match(hex4);
+	
+	// if so parse input
 	if (rgxm) {
 		let r = rgxm[1] + rgxm[1];
 		let g = rgxm[2] + rgxm[2];
@@ -907,10 +921,11 @@ function getHexColor (input) {
 		return `#${r}${g}${b}`;
 	}
 	
-	// check if input is RGB or RGBA css function
+	// check if input is a css function RGB or RGBA
  	rgxm = input.match(cssRGB);
 	if (!rgxm) rgxm = input.match(cssRGBA);
 	
+	// if so parse input
 	if (rgxm) {
 		let r = parseInt(rgxm[1]).toString(16);
 		let g = parseInt(rgxm[2]).toString(16);
@@ -919,7 +934,7 @@ function getHexColor (input) {
 		return `#${hex6Pad(r)}${hex6Pad(g)}${hex6Pad(b)}`;
 	}
 	
-	// return value for named color or throw error
+	// return 6-digit hex for named color or throw error
 	return parseNamedColor(input);
 }
 // !getHexColor ()
