@@ -45,15 +45,19 @@ function initListeners () {
 			if (
 				ICON_DICTIONARY.search(targetName) !== -1
 			) {
+				// when the bubble is visible
 				showContextMenu = false;
 				Desmos.$(e.target.parentElement.parentElement).trigger('dcg-longhold');
+				
 			} else if (
 				e.target.className.search('dcg-do-not-blur') !== -1 &&
 				e.target.className.search('dcg-hidden') !== -1 &&
 				e.target.parentElement.parentElement.parentElement.parentElement.className.search('dcg-expressionfolder') === -1
 			) {
+				// when the bubble is hidden
 				showContextMenu = false;
 				Desmos.$(e.target.parentElement).trigger('dcg-longhold');
+				
 			}
 			
 		}
