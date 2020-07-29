@@ -3,7 +3,7 @@
 // @namespace	slidav.Desmos
 // @version  	0.0.1
 // @author		SlimRunner (David Flores)
-// @description	Adds a color picker to Desmos
+// @description	Overrides context menu for color bubble
 // @grant    	none
 // @match			https://*.desmos.com/calculator*
 // ==/UserScript==
