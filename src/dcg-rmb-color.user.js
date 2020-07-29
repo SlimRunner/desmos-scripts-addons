@@ -6,10 +6,10 @@
 // @description	Overrides context menu for color bubble
 // @grant    	none
 // @match			https://*.desmos.com/calculator*
+// @downloadURL	https://gist.github.com/SlimRunner/25ecb59c482dac56c6b7560f31d2133e/raw/dgc-rmb-color.user.js
+// @updateURL	https://gist.github.com/SlimRunner/25ecb59c482dac56c6b7560f31d2133e/raw/dgc-rmb-color.user.js
 // ==/UserScript==
 
-// @downloadURL	https://gist.github.com/SlimRunner/GISTID/raw/dgc-rmb-color.user.js
-// @updateURL	https://gist.github.com/SlimRunner/GISTID/raw/dgc-rmb-color.user.js
 /*jshint esversion: 6 */
 
 var Desmos;
