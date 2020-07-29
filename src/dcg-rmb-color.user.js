@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosColorRightClick
 // @namespace	slidav.Desmos
-// @version  	1.0.1
+// @version  	1.0.2
 // @author		SlimRunner (David Flores)
 // @description	Overrides context menu for color bubble
 // @grant    	none
@@ -48,7 +48,9 @@ function initListeners () {
 				showContextMenu = false;
 				Desmos.$(e.target.parentElement.parentElement).trigger('dcg-longhold');
 			} else if (
-				e.target.className.search('dcg-do-not-blur') !== -1
+				e.target.className.search('dcg-do-not-blur') !== -1 &&
+				e.target.className.search('dcg-hidden') !== -1 &&
+				e.target.parentElement.parentElement.parentElement.parentElement.className.search('dcg-expressionfolder') === -1
 			) {
 				showContextMenu = false;
 				Desmos.$(e.target.parentElement).trigger('dcg-longhold');
