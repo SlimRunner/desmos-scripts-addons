@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosColorRightClick
 // @namespace	slidav.Desmos
-// @version  	1.0.2
+// @version  	1.0.3
 // @author		SlimRunner (David Flores)
 // @description	Overrides context menu for color bubble
 // @grant    	none
