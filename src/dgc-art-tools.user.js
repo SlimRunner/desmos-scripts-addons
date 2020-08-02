@@ -181,7 +181,7 @@ Object.assign(InDial, {
 		
 		let isInputDiff = () => {
 			return InDial.initialValue !== InDial.MQ.mathField.latex();
-		}
+		};
 		
 		
 		// keeps track of click behavior to avoid stopping event propagation on MathQuill field (doing so breaks it).
@@ -891,7 +891,7 @@ function getHexColor (input) {
 	const hex3 = /^#([0-9a-z])([0-9a-z])([0-9a-z])$/i;
 	const hex4 = /^#([0-9a-z])([0-9a-z])([0-9a-z])([0-9a-z])$/i;
 	const hex6 = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;
-	const hex8 = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;;
+	const hex8 = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;
 	const cssRGB = /^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i;
 	const cssRGBA = /^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+.?\d*|\d*.?\d+)\s*\)$/i;
 	
