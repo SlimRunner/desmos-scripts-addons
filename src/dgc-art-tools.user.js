@@ -61,6 +61,7 @@
 		}
 	});
 	
+	// initializes the graphic interface
 	function initGUI() {
 		// adds a stylesheet used by the GUI into the head
 		insertNodes(document.head, {
@@ -142,7 +143,6 @@
 		// adds elements for the context menu into the body
 		ctrColor = insertNodes(document.body, {
 			group : [{
-				/*****************************/
 				tag : 'div',
 				varName : 'propMenu',
 				id : 'expr-context-menu',
@@ -174,7 +174,6 @@
 					],
 					group : [{
 						tag : 'i',
-						// varName : 'opacityIcon',
 						classes : [
 							'dcg-icon-shaded-inequality-shade2'
 						]
@@ -192,7 +191,6 @@
 					],
 					group : [{
 						tag : 'i',
-						// varName : 'opacityIcon',
 						classes : [
 							'dcg-icon-pencil'
 						]
@@ -265,7 +263,7 @@
 			// seek for color context menu, sets isFound to true when found
 			obsRec.forEach((record) => {
 				record.addedNodes.forEach((node) => {
-					if ( typeof node.getElementsByClassName === 'function' && !isFound) {
+					if ( typeof node.querySelector === 'function' && !isFound) {
 						menuElem = getParentByQuery(node, mainQuery);
 						if (menuElem !== null) isFound = true;
 					}
@@ -329,11 +327,8 @@
 	
 	// returns true if the expression fill opacity can be changed
 	function isFillable(stExpr) {
-		return stExpr.type === 'expression' &&
-			(
-				stExpr.fill === true ||
-				stExpr.latex.indexOf('\\operatorname{polygon}') !== -1
-			);
+		return stExpr.type === 'expression' && (stExpr.fill === true ||
+			stExpr.latex.indexOf('\\operatorname{polygon}') !== -1);
 	}
 	
 	// dynamically show of hide buttons
@@ -367,13 +362,7 @@
 			ctrColor.propMenu.style.visibility = 'visible';
 			ctrColor.propMenu.style.opacity = '1';
 			
-			try {
-				ctrColor.colorButton.value = getHex6(getCurrentColor());
-			} catch (e) {
-				console.log(e.message);
-			} finally {
-				// nothing to do
-			}
+			ctrColor.colorButton.value = getHex6(getCurrentColor());
 			
 			// update buttons dynamically while menu is open
 			Calc.observeEvent('change', () => {
@@ -405,6 +394,7 @@
 		ctrColor.propMenu.style.top = `${y}px`;
 	}
 	
+	// returns color of expression with the menu active
 	function getCurrentColor() {
 		let expr = getPureExpr(ActiveItem.expression.index);
 		
@@ -529,7 +519,7 @@
 		return targetChild.parentNode;
 	}
 	
-	// binds a list of elements to a single callback
+	// binds a list of elements to a single callback on the same listener
 	function bindListenerToNodes(elemList, eventName, callback) {
 		for (let elem of elemList) {
 			elem.addEventListener(eventName, callback);
@@ -590,9 +580,7 @@
 		let alpha = (args = args.slice(1)).pop();
 		// truthy map if argument evaluates as NaN
 		let pType = args.map(isNaN);
-		console.table({funcName, argSet, alpha});
-		console.table(args);
-		console.table(pType);
+		
 		let output;
 		
 		switch (true) {
@@ -791,7 +779,7 @@
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// User-Script Initialization
 	
-	// iife that checks if the Desmos has finished loading (10 attempts)
+	// iife that checks if Desmos has finished loading (10 attempts)
 	(function loadCheck () {
 		if (typeof loadCheck.attempts === 'undefined') {
 			loadCheck.attempts = 0;
