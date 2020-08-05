@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.1.7
+// @version  	1.2.0
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -12,66 +12,97 @@
 
 /*jshint esversion: 6 */
 
-// Global variables imported from host (initialized in loadCheck)
-var Calc;
-var Desmos;
+(function() {
+	'use strict';
+	var Calc;
+	var Desmos;
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// Data structures
+	
+	// creates an error with custom name
+	class CustomError extends Error {
+		/* Source
+		* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+		*/
+	  constructor(name, ...params) {
+	    // Pass remaining arguments (including vendor specific ones) to parent constructor
+	    super(...params);
+	
+	    // Maintains proper stack trace for where our error was thrown (only available on V8)
+	    if (Error.captureStackTrace) {
+	      Error.captureStackTrace(this, CustomError);
+	    }
+			
+	    this.name = name;
+	  }
+	}
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// GUI Management
+	
+	// store all controls used in the script
+	var ctrColor;
+	var ctrLatex;
+	// store all buttons of the context menu
+	var buttonList;
 
-/***************************************************************************/
-// DIALOG DATA STRUCTURE
-
-// Object that manages a MathQuill field and its bounded element
-function MQField (elem, editCallback) {
-	this.boundElem = elem;
-	this.mathField = Desmos.MathQuill.MathField(elem, {
-		handlers: {
-			edit: function () {
-				editCallback();
-			}
+	// store the state of the context menu
+	var ActiveItem = Object.assign({}, {
+		expression: null,
+		element: null,
+		menuActive: false,
+		menuVisible: false,
+		reset: function () {
+			ActiveItem.expression = null;
+			ActiveItem.element = null;
+			ActiveItem.menuActive = false;
+			ActiveItem.menuVisible = false;
 		}
 	});
-}
-// !MQField ()
-
-
-// Dialog for LaTeX input
-let InDial = {};
-
-InDial.stylesheet = [];
-InDial.elements = [];
-InDial.isInitialized = false;
-InDial.initialValue = '';
-InDial.onChange = null;
-InDial.MQ = null;
-
-InDial.DialogResult = Object.defineProperties({}, {
-	OK : {
-		value: 1,
-		writable: false,
-		enumerable: true,
-		configurable: true
-	},
 	
-	Cancel : {
-		value: 2,
-		writable: false,
-		enumerable: true,
-		configurable: true
-	}
-});
-
-Object.assign(InDial, {
-	
-	initialize : function () {
-		let DiRes = InDial.DialogResult; // alias
-		
-		const guiCSS = {
-			controls : [{
-				name : 'style',
-				id : 'mqDialogSheet',
+	function initGUI() {
+		// adds a stylesheet used by the GUI into the head
+		insertNodes(document.head, {
+			group : [{
+				tag : 'style',
+				id : 'sli-script-stylesheet',
 				attributes : [
 					{name: 'type', value: 'text/css'}
 				],
-				textContent : `
+				nodeContent : `
+				/* COLOR MENU */
+				
+				.sli-prop-menu {
+					display: grid;
+					grid-template-columns: repeat(3, 1fr);
+					gap: 8px;
+					
+					position: fixed !important;
+					left: 0;
+					top: 0;
+					z-index: 99;
+					visibility: hidden;
+					opacity: 0;
+					transition: opacity 0.1s ease-out;
+					
+					padding: 8px !important;
+				}
+				
+				.sli-menu-button {
+					background: #ededed;
+					padding: 5px;
+					width: 38px;
+					height: 38px;
+				}
+				
+				.sli-dcg-icon-align {
+					text-align: center;
+					line-height: 2em;
+				}
+				
+				/* LATEX DIALOG */
+				
 				.sli-mq-container {
 					position: fixed;
 					left: 0;
@@ -106,1050 +137,697 @@ Object.assign(InDial, {
 				}
 				`
 			}]
-		};
+		});
 		
-		const guiElements = {
-			controls: [{
+		// adds elements for the context menu into the body
+		ctrColor = insertNodes(document.body, {
+			group : [{
 				/*****************************/
-				name: 'div',
-				id: 'mqDialBack',
+				tag : 'div',
+				varName : 'propMenu',
+				id : 'expr-context-menu',
+				classes : [
+					'sli-prop-menu',
+					'dcg-options-menu'
+				],
+				group : [{
+					tag : 'input',
+					varName : 'colorButton',
+					attributes: [
+						{name: 'type', value: 'color'},
+						{name: 'title', value: 'Color Picker'}
+					],
+					classes : [
+						'sli-menu-button',
+						'dcg-btn-flat-gray'
+					]
+				}, {
+					tag : 'div',
+					varName : 'opacityButton',
+					attributes: [
+						{name: 'title', value: 'Opacity'}
+					],
+					classes : [
+						'sli-menu-button',
+						'dcg-btn-flat-gray',
+						'sli-dcg-icon-align'
+					],
+					group : [{
+						tag : 'i',
+						// varName : 'opacityIcon',
+						classes : [
+							'dcg-icon-shaded-inequality-shade2'
+						]
+					}]
+				}, {
+					tag : 'div',
+					varName : 'widthButton',
+					attributes: [
+						{name: 'title', value: 'Line Width'}
+					],
+					classes : [
+						'sli-menu-button',
+						'dcg-btn-flat-gray',
+						'sli-dcg-icon-align'
+					],
+					group : [{
+						tag : 'i',
+						// varName : 'opacityIcon',
+						classes : [
+							'dcg-icon-pencil'
+						]
+					}]
+				}]
+			}]
+		});
+		
+		// adds elements for the latex dialog into the body
+		ctrLatex = insertNodes(document.body, {
+			group: [{
+				tag: 'div',
+				varName: 'mqDialBack',
+				id: 'latex-dialog-background',
 				classes: [
 					'sli-mq-page-shade'
 				],
-				controls : [{
-					/*****************************/
-					name : 'div',
-					id : 'mqContainer',
+				group : [{
+					tag : 'div',
+					varName : 'mqContainer',
 					classes : [
 						'sli-mq-container'
 					],
-					controls : [{
-						name : 'span',
-						id : 'mqField',
+					group : [{
+						tag : 'span',
+						varName : 'mqField',
 						classes : [
 							'sli-mq-field'
 						]
 					}]
 				}]
 			}]
-		};
+		});
 		
-		// prevents initializing this object twice
-		if (InDial.isInitialized) throw Error('Cannot initialize object twice.');
+		// groups all buttons from context menu in a list
+		buttonList = [
+			ctrColor.colorButton,
+			ctrColor.opacityButton,
+			ctrColor.widthButton
+		];
 		
-		// Insert nodes into DOM
-		insertNodes(guiCSS, document.head, InDial.stylesheet);
-		insertNodes(guiElements, document.body, InDial.elements);
-		
-		// initializes latex field
-		InDial.MQ = new MQField(InDial.elements.mqField, () => {
-			if (typeof InDial.MQ === 'object') {
-				// live updates would go here
+		// executes a function when the color menu is triggered
+		hookMenu('.dcg-options-menu-column-left', seekColorContext,
+		(menuElem, expItem, menuFound) => {
+			// desmos context menu showed up or hid
+			ActiveItem.menuVisible = menuFound;
+			
+			if (menuFound) {
+				// capture expression and node when menu is visible
+				ActiveItem.expression = expItem;
+				ActiveItem.element = menuElem;
+				setMenuLocation();
+			}
+			
+			if (!ActiveItem.menuActive) {
+				// hides custom menu if desmos menu is gone, but my menu is not active (e.g. being hovered or being clicked)
+				showPropMenu(menuFound);
 			}
 		});
 		
-		// give time to MathQuill to add its elements
-		setTimeout(() => {
-			InDial.elements.mqTextArea = InDial.elements.mqField.getElementsByTagName('textarea')[0];
-			InDial.elements.mqTextArea.setAttribute('tabindex', '-1');
-		}, 200);
-		
-		// Mouse interaction states with dialog
-		let MouseState = Object.defineProperties({}, {
-			NORMAL_STATE : {
-				value: 0,
-				writable: false,
-				enumerable: true,
-				configurable: true
-			},
-			
-			SELECT_STATE : {
-				value: 1,
-				writable: false,
-				enumerable: true,
-				configurable: true
-			},
-			
-			EXIT_STATE : {
-				value: 2,
-				writable: false,
-				enumerable: true,
-				configurable: true
-			}
-		});
-		
-		
-		let isInputDiff = () => {
-			return InDial.initialValue !== InDial.MQ.mathField.latex();
-		};
-		
-		
-		// keeps track of click behavior to avoid stopping event propagation on MathQuill field (doing so breaks it).
-		let mouseTrack = MouseState.NORMAL_STATE;
-		
-		// Press click on gray area
-		InDial.elements.mqDialBack.addEventListener('mousedown', () => {
-			if (mouseTrack === MouseState.NORMAL_STATE) {
-				mouseTrack = MouseState.EXIT_STATE;
-			}
-		});
-		
-		// Release click on gray area
-		InDial.elements.mqDialBack.addEventListener('mouseup', () => {
-			
-			if (mouseTrack === MouseState.EXIT_STATE) {
-				InDial.hide();
-				if (typeof InDial.onChange === 'function') {
-					InDial.onChange(DiRes.Cancel);
-				}
-			}
-			
-			mouseTrack = MouseState.NORMAL_STATE;
-			
-		});
-		
-		// Release key on latex field
-		InDial.elements.mqField.addEventListener('keyup', (e) => {
-			switch (true) {
-				case e.key === 'Escape':
-					InDial.hide();
-					if (typeof InDial.onChange === 'function') {
-						InDial.onChange(DiRes.Cancel);
-					}
-					break;
-				case e.key === 'Enter':
-					InDial.hide();
-					if (typeof InDial.onChange === 'function') {
-						InDial.onChange(
-							isInputDiff() ? DiRes.OK : DiRes.Cancel
-						);
-					}
-					break;
-				default:
-					
-			}
-		});
-		
-		// Press click on latex field
-		bindListeners([
-			InDial.elements.mqField,
-			InDial.elements.mqContainer
-		], 'mousedown', (e) => {
-			mouseTrack = MouseState.SELECT_STATE;
-		});
-		
-		// Release key on latex field
-		bindListeners([
-			InDial.elements.mqField,
-			InDial.elements.mqContainer
-		], 'mouseup', (e) => {
-			mouseTrack = MouseState.NORMAL_STATE;
-		});
-		
-		InDial.isInitialized = true;
-		InDial.hide();
-		return 0;
-	},
-	
-	
-	
-	show : function (value, coords, callback) {
-		InDial.initialValue = value || '';
-		InDial.onChange = callback;
-		InDial.MQ.mathField.latex(value || '');
-		
-		InDial.elements.mqDialBack.appendChild(InDial.elements.mqContainer);
-		InDial.elements.mqContainer.style.left = `${coords.x}px`;
-		InDial.elements.mqContainer.style.top = `${coords.y}px`;
-		InDial.elements.mqContainer.style.width = `${coords.width}px`;
-		
-		InDial.elements.mqDialBack.style.visibility = 'visible';
-		InDial.elements.mqDialBack.style.opacity = '1';
-		
-		InDial.elements.mqTextArea.focus();
-	},
-	
-	
-	
-	hide : function () {
-		InDial.elements.mqDialBack.style.visibility = 'hidden';
-		InDial.elements.mqDialBack.style.opacity = '0';
-		InDial.elements.mqDialBack.removeChild(InDial.elements.mqContainer);
 	}
 	
-});
-
-function customPropMenu () {
-	/***************************************************************************/
-	// DATA AND OBJECTS
-	
-	//Object tree of stylesheet
-	const guiCSS = {
-		controls : [{
-			name : 'style',
-			id : 'customSheet',
-			attributes : [
-				{name: 'type', value: 'text/css'}
-			],
-			textContent : `
-			.sli-prop-menu {
-				display: grid;
-				grid-template-columns: repeat(3, 1fr);
-				gap: 8px;
-				
-				position: fixed !important;
-				left: 0;
-				top: 0;
-				z-index: 99;
-				visibility: hidden;
-				opacity: 0;
-				transition: opacity 0.1s ease-out;
-				
-				padding: 8px !important;
-			}
+	// triggers a callback whenever an expression menu in Desmos is deployed
+	function hookMenu(mainQuery, scrapePredicate, callback) {
+		// initializes observer
+		let menuObserver = new MutationObserver( obsRec => {
+			let menuElem;
+			let isFound = false;
 			
-			.sli-menu-button {
-				background: #ededed;
-				padding: 5px;
-				width: 38px;
-				height: 38px;
-			}
-			
-			.sli-dcg-icon-align {
-				text-align: center;
-				line-height: 2em;
-			}
-			`
-		}]
-	};
-
-	// Object tree of GUI elements
-	const guiElements = {
-		controls : [{
-			/*****************************/
-			name : 'div',
-			id : 'propMenu',
-			classes : [
-				'sli-prop-menu',
-				'dcg-options-menu'
-			],
-			controls : [{
-				name : 'input',
-				id : 'colorButton',
-				attributes: [
-					{name: 'type', value: 'color'},
-					{name: 'title', value: 'Color Picker'}
-				],
-				classes : [
-					'sli-menu-button',
-					'dcg-btn-flat-gray'
-				]
-			}, {
-				name : 'div',
-				id : 'opacityButton',
-				attributes: [
-					{name: 'title', value: 'Opacity'}
-				],
-				classes : [
-					'sli-menu-button',
-					'dcg-btn-flat-gray',
-					'sli-dcg-icon-align'
-				],
-				controls : [{
-					name : 'i',
-					id : 'opacityIcon',
-					classes : [
-						'dcg-icon-shaded-inequality-shade2'
-					]
-				}]
-			}, {
-				name : 'div',
-				id : 'widthButton',
-				attributes: [
-					{name: 'title', value: 'Line Width'}
-				],
-				classes : [
-					'sli-menu-button',
-					'dcg-btn-flat-gray',
-					'sli-dcg-icon-align'
-				],
-				controls : [{
-					name : 'i',
-					id : 'opacityIcon',
-					classes : [
-						'dcg-icon-pencil'
-					]
-				}]
-			}]
-		}]
-	};
-
-	/***************************************************************************/
-	// INITIALIZATION
-
-	const GUI_GAP = 8;
-	
-	// initializes arrays to hold the DOM objects (controls and stylesheet)
-	let styleNode = [];
-	let ctNodes = [];
-	
-	// adds a stylesheet to the head element
-	insertNodes(guiCSS, document.head, styleNode);
-	// furnishes the control list and also adds the elements to the DOM
-	insertNodes(guiElements, document.body, ctNodes);
-	
-	let activeExpr = null;
-	let activeExprElem = null;
-	let isMenuActive = false;
-	let isDesmosMenuActive = false;
-	
-	// callback that executes when the color menu shows up
-	hookMenu( (itemElem, expItem, isFound) => {
-		
-		isDesmosMenuActive = isFound;
-		
-		if (isFound) {
-			activeExpr = expItem;
-			activeExprElem = itemElem;
-			setMenuLocation();
-		}
-		
-		if (!isMenuActive) {
-			showPropMenu(isFound);
-		}
-		
-	});
-	
-	/***************************************************************************/
-	// EVENTS
-	
-	let buttonList = [
-		ctNodes.colorButton,
-		ctNodes.opacityButton,
-		ctNodes.widthButton
-	];
-	
-	// hides button when menu is gone and the mouse left the button client area
-	bindListeners(buttonList, 'mouseleave', () => {
-		if (!isDesmosMenuActive) {
-			isMenuActive = false;
-			showPropMenu(false);
-		}
-		
-	});
-	
-	// changes button state to active so that button doesn't go away with menu
-	bindListeners(buttonList, 'mousedown', () => {
-		isMenuActive = true;
-	});
-	
-	// performs click changes button state to false and hides button
-	bindListeners(buttonList, 'click', () => {
-		isMenuActive = false;
-		showPropMenu(false);
-	});
-	
-	ctNodes.opacityButton.addEventListener('click', () => {
-		let expr = Calc.getState().expressions.list;
-		let idx = getCurrentIndex();
-		let expElem = findExprElementById(
-			activeExpr.id
-		)[0].getBoundingClientRect();
-		
-		InDial.show(
-			expr[idx].stringFillOpacity,
-			{x: expElem.right, y: expElem.top, width: 400},
-			(dialRes) => {
-				if (dialRes === InDial.DialogResult.Cancel) return 0;
-				Calc.setExpression({
-					id: activeExpr.id,
-					fillOpacity: InDial.MQ.mathField.latex()
+			// seek for color context menu, sets isFound to true when found
+			obsRec.forEach((record) => {
+				record.addedNodes.forEach((node) => {
+					if ( typeof node.getElementsByClassName === 'function' && !isFound) {
+						menuElem = getParentByQuery(node, mainQuery);
+						if (menuElem !== null) isFound = true;
+					}
 				});
-			}
-		);
-		
-	});
-	
-	ctNodes.widthButton.addEventListener('click', () => {
-		let expr = Calc.getState().expressions.list; 
-		let idx = getCurrentIndex();
-		let expElem = findExprElementById(
-			activeExpr.id
-		)[0].getBoundingClientRect();
-		
-		InDial.show(
-			expr[idx].lineWidth,
-			{x: expElem.right, y: expElem.top, width: 400},
-			(dialRes) => {
-				if (dialRes === InDial.DialogResult.Cancel) return 0;
-				let state = Calc.getState();
-				state.expressions.list[getCurrentIndex()].lineWidth = InDial.MQ.mathField.latex();
-				Calc.setState(state, {
-					allowUndo : true
-				});
-			}
-		);
-		
-	});
-	
-	// event that triggers when user selects a color from color picker
-	ctNodes.colorButton.addEventListener('change', () => {
-		if (activeExpr.type === 'expression') {
-			Calc.setExpression({
-				id: activeExpr.id,
-				color: ctNodes.colorButton.value
 			});
-		} else if (activeExpr.type === 'table') {
-			let expr = Calc.getExpressions();
 			
-			expr[getCurrentIndex()].columns[activeExpr.colIndex].color = ctNodes.colorButton.value;
+			let expItem = {};
 			
-			Calc.setExpression({
-				type:'table',
-				id: activeExpr.id,
-				columns: expr[getCurrentIndex()].columns
+			// if an item was found then populates output object (expItem)
+			if (isFound) {
+				expItem = scrapePredicate();
+			} // if (isFound)
+			
+			// calls predicate to process the output
+			callback(menuElem, expItem, isFound);
+			
+		}); // !MutationObserver
+		
+		// finds the container of the contextual popups of Desmos
+		let menuContainer = getParentByQuery(document.body, '.dcg-exppanel-outer');
+		
+		if (menuContainer !== null) {	
+			menuObserver.observe(menuContainer, {
+				childList: true
 			});
+		} else {
+			throw new CustomError('Fatal Error', 'Context menu observer could not be initialized');
 		}
 		
-	});
-
-	/***************************************************************************/
-	// GUI MANAGEMENT
-
+	}
+	
+	// predicate for hookMenu
+	function seekColorContext() {
+		const expressionQuery = '.dcg-expressionitem.dcg-depressed,.dcg-expressionitem.dcg-hovered';
+		const tableQuery = '.dcg-expressionitem.dcg-expressiontable.dcg-depressed,.dcg-expressionitem.dcg-expressiontable.dcg-hovered';
+		const cellQuery = '.dcg-cell.dcg-depressed,.dcg-cell.dcg-hovered';
+		
+		let expElem;
+		
+		if (expElem = document.querySelector(tableQuery)) {
+			let eID = expElem.getAttribute('expr-id');
+			// this is a table
+			return {
+				type: 'table',
+				id: eID,
+				colIndex: seekAttribute(expElem, cellQuery, 'index'),
+				index: getExprIndex(eID)
+			};
+		} else if (expElem = document.querySelector(expressionQuery)) {
+			let eID = expElem.getAttribute('expr-id');
+			// this is an expression
+			return {
+				type: 'expression',
+				id: eID,
+				index: getExprIndex(eID)
+			};
+		} else {
+			return {};
+		}
+	}
+	
+	// returns true if the expression fill opacity can be changed
+	function isFillable(stExpr) {
+		return stExpr.type === 'expression' &&
+			(
+				stExpr.fill === true ||
+				stExpr.latex.indexOf('\\operatorname{polygon}') !== -1
+			);
+	}
+	
+	// dynamically show of hide buttons
+	function prepareMenu() {
+		let stExpr = getStateExpr(ActiveItem.expression.index);
+		
+		if (isFillable(stExpr)) {
+			ctrColor.opacityButton.style.display = 'block';
+		} else {
+			ctrColor.opacityButton.style.display = 'none';
+		}
+		
+		if (stExpr.type === 'table') {
+			ctrColor.widthButton.style.display = 'none';
+		} else {
+			ctrColor.widthButton.style.display = 'block';
+		}
+		
+		// get number of displayed childs
+		let elemSize = Math.min(3, Array.from (
+			ctrColor.propMenu.childNodes
+		).filter(elem => elem.style.display !== 'none').length);
+		
+		ctrColor.propMenu.style.gridTemplateColumns = `repeat(${elemSize}, 1fr)`;
+	}
+	
 	// shows or hides button to access custom properties
-	function showPropMenu(value) {
-		if (value) {
+	function showPropMenu(visible) {
+		if (visible) {
 			prepareMenu();
-			ctNodes.propMenu.style.visibility = 'visible';
-			ctNodes.propMenu.style.opacity = '1';
+			ctrColor.propMenu.style.visibility = 'visible';
+			ctrColor.propMenu.style.opacity = '1';
 			
 			try {
-				ctNodes.colorButton.value = getHexColor(getCurrentColor());
+				ctrColor.colorButton.value = getHex6(getCurrentColor());
 			} catch (e) {
 				console.log(e.message);
 			} finally {
 				// nothing to do
 			}
 			
+			// update buttons dynamically while menu is open
 			Calc.observeEvent('change', () => {
+				// shows button when fill option is enabled
 				prepareMenu();
-				ctNodes.colorButton.value = getHexColor(getCurrentColor());
+				// updates color when color changes
+				ctrColor.colorButton.value = getHex6(getCurrentColor());
 			});
 			
 		} else {
-			ctNodes.propMenu.style.visibility = 'hidden';
-			ctNodes.propMenu.style.opacity = '0';
+			// clears stagnant data : will clear it before the color is assigned
+			// ActiveItem.reset();
+			ctrColor.propMenu.style.visibility = 'hidden';
+			ctrColor.propMenu.style.opacity = '0';
 			
+			// stop observing changes on desmos color menu (was closed)
 			Calc.unobserveEvent('change');
 		}
 	}
-	// !showPropMenu ()
 	
-	
-	
+	// sets the location of the context menu
 	function setMenuLocation() {
-		const BORDER_SIZE = 2;
+		let menu = ActiveItem.element.getBoundingClientRect();
 		
-		let mnu = activeExprElem.getBoundingClientRect();
-		let btn = ctNodes.colorButton.getBoundingClientRect();
+		let x = menu.left + menu.width + 8;
+		let y = menu.top;
 		
-		let x = mnu.left + mnu.width + GUI_GAP;
-		let y = mnu.top;
-		
-		ctNodes.propMenu.style.left = `${x}px`;
-		ctNodes.propMenu.style.top = `${y}px`;
+		ctrColor.propMenu.style.left = `${x}px`;
+		ctrColor.propMenu.style.top = `${y}px`;
 	}
-	// !setMenuLocation ()
-	
-	
-	
-	function isFillable(exprItem) {
-		return exprItem.type === 'expression' &&
-			(
-				exprItem.fill === true ||
-				exprItem.latex.indexOf('\\operatorname{polygon}') !== -1
-			);
-	}
-	// !isFillable ()
-	
-	
-	
-	function prepareMenu() {
-		let expr = Calc.getState().expressions.list[getCurrentIndex()];
-		
-		if (isFillable(expr)) {
-			ctNodes.opacityButton.style.display = 'block';
-		} else {
-			ctNodes.opacityButton.style.display = 'none';
-		}
-		
-		if (expr.type === 'table') {
-			ctNodes.widthButton.style.display = 'none';
-		} else {
-			ctNodes.widthButton.style.display = 'block';
-		}
-		
-		// get number of displayed childs
-		let elemSize = Math.min(3, Array.from (
-			ctNodes.propMenu.childNodes
-		).filter(elem => elem.style.display !== 'none').length);
-		
-		ctNodes.propMenu.style.gridTemplateColumns = `repeat(${elemSize}, 1fr)`;
-	}
-	// !prepareMenu ()
-	
-	
-	
-	/***************************************************************************/
-	// DOM MANAGEMENT
-	
-	// calls provided callback whenever an expression menu in Desmos is deployed
-	function hookMenu(callback) {
-		// initializes observer
-		let menuObserver = new MutationObserver( obsRec => {
-			let idx = 0;
-			let menuElem;
-			let isFound = false;
-			
-			const ITEM_TABLE = 0, ITEM_EXPRESSION = 1;
-			
-			// repeats search until sought item is found in the list of addedNodes
-			do {
-				if (obsRec[idx].addedNodes.length > 0) {
-					obsRec[idx].addedNodes.forEach((item, i) => {
-						if (typeof item.getElementsByClassName === 'function') {
-							let menuColumn = item.getElementsByClassName('dcg-options-menu-column-left');
-							
-							if (menuColumn.length !== 0) {
-								menuElem = menuColumn[0].parentNode;
-								isFound = true;
-							}
-							
-						} // !if
-						
-					}); // !forEach
-					
-				} // !if
-				++idx;
-			} while (idx < obsRec.length && !isFound);
-			
-			let expItem = {};
-			
-			// if an item was found then finds appropriate values for expItem
-			if (isFound) {
-				let expElem = { length: 0 };
-				let expType, expId, expCell;
-				
-				let typeIdx = -1;
-				// list of queries to determine the type of the element (table/regular)
-				const seekList = ['.dcg-expressionitem.dcg-expressiontable.dcg-depressed,.dcg-expressionitem.dcg-expressiontable.dcg-hovered', '.dcg-expressionitem.dcg-depressed,.dcg-expressionitem.dcg-hovered'];
-				
-				// traverse seekList to find fitting element container
-				seekList.forEach((query, i) => {
-					if (expElem.length === 0) {
-						expElem = document.querySelectorAll(query);
-						
-						typeIdx = i;
-					}
-					
-				});
-				
-				// furnishes expItem depending on the type of the expression
-				switch (typeIdx) {
-					case ITEM_TABLE:
-						expType = 'table';
-						expId = expElem[0].getAttribute('expr-id');
-						expCell = seekAttribute(expElem[0], '.dcg-cell.dcg-depressed,.dcg-cell.dcg-hovered', 'index')[0];
-						
-						expItem = {
-							type: expType,
-							id: expId.toString(),
-							colIndex: expCell
-						};
-						
-						break;
-					case ITEM_EXPRESSION:
-						expType = 'expression';
-						expId = expElem[0].getAttribute('expr-id');
-						
-						expItem = {
-							type: expType,
-							id: expId.toString()
-						};
-						
-						break;
-					default:
-						
-				} // !switch
-				
-			} // if (isFound)
-			
-			callback(menuElem, expItem, isFound);
-			
-		}); // !MutationObserver
-		
-		let menuContainer = findOptionsMenu();
-		
-		if (menuContainer !== null) {	
-			menuObserver.observe(menuContainer, {
-				childList: true
-			});
-			
-		} else {
-			console.log('couldn\'t find menu container');
-			
-		}
-		
-	}
-	// !hookMenu ()
-	
-	
-	
-	function findExprElementById(id) {
-		return getElementsByAttValue(document, '.dcg-expressionitem', 'expr-id', id);
-	}
-	// !findExprElementById ()
-	
-	
-	
-	function findSelectedExprElement() {
-		return getElementsByAttribute(document, '.dcg-expressionitem.dcg-selected', 'expr-id');
-	}
-	// !findSelectedExprElement ()
-	
-	
-	
-	function getCurrentIndex () {
-		let calcExpressions = Calc.getExpressions();
-		return calcExpressions.findIndex((elem) => {
-			return elem.id === activeExpr.id;
-		});
-	}
-	// !getCurrentIndex ()
-	
-	
 	
 	function getCurrentColor() {
-		let calcExpressions = Calc.getExpressions();
-		let index = calcExpressions.findIndex((elem) => {
-			return elem.id === activeExpr.id;
+		let expr = getPureExpr(ActiveItem.expression.index);
+		
+		if (expr.type === 'expression') {
+			return expr.color;
+			
+		} else if (expr.type === 'table') {
+			return expr.columns[ActiveItem.expression.colIndex].color;
+			
+		}
+		
+	}
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// Event handlers
+	
+	function loadEvents() {
+		// hides button when menu is gone and the mouse left the button client area
+		bindListenerToNodes(buttonList, 'mouseleave', () => {
+			if (!ActiveItem.menuVisible) {
+				ActiveItem.menuActive = false;
+				showPropMenu(false);
+			}
+			
 		});
 		
-		if (activeExpr.type === 'expression') {
-			return calcExpressions[index].color;
+		// changes button state to active so that button doesn't go away with menu
+		bindListenerToNodes(buttonList, 'mousedown', () => {
+			ActiveItem.menuActive = true;
+		});
+		
+		// performs click changes button state to false and hides button
+		bindListenerToNodes(buttonList, 'click', () => {
+			ActiveItem.menuActive = false;
+			showPropMenu(false);
+		});
+		
+		// event that triggers when user selects a color from color picker
+		ctrColor.colorButton.addEventListener('change', (e) => {
+			let expr = Calc.getExpressions()[ActiveItem.expression.index];
 			
-		} else if (activeExpr.type === 'table') {
-			return calcExpressions[index].columns[activeExpr.colIndex].color;
-			
-		}
-		
-	}
-	// !getCurrentColor ()
-	
-	
-	
-	// finds element that contains the color menu in Desmos
-	function findOptionsMenu() {
-		
-		let targetChild = document.getElementsByClassName('dcg-exppanel-outer');
-		
-		if (targetChild.length == 1) {
-			return targetChild[0].parentNode;
-			
-		} else {
-			return null;
-			
-		}
-		
-	}
-	// !findOptionsMenu ()
-	
-}
-// !customPropMenu ()
-
-/***************************************************************************/
-// HELPER FUNCTIONS
-
-//parses a custom made JSON object into DOM objects with their properties set up
-function insertNodes(jsonTree, parentNode, outControls) {
-	for (let item of jsonTree.controls) {
-		outControls[item.id] = document.createElement(item.name);
-		outControls[item.id].setAttribute('id', item.id);
-		parentNode.appendChild(outControls[item.id]);
-		
-		if (item.hasOwnProperty('classes')) {
-			item.classes.forEach(elem => outControls[item.id].classList.add(elem));
-		}
-		
-		if (item.hasOwnProperty('styles')) {
-			Object.assign(outControls[item.id].style, item.styles);
-		}
-		
-		if (item.hasOwnProperty('attributes')) {
-			item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
-		}
-		
-		if (item.hasOwnProperty('textContent')) {
-			outControls[item.id].innerHTML = item.textContent;
-		}
-		
-		if (item.hasOwnProperty('controls')) {
-			insertNodes(item, outControls[item.id], outControls);
-		}
-		
-	} // !for
-	
-}
-// !insertNodes ()
-
-
-
-// binds the events of provided list of elements to a single callback
-function bindListeners(elemList, eventName, callback) {
-	for (var elem of elemList) {
-		elem.addEventListener(eventName, callback);
-	}
-}
-// !bindListeners ()
-
-
-
-// performs a query on parent and aggregates all found values of a specified attribute
-function seekAttribute(parent, query, attName) {
-	let output = [];
-	let nodes = parent.querySelectorAll(query);
-	
-	if (nodes.length > 0) {
-		nodes.forEach((node, i) => {
-			if (typeof node.getAttributeNames !== 'function') return 0;
-			if (node.getAttributeNames().indexOf(attName) !== -1) {
-				output.push(node.getAttribute(attName));
+			switch (true) {
+				case expr.type === 'expression':
+					Calc.setExpression({
+						id: expr.id,
+						color: e.target.value
+					});
+					expr.color = e.target.value;
+					break;
+				case expr.type === 'table':
+					expr.columns[ActiveItem.expression.colIndex].color = e.target.value;
+					Calc.setExpression({
+						type:'table',
+						id: expr.id,
+						columns: expr.columns
+					});
+					break;
+				default:
+					// not a valid type
 			}
 		});
 		
 	}
 	
-	return output;
-}
-// !seekAttribute ()
-
-
-
-// performs a query on parent and aggregates all found nodes that have the specified attribute (attName)
-function getElementsByAttribute(parent, query, attName) {
-	let output = [];
-	let nodes = parent.querySelectorAll(query);
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// DOM Helper functions
 	
-	if (nodes.length > 0) {
-		nodes.forEach((node, i) => {
-			if (typeof node.getAttribute !== 'function') return 0;
-			if (node.getAttributeNames().indexOf(attName) !== -1) {
-				output.push(node);
-			} 
-		});
-		
-	}
-	
-	return output;
-}
-// !getElementsByAttribute ()
-
-
-
-// performs a query on parent and aggregates all found nodes that match specified pair attribute-value (attName, val)
-function getElementsByAttValue(parent, query, attName, val) {
-	// for alternative for "modern" browsers see
-	// https://stackoverflow.com/a/16775485
-	let output = [];
-	let nodes = parent.querySelectorAll(query);
-	
-	if (nodes.length > 0) {
-		nodes.forEach((node, i) => {
-			if (typeof node.getAttribute !== 'function') return 0;
-			if (node.getAttribute(attName) == val) {
-				output.push(node);
+	// creates a tree of elements and appends them into parentNode. Returns an object containing all named nodes
+	function insertNodes(parentNode, nodeTree) {
+		function recurseTree (parent, nextTree, nodeAdder) {
+			for (let branch of nextTree.group) {
+				if (!branch.hasOwnProperty('tag')) {
+					throw new CustomError('Parameter Error', 'Tag type is not defined');
+				}
+				let child = document.createElement(branch.tag);
+				parent.appendChild(child);
+				
+				if (branch.hasOwnProperty('varName')) {
+					nodeAdder[branch.varName] = child;
+				}
+				if (branch.hasOwnProperty('id')) {
+					child.setAttribute('id', branch.id);
+				}
+				if (branch.hasOwnProperty('classes')) {
+					child.classList.add(...branch.classes);
+				}
+				if (branch.hasOwnProperty('styles')) {
+					Object.assign(child.style, branch.styles);
+				}
+				if (branch.hasOwnProperty('attributes')) {
+					branch.attributes.forEach(elem => {
+						child.setAttribute(elem.name, elem.value);
+					});
+				}
+				if (branch.hasOwnProperty('nodeContent')) {
+					child.innerHTML = branch.nodeContent;
+				}
+				if (branch.hasOwnProperty('group')) {
+					recurseTree(child, branch, nodeAdder); // they grow so fast :')
+				}
 			}
-		});
+			return nodeAdder;
+		}
+		return recurseTree(parentNode, nodeTree, []);
+	}
+	
+	// returns attribute of first instance of query
+	function seekAttribute(parent, selectors, attName) {
+		let node = parent.querySelector(selectors);
 		
-	}
-	
-	return output;
-}
-// !getElementsByAttValue ()
-
-
-
-// returns a valid 6-digit hex from the input
-function getHexColor (input) {
-	if (typeof input !== 'string') {
-		throw	Error('input must be a string');
-	}
-	
-	let rgxm;
-	input = input.trim();
-	
-	const hex3 = /^#([0-9a-z])([0-9a-z])([0-9a-z])$/i;
-	const hex4 = /^#([0-9a-z])([0-9a-z])([0-9a-z])([0-9a-z])$/i;
-	const hex6 = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;
-	const hex8 = /^#([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})([0-9a-z]{2})$/i;
-	const cssRGB = /^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i;
-	const cssRGBA = /^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+.?\d*|\d*.?\d+)\s*\)$/i;
-	
-	if (hex6.test(input)) {
-		return input;
-	}
-	
-	rgxm = input.match(hex8);
-	if (rgxm) {
-		let r = rgxm[1];
-		let g = rgxm[2];
-		let b = rgxm[3];
-		
-		return `#${r}${g}${b}`;
-	}
-	
-	// check if input is 3-digit hex or 4-digit hex
-	rgxm = input.match(hex3);
-	if (!rgxm) rgxm = input.match(hex4);
-	
-	// if so parse input
-	if (rgxm) {
-		let r = rgxm[1] + rgxm[1];
-		let g = rgxm[2] + rgxm[2];
-		let b = rgxm[3] + rgxm[3];
-		
-		return `#${r}${g}${b}`;
-	}
-	
-	// check if input is a css function RGB or RGBA
- 	rgxm = input.match(cssRGB);
-	if (!rgxm) rgxm = input.match(cssRGBA);
-	
-	// if so parse input
-	if (rgxm) {
-		let r = parseInt(rgxm[1]).toString(16);
-		let g = parseInt(rgxm[2]).toString(16);
-		let b = parseInt(rgxm[3]).toString(16);
-		
-		return `#${hex6Pad(r)}${hex6Pad(g)}${hex6Pad(b)}`;
-	}
-	
-	// return 6-digit hex for named color or throw error
-	return parseNamedColor(input);
-}
-// !getHexColor ()
-
-
-
-// returns a padded couplet from a 6-digit hex
-function hex6Pad(value) {
-	if (typeof value !== 'string') {
-		throw	Error('value must be a string');
-	}
-	
-	if (value.length === 1) {
-		return '0' + value;
-	} else {
-		return value;
-	}
-}
-// !hex6Pad ()
-
-
-
-// returns hex value from given named color
-function parseNamedColor(input) {
-	const NAME_TABLE = {
-		'black' : '#000000',
-		'navy' : '#000080',
-		'darkblue' : '#00008b',
-		'mediumblue' : '#0000cd',
-		'blue' : '#0000ff',
-		'darkgreen' : '#006400',
-		'green' : '#008000',
-		'teal' : '#008080',
-		'darkcyan' : '#008b8b',
-		'deepskyblue' : '#00bfff',
-		'darkturquoise' : '#00ced1',
-		'mediumspringgreen' : '#00fa9a',
-		'lime' : '#00ff00',
-		'springgreen' : '#00ff7f',
-		'aqua' : '#00ffff',
-		'cyan' : '#00ffff',
-		'midnightblue' : '#191970',
-		'dodgerblue' : '#1e90ff',
-		'lightseagreen' : '#20b2aa',
-		'forestgreen' : '#228b22',
-		'seagreen' : '#2e8b57',
-		'darkslategray' : '#2f4f4f',
-		'darkslategrey' : '#2f4f4f',
-		'limegreen' : '#32cd32',
-		'mediumseagreen' : '#3cb371',
-		'turquoise' : '#40e0d0',
-		'royalblue' : '#4169e1',
-		'steelblue' : '#4682b4',
-		'darkslateblue' : '#483d8b',
-		'mediumturquoise' : '#48d1cc',
-		'indigo' : '#4b0082',
-		'darkolivegreen' : '#556b2f',
-		'cadetblue' : '#5f9ea0',
-		'cornflowerblue' : '#6495ed',
-		'rebeccapurple' : '#663399',
-		'mediumaquamarine' : '#66cdaa',
-		'dimgray' : '#696969',
-		'dimgrey' : '#696969',
-		'slateblue' : '#6a5acd',
-		'olivedrab' : '#6b8e23',
-		'slategray' : '#708090',
-		'slategrey' : '#708090',
-		'lightslategray' : '#778899',
-		'lightslategrey' : '#778899',
-		'mediumslateblue' : '#7b68ee',
-		'lawngreen' : '#7cfc00',
-		'chartreuse' : '#7fff00',
-		'aquamarine' : '#7fffd4',
-		'maroon' : '#800000',
-		'purple' : '#800080',
-		'olive' : '#808000',
-		'gray' : '#808080',
-		'grey' : '#808080',
-		'skyblue' : '#87ceeb',
-		'lightskyblue' : '#87cefa',
-		'blueviolet' : '#8a2be2',
-		'darkred' : '#8b0000',
-		'darkmagenta' : '#8b008b',
-		'saddlebrown' : '#8b4513',
-		'darkseagreen' : '#8fbc8f',
-		'lightgreen' : '#90ee90',
-		'mediumpurple' : '#9370db',
-		'darkviolet' : '#9400d3',
-		'palegreen' : '#98fb98',
-		'darkorchid' : '#9932cc',
-		'yellowgreen' : '#9acd32',
-		'sienna' : '#a0522d',
-		'brown' : '#a52a2a',
-		'darkgray' : '#a9a9a9',
-		'darkgrey' : '#a9a9a9',
-		'lightblue' : '#add8e6',
-		'greenyellow' : '#adff2f',
-		'paleturquoise' : '#afeeee',
-		'lightsteelblue' : '#b0c4de',
-		'powderblue' : '#b0e0e6',
-		'firebrick' : '#b22222',
-		'darkgoldenrod' : '#b8860b',
-		'mediumorchid' : '#ba55d3',
-		'rosybrown' : '#bc8f8f',
-		'darkkhaki' : '#bdb76b',
-		'silver' : '#c0c0c0',
-		'mediumvioletred' : '#c71585',
-		'indianred' : '#cd5c5c',
-		'peru' : '#cd853f',
-		'chocolate' : '#d2691e',
-		'tan' : '#d2b48c',
-		'lightgray' : '#d3d3d3',
-		'lightgrey' : '#d3d3d3',
-		'thistle' : '#d8bfd8',
-		'orchid' : '#da70d6',
-		'goldenrod' : '#daa520',
-		'palevioletred' : '#db7093',
-		'crimson' : '#dc143c',
-		'gainsboro' : '#dcdcdc',
-		'plum' : '#dda0dd',
-		'burlywood' : '#deb887',
-		'lightcyan' : '#e0ffff',
-		'lavender' : '#e6e6fa',
-		'darksalmon' : '#e9967a',
-		'violet' : '#ee82ee',
-		'palegoldenrod' : '#eee8aa',
-		'lightcoral' : '#f08080',
-		'khaki' : '#f0e68c',
-		'aliceblue' : '#f0f8ff',
-		'honeydew' : '#f0fff0',
-		'azure' : '#f0ffff',
-		'sandybrown' : '#f4a460',
-		'wheat' : '#f5deb3',
-		'beige' : '#f5f5dc',
-		'whitesmoke' : '#f5f5f5',
-		'mintcream' : '#f5fffa',
-		'ghostwhite' : '#f8f8ff',
-		'salmon' : '#fa8072',
-		'antiquewhite' : '#faebd7',
-		'linen' : '#faf0e6',
-		'lightgoldenrodyellow' : '#fafad2',
-		'oldlace' : '#fdf5e6',
-		'red' : '#ff0000',
-		'fuchsia' : '#ff00ff',
-		'magenta' : '#ff00ff',
-		'deeppink' : '#ff1493',
-		'orangered' : '#ff4500',
-		'tomato' : '#ff6347',
-		'hotpink' : '#ff69b4',
-		'coral' : '#ff7f50',
-		'darkorange' : '#ff8c00',
-		'lightsalmon' : '#ffa07a',
-		'orange' : '#ffa500',
-		'lightpink' : '#ffb6c1',
-		'pink' : '#ffc0cb',
-		'gold' : '#ffd700',
-		'peachpuff' : '#ffdab9',
-		'navajowhite' : '#ffdead',
-		'moccasin' : '#ffe4b5',
-		'bisque' : '#ffe4c4',
-		'mistyrose' : '#ffe4e1',
-		'blanchedalmond' : '#ffebcd',
-		'papayawhip' : '#ffefd5',
-		'lavenderblush' : '#fff0f5',
-		'seashell' : '#fff5ee',
-		'cornsilk' : '#fff8dc',
-		'lemonchiffon' : '#fffacd',
-		'floralwhite' : '#fffaf0',
-		'snow' : '#fffafa',
-		'yellow' : '#ffff00',
-		'lightyellow' : '#ffffe0',
-		'ivory' : '#fffff0',
-		'white' : '#ffffff'
-	}; // !NAME_TABLE
-	
-	if (NAME_TABLE.hasOwnProperty(input.toLowerCase())) {
-		return NAME_TABLE[input.toLowerCase()];
-	} else {
-		throw Error(input + ' is not a supported named color');
-	}
-}
-// !parseNamedColor ()
-
-
-
-/***************************************************************************/
-// SCRIPT INITIALIZATION
-
-(function loadCheck () {
-	
-	if (typeof this.attempts === 'undefined') {
-		this.attempts = 0;
-	} else {
-		this.attempts++;
-	}
-	
-	if (
-		typeof window.wrappedJSObject.Calc === 'undefined' ||
-		typeof window.wrappedJSObject.Desmos === 'undefined'
-	) {
-		
-		if (this.attempts < 10) {
-			console.log('Desmos is loading...');
-			window.setTimeout(loadCheck, 1000);
-		} else {
-			console.log("Abort: The script couldn't load properly :/");
+		if (!(node === null && typeof node.getAttributeNames !== 'function')) {
+			return node.getAttribute(attName);
 		}
 		
-	} else {
-		Calc = window.wrappedJSObject.Calc;
-		Desmos = window.wrappedJSObject.Desmos;
-		console.log('Desmos is ready ✔️');
-		InDial.initialize();
-		customPropMenu();
+		return null;
+	}
+	
+	// returns parent of first instance of query
+	function getParentByQuery(node, selectors) {
+		let targetChild = node.querySelector(selectors);
+		if (targetChild === null) return null;
+		return targetChild.parentNode;
+	}
+	
+	// binds a list of elements to a single callback
+	function bindListenerToNodes(elemList, eventName, callback) {
+		for (let elem of elemList) {
+			elem.addEventListener(eventName, callback);
+		}
+	}
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// Desmos Helper Functions
+	
+	// returns the corresponding index for a given id of an expression
+	function getExprIndex(id) {
+		let exprs = Calc.getExpressions();
+		return exprs.findIndex((elem) => {
+			return elem.id === id;
+		});
+	}
+	
+	// gets an expression item of given index using getState
+	function getStateExpr(index) {
+		return Calc.getState().expressions.list[index];
+	}
+	
+	// gets an expression item of given index using getExpressions
+	function getPureExpr(index) {
+		return Calc.getExpressions()[index];
+	}
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// General Helper Functions
+	
+	// determines if two arrays are equal (memberwise)
+	function isEqual(lhs, rhs) {
+		if (lhs.length !== rhs.length) return false;
+		let output = true;
+		for (var i = 0; i < lhs.length; ++i) {
+			output = output && lhs[i] === rhs[i];
+			if (!output) return output;
+		}
+		return output;
+	}
+	
+	// returns an array containing the name of the CSS funcion and its parameters destructured
+	function parseCSSFunc(value) {
+		if (typeof value !== 'string') throw new CustomError('Parameter error', 'value is not a valid string');
+		const rxSignature = /^([a-zA-Z]+)(\(.+\))$/i;
+		const rxArgs = /\(\s*([+-]?(?:\d*?\.)?\d+%?)\s*,\s*([+-]?(?:\d*?\.)?\d+%?)\s*,\s*([+-]?(?:\d*?\.)?\d+%?)\s*(?:,\s*([+-]?(?:\d*?\.)?\d+%?)\s*)?\)/;
+		
+		// map of non-numbers as parameters
+		const NUMMAP_RGB = [false, false, false];
+		const NUMMAP_HSL = [false, true, true];
+		
+		// gets function name and argument set
+		let [ , funcName = '', argSet = ''] = value.trim().match(rxSignature) || [];
+		// matches the list of arguments (trimmed)
+		let args = argSet.match(rxArgs);
+		if (args === null) throw new CustomError('Type error', 'the value provided is not a CSS function');
+		// remove full match and alpha from array, store alpha in variable
+		let alpha = (args = args.slice(1)).pop();
+		// truthy map if argument evaluates as NaN
+		let pType = args.map(isNaN);
+		console.table({funcName, argSet, alpha});
+		console.table(args);
+		console.table(pType);
+		let output;
+		
+		switch (true) {
+			case funcName === 'rgb':
+			case funcName === 'rgba':
+				if (!isEqual(pType, NUMMAP_RGB)) throw new CustomError('Paremeter error', 'RGB parameters are not valid');
+				output = args.map(parseFloat);
+				
+				break;
+			case funcName === 'hsl':
+			case funcName === 'hsla':
+				if (!isEqual(pType, NUMMAP_HSL)) throw new CustomError('Paremeter error', 'HSL parameters are not valid');
+				output = args.map(parseFloat).map((num, i) => {
+					return num * (pType[i] ? 0.01 : 1);
+				});
+				break;
+			default:
+				throw new CustomError('Paremeter error', `${funcName} is not a recognized CSS function`);
+		}
+		
+		if (typeof alpha !== 'undefined') {
+			if (funcName.length === 3) throw new CustomError('Parameter error', `${funcName} function only recieves 3 parameters`);
+			output.push(parseFloat(alpha) * (isNaN(alpha) ? 0.01 : 1));
+		}
+		
+		return [funcName].concat(output);
+	}
+	
+	// returns an array containing a desctructured version of a valid CSS hex color
+	function parseCSSHex(value, numeric = false) {
+		if (typeof value !== 'string') throw new CustomError('Parameter error', 'value is not a valid string');
+		const rxHex = /^#((?:[0-9a-z]){3,8})$/i;
+		
+		let hex = value.match(rxHex);
+		if (hex === null) throw new CustomError('Type error', 'the value provided is not a CSS hex color');
+		hex = hex[1];
+		
+		let output;
+		switch (hex.length) {
+			case 3:
+				output = hex.match(/(.)(.)(.)/).splice(1);
+				break;
+			case 6:
+				output = hex.match(/(..)(..)(..)/).splice(1);
+				break;
+			case 4:
+				output = hex.match(/(.)(.)(.)(.)/).splice(1);
+				break;
+			case 8:
+				output = hex.match(/(..)(..)(..)(..)/).splice(1);
+				break;
+			default:
+				throw new CustomError('Paremeter error', `${value} is not a valid CSS hex color`);
+		}
+		
+		if (numeric) {
+			output = output.map((item, i) => {
+				return Number(`0x${output}`);
+			});
+		}
+		
+		return output;
+	}
+	
+	// checks if the input is a named CSS color and returns its HEX value
+	function parseNamedColor(input) {
+		const NAME_TABLE = {
+			'black' : '#000000', 'navy' : '#000080',
+			'darkblue' : '#00008b', 'mediumblue' : '#0000cd',
+			'blue' : '#0000ff', 'darkgreen' : '#006400',
+			'green' : '#008000', 'teal' : '#008080',
+			'darkcyan' : '#008b8b', 'deepskyblue' : '#00bfff',
+			'darkturquoise' : '#00ced1', 'mediumspringgreen' : '#00fa9a',
+			'lime' : '#00ff00', 'springgreen' : '#00ff7f',
+			'aqua' : '#00ffff', 'cyan' : '#00ffff',
+			'midnightblue' : '#191970', 'dodgerblue' : '#1e90ff',
+			'lightseagreen' : '#20b2aa', 'forestgreen' : '#228b22',
+			'seagreen' : '#2e8b57', 'darkslategray' : '#2f4f4f',
+			'darkslategrey' : '#2f4f4f', 'limegreen' : '#32cd32',
+			'mediumseagreen' : '#3cb371', 'turquoise' : '#40e0d0',
+			'royalblue' : '#4169e1', 'steelblue' : '#4682b4',
+			'darkslateblue' : '#483d8b', 'mediumturquoise' : '#48d1cc',
+			'indigo' : '#4b0082', 'darkolivegreen' : '#556b2f',
+			'cadetblue' : '#5f9ea0', 'cornflowerblue' : '#6495ed',
+			'rebeccapurple' : '#663399', 'mediumaquamarine' : '#66cdaa',
+			'dimgray' : '#696969', 'dimgrey' : '#696969',
+			'slateblue' : '#6a5acd', 'olivedrab' : '#6b8e23',
+			'slategray' : '#708090', 'slategrey' : '#708090',
+			'lightslategray' : '#778899', 'lightslategrey' : '#778899',
+			'mediumslateblue' : '#7b68ee', 'lawngreen' : '#7cfc00',
+			'chartreuse' : '#7fff00', 'aquamarine' : '#7fffd4',
+			'maroon' : '#800000', 'purple' : '#800080',
+			'olive' : '#808000', 'gray' : '#808080',
+			'grey' : '#808080', 'skyblue' : '#87ceeb',
+			'lightskyblue' : '#87cefa', 'blueviolet' : '#8a2be2',
+			'darkred' : '#8b0000', 'darkmagenta' : '#8b008b',
+			'saddlebrown' : '#8b4513', 'darkseagreen' : '#8fbc8f',
+			'lightgreen' : '#90ee90', 'mediumpurple' : '#9370db',
+			'darkviolet' : '#9400d3', 'palegreen' : '#98fb98',
+			'darkorchid' : '#9932cc', 'yellowgreen' : '#9acd32',
+			'sienna' : '#a0522d', 'brown' : '#a52a2a',
+			'darkgray' : '#a9a9a9', 'darkgrey' : '#a9a9a9',
+			'lightblue' : '#add8e6', 'greenyellow' : '#adff2f',
+			'paleturquoise' : '#afeeee', 'lightsteelblue' : '#b0c4de',
+			'powderblue' : '#b0e0e6', 'firebrick' : '#b22222',
+			'darkgoldenrod' : '#b8860b', 'mediumorchid' : '#ba55d3',
+			'rosybrown' : '#bc8f8f', 'darkkhaki' : '#bdb76b',
+			'silver' : '#c0c0c0', 'mediumvioletred' : '#c71585',
+			'indianred' : '#cd5c5c', 'peru' : '#cd853f',
+			'chocolate' : '#d2691e', 'tan' : '#d2b48c',
+			'lightgray' : '#d3d3d3', 'lightgrey' : '#d3d3d3',
+			'thistle' : '#d8bfd8', 'orchid' : '#da70d6',
+			'goldenrod' : '#daa520', 'palevioletred' : '#db7093',
+			'crimson' : '#dc143c', 'gainsboro' : '#dcdcdc',
+			'plum' : '#dda0dd', 'burlywood' : '#deb887',
+			'lightcyan' : '#e0ffff', 'lavender' : '#e6e6fa',
+			'darksalmon' : '#e9967a', 'violet' : '#ee82ee',
+			'palegoldenrod' : '#eee8aa', 'lightcoral' : '#f08080',
+			'khaki' : '#f0e68c', 'aliceblue' : '#f0f8ff',
+			'honeydew' : '#f0fff0', 'azure' : '#f0ffff',
+			'sandybrown' : '#f4a460', 'wheat' : '#f5deb3',
+			'beige' : '#f5f5dc', 'whitesmoke' : '#f5f5f5',
+			'mintcream' : '#f5fffa', 'ghostwhite' : '#f8f8ff',
+			'salmon' : '#fa8072', 'antiquewhite' : '#faebd7',
+			'linen' : '#faf0e6', 'lightgoldenrodyellow' : '#fafad2',
+			'oldlace' : '#fdf5e6', 'red' : '#ff0000',
+			'fuchsia' : '#ff00ff', 'magenta' : '#ff00ff',
+			'deeppink' : '#ff1493', 'orangered' : '#ff4500',
+			'tomato' : '#ff6347', 'hotpink' : '#ff69b4',
+			'coral' : '#ff7f50', 'darkorange' : '#ff8c00',
+			'lightsalmon' : '#ffa07a', 'orange' : '#ffa500',
+			'lightpink' : '#ffb6c1', 'pink' : '#ffc0cb',
+			'gold' : '#ffd700', 'peachpuff' : '#ffdab9',
+			'navajowhite' : '#ffdead', 'moccasin' : '#ffe4b5',
+			'bisque' : '#ffe4c4', 'mistyrose' : '#ffe4e1',
+			'blanchedalmond' : '#ffebcd', 'papayawhip' : '#ffefd5',
+			'lavenderblush' : '#fff0f5', 'seashell' : '#fff5ee',
+			'cornsilk' : '#fff8dc', 'lemonchiffon' : '#fffacd',
+			'floralwhite' : '#fffaf0', 'snow' : '#fffafa',
+			'yellow' : '#ffff00', 'lightyellow' : '#ffffe0',
+			'ivory' : '#fffff0', 'white' : '#ffffff'
+		}; // !NAME_TABLE
+		
+		if (NAME_TABLE.hasOwnProperty(input.toLowerCase())) {
+			return NAME_TABLE[input.toLowerCase()];
+		} else {
+			throw new CustomError('Type error', input + ' is not a recognized named color');
+		}
+	}
+	
+	// returns any CSS color parsed as 6-digit hex
+	function getHex6(cssColor) {
+		let output;
+		
+		try {
+			output = parseNamedColor(cssColor);
+			return output;
+		} catch (e) {
+			
+		}
+		
+		try {
+			output = parseCSSHex(cssColor);
+			
+			if (output.length === 4) output.pop();
+			
+			output.map((item) => {
+				return item.length === 1 ? '0' : '' + item;
+			});
+			
+			// pads with 0 if length is not 2
+			return `#${output.map((item) => {
+				return item.length === 1 ? '0' : '' + item;
+			}).join('')}`;
+			
+		} catch (e) {
+			
+		}
+		
+		try {
+			output = parseCSSFunc(cssColor);
+			console.warn(`${output[0]} color cannot be parsed yet`);
+			return '#000000';
+		} catch (e) {
+			console.error(`${e.name}:${e.message}`);
+		}
+		
+	}
+	
+	// prints something cool into the console :)
+	function printSplash() {
 		console.log('Custom art tools were loaded properly');
 		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
 	}
-})();
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// User-Script Initialization
+	
+	// iife that checks if the Desmos has finished loading (10 attempts)
+	(function loadCheck () {
+		if (typeof loadCheck.attempts === 'undefined') {
+			loadCheck.attempts = 0;
+		} else {
+			loadCheck.attempts++;
+		}
+		
+		if (
+			typeof window.wrappedJSObject.Calc === 'undefined' ||
+			typeof window.wrappedJSObject.Desmos === 'undefined'
+		) {
+			
+			if (loadCheck.attempts < 10) {
+				console.log('Desmos is loading...');
+				window.setTimeout(loadCheck, 1000);
+			} else {
+				console.warn("Something went wrong :(");
+			}
+			
+		} else {
+			Calc = window.wrappedJSObject.Calc;
+			Desmos = window.wrappedJSObject.Desmos;
+			console.log('Desmos is ready ✔️');
+			
+			try {
+				initGUI();
+				loadEvents();
+				printSplash();
+			} catch (ex) {
+				console.error(`${ex.name}: ${ex.message}`);
+				console.log('An error was encountered while loading');
+			} finally {
+				// Nothing to do here yet...
+			}
+			
+		}
+	} ());
+	
+} ());
