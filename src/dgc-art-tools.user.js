@@ -54,10 +54,10 @@
 		menuActive: false,
 		menuVisible: false,
 		reset: function () {
-			ActiveItem.expression = null;
-			ActiveItem.element = null;
-			ActiveItem.menuActive = false;
-			ActiveItem.menuVisible = false;
+			this.expression = null;
+			this.element = null;
+			this.menuActive = false;
+			this.menuVisible = false;
 		}
 	});
 	
@@ -796,7 +796,7 @@
 				console.log('Desmos is loading...');
 				window.setTimeout(loadCheck, 1000);
 			} else {
-				console.warn("Something went wrong :(");
+				console.warn("Abort: Art tools script could not load :(");
 			}
 			
 		} else {
