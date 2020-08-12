@@ -587,16 +587,12 @@
 		switch (aBf) {
 			case 0: // none to none
 				return (args) => convFunc(...args);
-				break;
 			case 1: // alpha to none
 				return (args) => {args.pop(); return convFunc(...args);};
-				break;
 			case 2: // none to alpha
-				return (args) => {return convFunc(...args).concat(1)};
-				break;
+				return (args) => {return convFunc(...args).concat(1);};
 			case 3: // alpha to alpha
-				return (args) => {let al = args.pop(); return convFunc(...args).concat(al)};
-				break;
+				return (args) => {let al = args.pop(); return convFunc(...args).concat(al);};
 			default:
 				throw new CustomError('Unknown error', `The bitfield has a value of ${aBf}. What kind of sorcery is this?`);
 		}
@@ -605,7 +601,6 @@
 	// returns an array with RGB values from an HSL color space
 	function getRGBfromHSL(hue, sat, light) {
 		const mod = (n, m) => (n * m > 0 ? n % m : n % m + m);
-		const RGB_MAX = 255;
 		let ls_ratio = Math.min(light, 1 - light)*sat;
 		
 		return [0, 8, 4].map((offset, i) => {
