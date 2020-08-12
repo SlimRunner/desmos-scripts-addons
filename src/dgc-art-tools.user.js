@@ -561,9 +561,63 @@
 		return output;
 	}
 	
-	// returns an array containing the name of the CSS funcion and its parameters destructured
+	// maps a colorspace to antoher one
+	function mapToColorSpace(clFrom, clTo) {
+		if (clFrom === clTo) return (...args) => args[0];
+		
+		let convFunc;
+		let rxAlpha;
+		
+		switch (true) {
+			case /rgba?/.test(clFrom) && /rgba?/.test(clTo):
+				convFunc = (r, g, b) => [r, g, b];
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			case /hsla?/.test(clFrom) && /rgba?/.test(clTo):
+				convFunc = getRGBfromHSL;
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			default:
+				throw new CustomError('Argument error', `There is no conversion between ${clFrom} and ${clTo}`);
+		}
+		
+		// bitfield to decide what to do with alpha disparity
+		let aBf = (rxAlpha.test(clFrom) ? 1 : 0) | (rxAlpha.test(clTo) ? 2 : 0);
+		
+		switch (aBf) {
+			case 0: // none to none
+				return (args) => convFunc(...args);
+				break;
+			case 1: // alpha to none
+				return (args) => {args.pop(); return convFunc(...args);};
+				break;
+			case 2: // none to alpha
+				return (args) => {return convFunc(...args).concat(1)};
+				break;
+			case 3: // alpha to alpha
+				return (args) => {let al = args.pop(); return convFunc(...args).concat(al)};
+				break;
+			default:
+				throw new CustomError('Unknown error', `The bitfield has a value of ${aBf}. What kind of sorcery is this?`);
+		}
+	}
+	
+	// returns an array with RGB values from an HSL color space
+	function getRGBfromHSL(hue, sat, light) {
+		const mod = (n, m) => (n * m > 0 ? n % m : n % m + m);
+		const RGB_MAX = 255;
+		let ls_ratio = Math.min(light, 1 - light)*sat;
+		
+		return [0, 8, 4].map((offset, i) => {
+			return mod((offset + hue/30), 12);
+		}).map((kval, i) => {
+			return light - ls_ratio*Math.max(Math.min(Math.min(kval - 3, 9 - kval), 1), -1);
+		});
+	}
+	
+	// returns an array containing the name of the CSS funcion and its parameters destructured and normalized (except for degree angles those stay as-is)
 	function parseCSSFunc(value) {
-		if (typeof value !== 'string') throw new CustomError('Parameter error', 'value is not a valid string');
+		if (typeof value !== 'string') throw new CustomError('Argument error', 'value is not a valid string');
 		const rxSignature = /^([a-zA-Z]+)(\(.+\))$/i;
 		const rxArgs = /\(\s*([+-]?(?:\d*?\.)?\d+%?)\s*,\s*([+-]?(?:\d*?\.)?\d+%?)\s*,\s*([+-]?(?:\d*?\.)?\d+%?)\s*(?:,\s*([+-]?(?:\d*?\.)?\d+%?)\s*)?\)/;
 		
@@ -583,26 +637,29 @@
 		
 		let output;
 		
+		// select the format of parameters
 		switch (true) {
 			case funcName === 'rgb':
 			case funcName === 'rgba':
-				if (!isEqual(pType, NUMMAP_RGB)) throw new CustomError('Paremeter error', 'RGB parameters are not valid');
-				output = args.map(parseFloat);
+				if (!isEqual(pType, NUMMAP_RGB)) throw new CustomError('Argument error', 'RGB arguments are not valid');
+				output = args.map((num) => {
+					return parseFloat(num / 255);
+				});
 				
 				break;
 			case funcName === 'hsl':
 			case funcName === 'hsla':
-				if (!isEqual(pType, NUMMAP_HSL)) throw new CustomError('Paremeter error', 'HSL parameters are not valid');
+				if (!isEqual(pType, NUMMAP_HSL)) throw new CustomError('Argument error', 'HSL parameters are not valid');
 				output = args.map(parseFloat).map((num, i) => {
 					return num * (pType[i] ? 0.01 : 1);
 				});
 				break;
 			default:
-				throw new CustomError('Paremeter error', `${funcName} is not a recognized CSS function`);
+				throw new CustomError('Argument error', `${funcName} is not a recognized CSS function`);
 		}
 		
 		if (typeof alpha !== 'undefined') {
-			if (funcName.length === 3) throw new CustomError('Parameter error', `${funcName} function only recieves 3 parameters`);
+			if (funcName.length === 3) throw new CustomError('Argument error', `${funcName} function only recieves 3 arguments`);
 			output.push(parseFloat(alpha) * (isNaN(alpha) ? 0.01 : 1));
 		}
 		
@@ -611,7 +668,7 @@
 	
 	// returns an array containing a desctructured version of a valid CSS hex color
 	function parseCSSHex(value, numeric = false) {
-		if (typeof value !== 'string') throw new CustomError('Parameter error', 'value is not a valid string');
+		if (typeof value !== 'string') throw new CustomError('Argument error', 'value is not a valid string');
 		const rxHex = /^#((?:[0-9a-z]){3,8})$/i;
 		
 		let hex = value.match(rxHex);
@@ -633,7 +690,7 @@
 				output = hex.match(/(..)(..)(..)(..)/).splice(1);
 				break;
 			default:
-				throw new CustomError('Paremeter error', `${value} is not a valid CSS hex color`);
+				throw new CustomError('Argument error', `${value} is not a valid CSS hex color`);
 		}
 		
 		if (numeric) {
@@ -735,6 +792,7 @@
 	function getHex6(cssColor) {
 		let output;
 		
+		// try if cssColor is a named color
 		try {
 			output = parseNamedColor(cssColor);
 			return output;
@@ -742,28 +800,41 @@
 			
 		}
 		
+		// try if cssColor is a hex value
 		try {
 			output = parseCSSHex(cssColor);
-			
+			// get rid of alpha channel if it exists
 			if (output.length === 4) output.pop();
 			
-			output.map((item) => {
-				return item.length === 1 ? '0' : '' + item;
+			// pads with 0 if number is less than 0x10
+			output = output.map((item) => {
+				return (item.length === 1 ? '0' : '') + item;
 			});
 			
-			// pads with 0 if length is not 2
-			return `#${output.map((item) => {
-				return item.length === 1 ? '0' : '' + item;
-			}).join('')}`;
+			// merges numbers into hex format #nnnnnn
+			return `#${output.join('')}`;
 			
 		} catch (e) {
 			
 		}
 		
+		// try if cssColor is a function
 		try {
 			output = parseCSSFunc(cssColor);
-			console.warn(`${output[0]} color cannot be parsed yet`);
-			return '#000000';
+			let funcName = output[0];
+			output = output.splice(1);
+			
+			// converts number to hexadecimal
+			output = (mapToColorSpace(funcName, 'rgb')(output)).map((num) => {
+				return Math.trunc(num * 255).toString(16);
+			});
+			
+			// pads with 0 if number is less than 0x10
+			output = output.map((item) => {
+				return (item.length === 1 ? '0' : '') + item;
+			});
+			
+			return `#${output.join('')}`;
 		} catch (e) {
 			console.error(`${e.name}:${e.message}`);
 		}
