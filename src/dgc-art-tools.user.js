@@ -832,6 +832,8 @@
 			return `#${output.join('')}`;
 		} catch (e) {
 			console.error(`${e.name}:${e.message}`);
+		} finally {
+			return '#7F7F7F';
 		}
 		
 	}
