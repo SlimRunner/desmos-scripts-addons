@@ -561,7 +561,7 @@
 		return output;
 	}
 	
-	// maps a colorspace to antoher one
+	// returns a function that maps between the specified color spaces
 	function mapToColorSpace(clFrom, clTo) {
 		if (clFrom === clTo) return (...args) => args[0];
 		
@@ -610,7 +610,7 @@
 		});
 	}
 	
-	// returns an array containing the name of the CSS funcion and its parameters destructured and normalized (except for degree angles those stay as-is)
+	// returns an array containing the CSS funcion name and its parameters destructured and normalized (except for degree angles those stay as they are)
 	function parseCSSFunc(value) {
 		if (typeof value !== 'string') throw new CustomError('Argument error', 'value is not a valid string');
 		const rxSignature = /^([a-zA-Z]+)(\(.+\))$/i;
@@ -697,7 +697,7 @@
 		return output;
 	}
 	
-	// checks if the input is a named CSS color and returns its HEX value
+	// Retruns the CSS hex value of given named CSS color
 	function parseNamedColor(input) {
 		const NAME_TABLE = {
 			'black' : '#000000', 'navy' : '#000080',
@@ -783,7 +783,7 @@
 		}
 	}
 	
-	// returns any CSS color parsed as 6-digit hex
+	// returns a 6-digit hex of any given CSS color
 	function getHex6(cssColor) {
 		let output;
 		
@@ -819,7 +819,7 @@
 			let funcName = output[0];
 			output = output.splice(1);
 			
-			// converts number to hexadecimal
+			// maps current color space onto rgb and converts the normalized coefficients onto a hexadecimal string
 			output = (mapToColorSpace(funcName, 'rgb')(output)).map((num) => {
 				return Math.trunc(num * 255).toString(16);
 			});
