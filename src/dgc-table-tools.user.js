@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosTableTools
 // @namespace	slidav.Desmos
-// @version  	1.0.3
+// @version  	1.0.4
 // @author		SlimRunner (David Flores)
 // @description	Adds tools to manipulate tables
 // @grant    	none
@@ -665,10 +665,10 @@ function getElementsByAttribute(parent, query, attName) {
 
 (function loadCheck () {
 	
-	if (typeof this.attempts === 'undefined') {
-		this.attempts = 0;
+	if (typeof loadCheck.attempts === 'undefined') {
+		loadCheck.attempts = 0;
 	} else {
-		this.attempts++;
+		loadCheck.attempts++;
 	}
 	
 	if (
@@ -676,7 +676,7 @@ function getElementsByAttribute(parent, query, attName) {
 		typeof window.wrappedJSObject.Desmos === 'undefined'
 	) {
 		
-		if (this.attempts < 10) {
+		if (loadCheck.attempts < 10) {
 			window.setTimeout(loadCheck, 1000);
 		} else {
 			console.log("Abort: The script couldn't load properly :/");
