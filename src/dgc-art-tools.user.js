@@ -38,15 +38,22 @@
 	  }
 	}
 	
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// GUI Management
+	// MathQuill wrapper
+	class MQField {
+		constructor(node, callback) {
+			this.target = elem;
+			this.mathField = Desmos.MathQuill.MathField(elem, {
+				handlers: { edit: callback }
+			});
+		}
+	}
 	
-	// store all controls used in the script
-	var ctrColor;
-	var ctrLatex;
-	// store all buttons of the context menu
-	var buttonList;
-
+	// dialog result values
+	const DialogResult = Object.defineProperties({}, {
+		OK : constProperty(1),
+		Cancel : constProperty(2)
+	});
+	
 	// store the state of the context menu
 	var ActiveItem = Object.assign({}, {
 		expression: null,
@@ -60,6 +67,15 @@
 			this.menuVisible = false;
 		}
 	});
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// GUI Management
+	
+	// store all controls used in the script
+	var ctrColor;
+	var ctrLatex;
+	// store all buttons of the context menu
+	var buttonList;
 	
 	// initializes the graphic interface
 	function initGUI() {
@@ -549,6 +565,16 @@
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// General Helper Functions
+	
+	// add constant property
+	function constProperty(val) {
+		return {
+			value: val,
+			writable: false,
+			enumerable: true,
+			configurable: true
+		};
+	}
 	
 	// determines if two arrays are equal (memberwise)
 	function isEqual(lhs, rhs) {
