@@ -55,7 +55,7 @@
 	});
 	
 	// store the state of the context menu
-	var ActiveItem = Object.assign({}, {
+	const ActiveItem = Object.assign({}, {
 		expression: null,
 		element: null,
 		menuActive: false,
@@ -426,7 +426,6 @@
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// Event handlers
-	
 	function loadEvents() {
 		// hides button when menu is gone and the mouse left the button client area
 		bindListenerToNodes(buttonList, 'mouseleave', () => {
