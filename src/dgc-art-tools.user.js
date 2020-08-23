@@ -270,6 +270,7 @@
 		
 	}
 	
+	// initializes the latex dialog interface
 	function initLatexDialog() {
 		// adds elements for the latex dialog into the body
 		ctrLatex = insertNodes(document.body, {
@@ -547,7 +548,15 @@
 		// event that triggers when the opacity dialog is closed
 		ctrColor.opacityButton.addEventListener('latexChange', (e) => {
 			// change opacity
-			console.log(e.detail);
+			if (
+				e.detail.type === DialogResult.OK &&
+				e.detail.changed()
+			) {
+				setExprProp(ActiveItem.expression.id, {
+					key: 'fillOpacity',
+					value: e.detail.value
+				});
+			}
 		});
 		
 		// event that triggers when user clicks line width button
@@ -557,14 +566,22 @@
 			DialLtx.show(
 				expr.lineWidth,
 				{x: elemBound.right, y: elemBound.top, width: 400},
-				ctrColor.opacityButton
+				ctrColor.widthButton
 			);
 		});
 		
 		// event that triggers when the line width dialog is closed
 		ctrColor.widthButton.addEventListener('latexChange', (e) => {
 			// change line width
-			console.log(e.detail);
+			if (
+				e.detail.type === DialogResult.OK &&
+				e.detail.changed()
+			) {
+				setStateProp(ActiveItem.expression.index, {
+					key: 'lineWidth',
+					value: e.detail.value
+				});
+			}
 		});
 		
 	}
@@ -739,6 +756,21 @@
 			default:
 				// not a valid type
 		}
+	}
+	
+	// sets the property of an expression by id using setExpression
+	function setExprProp(eID, {key, value}) {
+		Calc.setExpression({
+			id: eID,
+			[key]: value
+		});
+	}
+	
+	// sets the property of an expression by index using setState
+	function setStateProp(index, {key, value}) {
+		let state = Calc.getState();
+		state.expressions.list[index][key] = value;
+		Calc.setState(state, {allowUndo: true});
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
