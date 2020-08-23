@@ -41,8 +41,8 @@
 	// MathQuill wrapper
 	class MQField {
 		constructor(node, callback) {
-			this.target = elem;
-			this.mathField = Desmos.MathQuill.MathField(elem, {
+			this.target = node;
+			this.mathField = Desmos.MathQuill.MathField(node, {
 				handlers: { edit: callback }
 			});
 		}
@@ -50,11 +50,38 @@
 	
 	// dialog result values
 	const DialogResult = Object.defineProperties({}, {
+		None: constProperty(0),
 		OK : constProperty(1),
 		Cancel : constProperty(2)
 	});
 	
-	// store the state of the context menu
+	// mouse state values of the latex dialog
+	const MseDial = Object.defineProperties({}, {
+		NORMAL_STATE : constProperty(0),
+		SELECT_STATE : constProperty(1),
+		EXIT_STATE : constProperty(2)
+	});
+	
+	// stores the state of the latex dialog
+	const DialLtx = Object.assign({}, {
+		show: showLatexDialog,
+		hide: hideLatexDialog,
+		
+		result: {
+			value: '',
+			initValue: '',
+			type: DialogResult.None,
+			changed: function () {
+				return (this.value !== this.initValue);
+			}
+		},
+		mseState: 0,
+		MQ: null,
+		onChange: null,
+		dispatcher: null
+	});
+	
+	// stores the state of the context menu
 	const ActiveItem = Object.assign({}, {
 		expression: null,
 		element: null,
@@ -215,32 +242,6 @@
 			}]
 		});
 		
-		// adds elements for the latex dialog into the body
-		ctrLatex = insertNodes(document.body, {
-			group: [{
-				tag: 'div',
-				varName: 'mqDialBack',
-				id: 'latex-dialog-background',
-				classes: [
-					'sli-mq-page-shade'
-				],
-				group : [{
-					tag : 'div',
-					varName : 'mqContainer',
-					classes : [
-						'sli-mq-container'
-					],
-					group : [{
-						tag : 'span',
-						varName : 'mqField',
-						classes : [
-							'sli-mq-field'
-						]
-					}]
-				}]
-			}]
-		});
-		
 		// groups all buttons from context menu in a list
 		buttonList = [
 			ctrColor.colorButton,
@@ -267,6 +268,59 @@
 			}
 		});
 		
+	}
+	
+	function initLatexDialog() {
+		// adds elements for the latex dialog into the body
+		ctrLatex = insertNodes(document.body, {
+			group: [{
+				tag: 'div',
+				varName: 'mqDialBack',
+				id: 'latex-dialog-background',
+				classes: [
+					'sli-mq-page-shade'
+				],
+				group : [{
+					tag : 'div',
+					varName : 'mqContainer',
+					classes : [
+						'sli-mq-container'
+					],
+					group : [{
+						tag : 'span',
+						varName : 'mqField',
+						classes : [
+							'sli-mq-field'
+						]
+					}]
+				}]
+			}]
+		});
+		
+		// captures the span element created by MathQuill
+		let catchMQArea = new MutationObserver( obsRec => {
+			ctrLatex.mqTextArea = ctrLatex.mqField.getElementsByTagName('textarea')[0];
+			ctrLatex.mqTextArea.setAttribute('tabindex', '-1');
+			catchMQArea.disconnect();
+		});
+		catchMQArea.observe(ctrLatex.mqField, {
+			childList: true
+		});
+		
+		// initializes tha MathQuill field
+		DialLtx.MQ = new MQField(ctrLatex.mqField, () => {
+			if (DialLtx.MQ) {
+				DialLtx.result.value = DialLtx.MQ.mathField.latex();
+			}
+		});
+		
+		// adds custom event (to the global object?)
+		DialLtx.onChange = new CustomEvent('latexChange', {detail: DialLtx.result});
+		
+		// hide element DO NOT USE hide()
+		ctrLatex.mqDialBack.style.visibility = 'hidden';
+		ctrLatex.mqDialBack.style.opacity = '0';
+		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
 	}
 	
 	// triggers a callback whenever an expression menu in Desmos is deployed
@@ -323,6 +377,7 @@
 			let eID = expElem.getAttribute('expr-id');
 			// this is a table
 			return {
+				elem: expElem,
 				type: 'table',
 				id: eID,
 				colIndex: seekAttribute(expElem, cellQuery, 'index'),
@@ -332,6 +387,7 @@
 			let eID = expElem.getAttribute('expr-id');
 			// this is an expression
 			return {
+				elem: expElem,
 				type: 'expression',
 				id: eID,
 				index: getExprIndex(eID)
@@ -424,8 +480,34 @@
 		
 	}
 	
+	// DialLtx method definition that shows the latex dialog
+	function showLatexDialog(value, coords, dispatcher) {
+		DialLtx.dispatcher = dispatcher;
+		DialLtx.result.initValue = value || '';
+		DialLtx.MQ.mathField.latex(value || '');
+		
+		ctrLatex.mqDialBack.appendChild(ctrLatex.mqContainer);
+		ctrLatex.mqContainer.style.left = `${coords.x}px`;
+		ctrLatex.mqContainer.style.top = `${coords.y}px`;
+		ctrLatex.mqContainer.style.width = `${coords.width}px`;
+		
+		ctrLatex.mqDialBack.style.visibility = 'visible';
+		ctrLatex.mqDialBack.style.opacity = '1';
+		
+		ctrLatex.mqTextArea.focus();
+	}
+	
+	// DialLtx method definition that hides the latex dialog
+	function hideLatexDialog(result = DialogResult.None) {
+		ctrLatex.mqDialBack.style.visibility = 'hidden';
+		ctrLatex.mqDialBack.style.opacity = '0';
+		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
+		DialLtx.result.type = result;
+		DialLtx.dispatcher.dispatchEvent(DialLtx.onChange);
+	}
+	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// Event handlers
+	// adds event handlers for the context menu
 	function loadEvents() {
 		// hides button when menu is gone and the mouse left the button client area
 		bindListenerToNodes(buttonList, 'mouseleave', () => {
@@ -433,7 +515,6 @@
 				ActiveItem.menuActive = false;
 				showPropMenu(false);
 			}
-			
 		});
 		
 		// changes button state to active so that button doesn't go away with menu
@@ -449,29 +530,101 @@
 		
 		// event that triggers when user selects a color from color picker
 		ctrColor.colorButton.addEventListener('change', (e) => {
-			let expr = Calc.getExpressions()[ActiveItem.expression.index];
-			
-			switch (true) {
-				case expr.type === 'expression':
-					Calc.setExpression({
-						id: expr.id,
-						color: e.target.value
-					});
-					expr.color = e.target.value;
-					break;
-				case expr.type === 'table':
-					expr.columns[ActiveItem.expression.colIndex].color = e.target.value;
-					Calc.setExpression({
-						type:'table',
-						id: expr.id,
-						columns: expr.columns
-					});
-					break;
-				default:
-					// not a valid type
+			setExprColor(ActiveItem.expression, e.target.value);
+		});
+		
+		// event that triggers when user clicks opacity button
+		ctrColor.opacityButton.addEventListener('click', (e) => {
+			let expr = getStateExpr(ActiveItem.expression.index);
+			let elemBound = ActiveItem.expression.elem.getBoundingClientRect();
+			DialLtx.show(
+				expr.stringFillOpacity,
+				{x: elemBound.right, y: elemBound.top, width: 400},
+				ctrColor.opacityButton
+			);
+		});
+		
+		// event that triggers when the opacity dialog is closed
+		ctrColor.opacityButton.addEventListener('latexChange', (e) => {
+			// change opacity
+			console.log(e.detail);
+		});
+		
+		// event that triggers when user clicks line width button
+		ctrColor.widthButton.addEventListener('click', (e) => {
+			let elemBound = ActiveItem.expression.elem.getBoundingClientRect();
+			let expr = getStateExpr(ActiveItem.expression.index);
+			DialLtx.show(
+				expr.lineWidth,
+				{x: elemBound.right, y: elemBound.top, width: 400},
+				ctrColor.opacityButton
+			);
+		});
+		
+		// event that triggers when the line width dialog is closed
+		ctrColor.widthButton.addEventListener('latexChange', (e) => {
+			// change line width
+			console.log(e.detail);
+		});
+		
+	}
+	
+	// adds event listeners for the latex dialog
+	function loadDialogListeners() {
+		// DialLtx.onChange
+		ctrLatex.mqDialBack.addEventListener('mousedown', () => {
+			if (DialLtx.mseState === MseDial.NORMAL_STATE) {
+				DialLtx.mseState = MseDial.EXIT_STATE;
 			}
 		});
 		
+		// Release click on gray area
+		ctrLatex.mqDialBack.addEventListener('mouseup', () => {
+			if (DialLtx.mseState === MseDial.EXIT_STATE) {
+				DialLtx.hide(DialogResult.OK);
+			}
+			DialLtx.mseState = MseDial.NORMAL_STATE;
+		});
+		
+		// prevent keyboard shortcuts from reaching Desmos GUI
+		ctrLatex.mqDialBack.addEventListener('keydown', (e) => {
+			e.stopPropagation();
+		});
+		
+		// prevent keyboard shortcuts from reaching Desmos GUI
+		ctrLatex.mqDialBack.addEventListener('keyup', (e) => {
+			e.stopPropagation();
+		});
+		
+		// Release key on latex field
+		ctrLatex.mqField.addEventListener('keyup', (e) => {
+			switch (true) {
+				case e.key === 'Escape':
+					DialLtx.hide(DialogResult.Cancel);
+					break;
+				case e.key === 'Enter':
+					DialLtx.hide(DialogResult.OK);
+					break;
+				default:
+					
+			}
+		});
+		
+		// Press click on latex field
+		bindListenerToNodes([
+			ctrLatex.mqField,
+			ctrLatex.mqContainer
+		], 'mousedown', (e) => {
+			DialLtx.mseState = MseDial.SELECT_STATE;
+		});
+		
+		// Release key on latex field
+		bindListenerToNodes([
+			ctrLatex.mqField,
+			ctrLatex.mqContainer
+		], 'mouseup', (e) => {
+			DialLtx.mseState = MseDial.NORMAL_STATE;
+		});
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -560,6 +713,32 @@
 	// gets an expression item of given index using getExpressions
 	function getPureExpr(index) {
 		return Calc.getExpressions()[index];
+	}
+	
+	// sets the color of an expression
+	function setExprColor(target, newColor) {
+		let expr = Calc.getExpressions()[target.index];
+		
+		switch (true) {
+			case expr.type === 'expression':
+				Calc.setExpression({
+					id: expr.id,
+					color: newColor
+				});
+				break;
+				
+			case expr.type === 'table':
+				expr.columns[target.colIndex].color = newColor;
+				Calc.setExpression({
+					type: 'table',
+					id: expr.id,
+					columns: expr.columns
+				});
+				break;
+				
+			default:
+				// not a valid type
+		}
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -899,7 +1078,9 @@
 			
 			try {
 				initGUI();
+				initLatexDialog();
 				loadEvents();
+				loadDialogListeners();
 				printSplash();
 			} catch (ex) {
 				console.error(`${ex.name}: ${ex.message}`);
