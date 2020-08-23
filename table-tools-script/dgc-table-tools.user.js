@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name     	DesmosTableTools
 // @namespace	slidav.Desmos
-// @version  	1.0.4
+// @version  	1.0.5
 // @author		SlimRunner (David Flores)
 // @description	Adds tools to manipulate tables
 // @grant    	none
 // @match			https://*.desmos.com/calculator*
-// @downloadURL	https://gist.github.com/SlimRunner/0652e5d9bae31ec679b369393207ee0f/raw/dgc-table-tools.user.js
-// @updateURL	https://gist.github.com/SlimRunner/0652e5d9bae31ec679b369393207ee0f/raw/dgc-table-tools.user.js
+// @downloadURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
+// @updateURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */

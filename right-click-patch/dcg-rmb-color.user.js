@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name     	DesmosColorRightClick
 // @namespace	slidav.Desmos
-// @version  	1.0.4
+// @version  	1.0.5
 // @author		SlimRunner (David Flores)
 // @description	Overrides context menu for color bubble
 // @grant    	none
 // @match			https://*.desmos.com/calculator*
-// @downloadURL	https://gist.github.com/SlimRunner/25ecb59c482dac56c6b7560f31d2133e/raw/dgc-rmb-color.user.js
-// @updateURL	https://gist.github.com/SlimRunner/25ecb59c482dac56c6b7560f31d2133e/raw/dgc-rmb-color.user.js
+// @downloadURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
+// @updateURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
