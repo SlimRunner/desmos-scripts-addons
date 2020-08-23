@@ -1,47 +1,32 @@
-# Desmos User-Script
+# Desmos User-Scripts
 
-This is a web-script designed to provide a graphical interface to access features that are available only directly through the Desmos API. For example, if you would want to change the color of your graph beyond the palette that Desmos offer, you would normally have to open the web-console in your browser and run a script such as the following:
+This repository is a collection of user-scripts that automate certain tasks or add features to Desmos in order to enhance the productivity or enjoyability of the app.
 
-```javascript
-state = Calc.getState();
-state.expressions.list[i - 1].color = "#000000";
-Calc.setState(state, {allowUndo: true});
-```
+The scripts in this collection are the following:
 
-where `i` is the number or index of your graph expression and the string assigned any valid HTML color. Probably you can do this once without problem, but if you are setting up a graph for artistic purposes where you are constantly changing colors, it can get tedious rather quickly.
+#### [Desmos Graphing Calculator](https://www.desmos.com/calculator)
+1. **[Art Tools](https://github.com/SlimRunner/desmos-scripts-addons/tree/master/art-tools-script)** — adds a tray of options next to the default color tray that allows you to select a custom color, change opacity, and/or change the line width of an expression.
+1. **[Table Tools](https://github.com/SlimRunner/desmos-scripts-addons/tree/master/table-tools-script)** — Allows to add points interactively using `alt` + `left mouse button`. Points are aggregated into a table of your choice that can be selected through a button that appears next to valid table expressions.
+1. **[Right Click Patch](https://github.com/SlimRunner/desmos-scripts-addons/tree/master/right-click-patch)** — A small quality of life patch that allows you to right click the color bubble to open the color tray instead of a long-hold.
 
-The list of features currently supported by the script are:
+*There is a readme in each script folder with more in-depth details about the script itself.*
 
-* assign a color with the default color picker
-* assign opacity to an expression using LaTeX
-* assign line width to an expression using LaTeX
+## Getting Started
 
-## Getting Started - Users
+All the scripts are tested and developed to work with [TamperMonkey](https://www.tampermonkey.net/), a browser extension that runs user-scripts. Technically, the scripts should work with any standard user-script manager but if you use anything other than TamperMonkey you might have to fiddle with the settings to get it to work.
 
-The installation process is a breeze with the help of a browser extension, and automatic updates are enabled using GitHub Gist for hosting. The process is as follows:
+The general installation process is similar for all scripts. Using TamperMonkey is as follows:
 
 ### Prerequisites
 
-First you need to install [TamperMonkey](https://www.tampermonkey.net/), a browser extension available in a wide variety of popular browsers.
+Follow the link to [TamperMonkey's website](https://www.tampermonkey.net/) where you can pick your preferred browser to install the extension.
 
 ### Installation
 
-1. Open [this gist](https://gist.github.com/SlimRunner/aacc9cea998a3a8da31eae9d487412d7) for the most current version of the script.
-1. Click the `Raw` button.
-1. Press `install` when prompted by TamperMonkey.
-1. Anytime you open [Desmos](https://www.desmos.com/calculator) TamperMonkey will automatically load the script, and will prompt you to install new versions when they become available.
+Once the extension is installed you can either navigate towards the respective script file in this repository and click `raw` on the upper right corner or click the following links for the script you want to install:
 
-## Known Issues
+* [Art Tools](https://github.com/SlimRunner/desmos-scripts-addons/raw/master/art-tools-script/dgc-art-tools.user.js)
+* [Table Tools](https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js)
+* [Right Click Patch](https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js)
 
-* This script was tested first on GreasyMonkey, but it never worked. Feel free to try other user-script managers, but there are no guarantee that it will work.
-* Whenever you change the color of a table column with computed values, the values will disappear. In order for them to be re-computed you must force a refresh on the values. The easiest way is to hide and show any column.
-* Changing the line width of an expression will cause the whole graph to refresh because of constraints imposed by the Desmos API itself.
-* Table columns can't have its line-width modified under any circumstance. The line-width button won't show up with tables because of this.
-* The button for opacity is hidden under certain circumstances. The reason is that the Desmos API rejects opacity requests to the Calc object if the expression isn't a fillable expression. Due to this, I have decided to hide the button unless you have chosen to fill the expression or the expression is a polygon<sup><a href="note-1">[1]</a></sup>. The following is what constitutes a fillable expression:
-	* an valid expression using the `polygon` function
-	* a valid parametric expression
-* The line-width button isn't restricted because this property never gets rejected by the Calc object under any circumstance. This is true even when the expression can't have it's line-width altered (like inequalities). This button is never hidden.
-* It is important to note that even if the property (opacity or line-width) was properly injected into the Calc object, **Desmos' UI may not prompt you to auto-add a non-existent token** under certain circumstances.
-
-#### Notes:
-[[1]](#note-1): Opacity button for polygons will **always** be visible because when you just freshly added a polygon expression, it will not have a fill property when querying the Calc object expressions. The property, however, gets added as soon as you toggle the fill checkbox.
+Either way you will be prompted automatically by TamperMonkey to install the scripts. Click `install` or `reinstall` if you are updating. Once installed, you can periodically check for updates in TamperMonkey, and you will be served the latest changes from the master branch of this repository.
