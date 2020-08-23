@@ -144,41 +144,6 @@
 					text-align: center;
 					line-height: 2em;
 				}
-				
-				/* LATEX DIALOG */
-				
-				.sli-mq-container {
-					position: fixed;
-					left: 0;
-					top: 0;
-					/* z-index:99; */
-					/* visibility: hidden; */
-					/* opacity: 0; */
-					/* transition: opacity 0.1s ease-out; */
-					
-					font-size: 13pt;
-				}
-				
-				.sli-mq-field {
-					display: none;
-					background: white;
-					width: 100%;
-					padding: 8px;
-				}
-				
-				.sli-mq-page-shade {
-				  position: fixed;
-				  left: 0;
-				  top: 0;
-				  width: 100%;
-				  height: 100%;
-				  z-index: 99;
-				  padding: 10px;
-				  background: rgba(0,0,0,0.4);
-				  visibility: hidden;
-				  opacity: 0;
-				  transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
-				}
 				`
 			}]
 		});
@@ -268,60 +233,6 @@
 			}
 		});
 		
-	}
-	
-	// initializes the latex dialog interface
-	function initLatexDialog() {
-		// adds elements for the latex dialog into the body
-		ctrLatex = insertNodes(document.body, {
-			group: [{
-				tag: 'div',
-				varName: 'mqDialBack',
-				id: 'latex-dialog-background',
-				classes: [
-					'sli-mq-page-shade'
-				],
-				group : [{
-					tag : 'div',
-					varName : 'mqContainer',
-					classes : [
-						'sli-mq-container'
-					],
-					group : [{
-						tag : 'span',
-						varName : 'mqField',
-						classes : [
-							'sli-mq-field'
-						]
-					}]
-				}]
-			}]
-		});
-		
-		// captures the span element created by MathQuill
-		let catchMQArea = new MutationObserver( obsRec => {
-			ctrLatex.mqTextArea = ctrLatex.mqField.getElementsByTagName('textarea')[0];
-			ctrLatex.mqTextArea.setAttribute('tabindex', '-1');
-			catchMQArea.disconnect();
-		});
-		catchMQArea.observe(ctrLatex.mqField, {
-			childList: true
-		});
-		
-		// initializes tha MathQuill field
-		DialLtx.MQ = new MQField(ctrLatex.mqField, () => {
-			if (DialLtx.MQ) {
-				DialLtx.result.value = DialLtx.MQ.mathField.latex();
-			}
-		});
-		
-		// adds custom event (to the global object?)
-		DialLtx.onChange = new CustomEvent('latexChange', {detail: DialLtx.result});
-		
-		// hide element DO NOT USE hide()
-		ctrLatex.mqDialBack.style.visibility = 'hidden';
-		ctrLatex.mqDialBack.style.opacity = '0';
-		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
 	}
 	
 	// triggers a callback whenever an expression menu in Desmos is deployed
@@ -481,6 +392,101 @@
 		
 	}
 	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// GUI Management
+	
+	// initializes the latex dialog interface
+	function initLatexDialog() {
+		
+		appendTextToNode('sli-script-stylesheet',
+		`/* LATEX DIALOG */
+		
+		.sli-mq-container {
+			position: fixed;
+			left: 0;
+			top: 0;
+			/* z-index:99; */
+			/* visibility: hidden; */
+			/* opacity: 0; */
+			/* transition: opacity 0.1s ease-out; */
+			
+			font-size: 13pt;
+		}
+		
+		.sli-mq-field {
+			display: none;
+			background: white;
+			width: 100%;
+			padding: 8px;
+		}
+		
+		.sli-mq-page-shade {
+			position: fixed;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 99;
+			padding: 10px;
+			background: rgba(0,0,0,0.4);
+			visibility: hidden;
+			opacity: 0;
+			transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
+		}
+		`);
+		
+		// adds elements for the latex dialog into the body
+		ctrLatex = insertNodes(document.body, {
+			group: [{
+				tag: 'div',
+				varName: 'mqDialBack',
+				id: 'latex-dialog-background',
+				classes: [
+					'sli-mq-page-shade'
+				],
+				group : [{
+					tag : 'div',
+					varName : 'mqContainer',
+					classes : [
+						'sli-mq-container'
+					],
+					group : [{
+						tag : 'span',
+						varName : 'mqField',
+						classes : [
+							'sli-mq-field'
+						]
+					}]
+				}]
+			}]
+		});
+		
+		// captures the span element created by MathQuill
+		let catchMQArea = new MutationObserver( obsRec => {
+			ctrLatex.mqTextArea = ctrLatex.mqField.getElementsByTagName('textarea')[0];
+			ctrLatex.mqTextArea.setAttribute('tabindex', '-1');
+			catchMQArea.disconnect();
+		});
+		catchMQArea.observe(ctrLatex.mqField, {
+			childList: true
+		});
+		
+		// initializes tha MathQuill field
+		DialLtx.MQ = new MQField(ctrLatex.mqField, () => {
+			if (DialLtx.MQ) {
+				DialLtx.result.value = DialLtx.MQ.mathField.latex();
+			}
+		});
+		
+		// adds custom event (to the global object?)
+		DialLtx.onChange = new CustomEvent('latexChange', {detail: DialLtx.result});
+		
+		// hide element DO NOT USE hide()
+		ctrLatex.mqDialBack.style.visibility = 'hidden';
+		ctrLatex.mqDialBack.style.opacity = '0';
+		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
+	}
+	
 	// DialLtx method definition that shows the latex dialog
 	function showLatexDialog(value, coords, dispatcher) {
 		DialLtx.dispatcher = dispatcher;
@@ -508,6 +514,8 @@
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// EVENT HANDLERS
+	
 	// adds event handlers for the context menu
 	function loadEvents() {
 		// hides button when menu is gone and the mouse left the button client area
@@ -684,6 +692,13 @@
 			return nodeAdder;
 		}
 		return recurseTree(parentNode, nodeTree, []);
+	}
+	
+	// appends a text node to the end of the node queried by id
+	function appendTextToNode(id, text) {
+		let elem = document.getElementById(id);
+		let textNode = document.createTextNode(text);
+		elem.appendChild(textNode);
 	}
 	
 	// returns attribute of first instance of query
