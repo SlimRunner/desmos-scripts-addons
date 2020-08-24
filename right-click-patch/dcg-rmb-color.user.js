@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosColorRightClick
 // @namespace	slidav.Desmos
-// @version  	1.0.5
+// @version  	1.0.6
 // @author		SlimRunner (David Flores)
 // @description	Overrides context menu for color bubble
 // @grant    	none
@@ -34,11 +34,10 @@
 				e.button === 2 &&
 				typeof e.target.classList === 'object' &&
 				typeof e.target.className === 'string' &&
-				e.target.classList.contains('dcg-hovered') &&
 				(e.target.classList.contains('dcg-layered-icon') ||
 				e.target.classList.contains('dcg-circular-icon'))
 			) {
-				const ICON_DICTIONARY = `boxplot cross distribution dotplot-cross dotplot-default dotplot-open histogram move move-horizontal move-vertical open parametric-dashed parametric-dotted parametric-filled parametric-solid point points polygon-filled polygon-solid dcg-icon-shaded-inequality-dash`;
+				const ICON_DICTIONARY = `boxplot cross distribution dotplot-cross dotplot-default dotplot-open histogram lines-solid move move-horizontal move-vertical open parametric-dashed parametric-dotted parametric-filled parametric-solid point points polygon-dashed polygon-dotted polygon-filled polygon-solid shaded-inequality-dash`;
 				
 				// isolate icon name using regex
 				let targetName = e.target.className.match(/(?<=dcg-icon-)[a-z\-]+/im);
