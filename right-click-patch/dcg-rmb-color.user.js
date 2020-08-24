@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosColorRightClick
 // @namespace	slidav.Desmos
-// @version  	1.1.0
+// @version  	1.1.1
 // @author		SlimRunner (David Flores)
 // @description	Overrides context menu for color bubble
 // @grant    	none
@@ -35,52 +35,53 @@
 		tm_win.addEventListener('mousedown', (e) => {
 			if (e.button === 2) {
 				let tag = e.target.tagName.toLowerCase();
-				let container = null;
-				let ariaLabel = '';
 				
-				if ( // hidden color bubble of expressions or images
-					tag === 'span' &&
-					(container = seekParent(e.target, 2)) !== null &&
-					'classList' in container &&
-					container.classList.contains('dcg-expression-icon-container') &&
-					(ariaLabel = seekParent(e.target, 1).getAttribute("aria-label")) &&
-					(
+				// determines if clicked target is an icon container
+				let isIconContainer = (tagName, lvl, type) => {
+					let container = seekParent(e.target, lvl);
+					if (container === null) return false;
+					return (
+						tag === tagName &&
+						'classList' in container &&
+						container.classList.contains(`dcg-${type}-icon-container`)
+					);
+				};
+				
+				// determines if container is part of an expression or image
+				let hasLongHoldButton = (lvl) => {
+					let wrapper = seekParent(e.target, lvl);
+					if (wrapper === null) return false;
+					let ariaLabel = wrapper.getAttribute("aria-label");
+					if (ariaLabel === null) return false;
+					return (
 						ariaLabel.search('Expression') !== -1 ||
 						ariaLabel.search('Image') !== -1
-					)
+					);
+				};
+				
+				if ( // hidden color bubble of expressions or images
+					isIconContainer('span', 2, 'expression') &&
+					hasLongHoldButton(1)
 				) {
 					showContextMenu = false;
 					Desmos.$(seekParent(e.target, 1)).trigger('dcg-longhold');
 					
 				} else if ( // shown color bubble of expressions
-					tag === 'i' &&
-					(container = seekParent(e.target, 3)) !== null &&
-					'classList' in container &&
-					container.classList.contains('dcg-expression-icon-container') &&
-					(ariaLabel = seekParent(e.target, 2).getAttribute("aria-label")) &&
-					(
-						ariaLabel.search('Expression') !== -1 ||
-						ariaLabel.search('Image') !== -1
-					)
+					isIconContainer('i', 3, 'expression') &&
+					hasLongHoldButton(2)
 				) {
 					showContextMenu = false;
 					Desmos.$(seekParent(e.target, 2)).trigger('dcg-longhold');
 					
 				} else if ( // hidden color bubble of table columns
-					tag === 'span' &&
-					(container = seekParent(e.target, 2)) !== null &&
-					'classList' in container &&
-					container.classList.contains('dcg-table-icon-container')
+					isIconContainer('span', 2, 'table')
 				) {
 					showContextMenu = false;
 					Desmos.$(seekParent(e.target, 1)).trigger('dcg-longhold');
 					
 					
 				} else if ( // shown color bubble of table columns
-					tag === 'i' &&
-					(container = seekParent(e.target, 3)) !== null &&
-					'classList' in container &&
-					container.classList.contains('dcg-table-icon-container')
+					isIconContainer('i', 3, 'table')
 				) {
 					showContextMenu = false;
 					Desmos.$(seekParent(e.target, 2)).trigger('dcg-longhold');
