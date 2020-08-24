@@ -96,7 +96,7 @@
 	});
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// GUI Management
+	// GUI Management - Main
 	
 	// store all controls used in the script
 	var ctrColor;
@@ -393,7 +393,7 @@
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// GUI Management
+	// GUI Management - Dialog
 	
 	// initializes the latex dialog interface
 	function initLatexDialog() {
