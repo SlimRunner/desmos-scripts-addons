@@ -18,7 +18,7 @@
 	var Desmos;
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// Data structures
+	// Global data structures & objects
 	
 	// creates an error with custom name
 	class CustomError extends Error {
@@ -70,7 +70,7 @@
 		result: {
 			value: '',
 			initValue: '',
-			type: DialogResult.None,
+			action: DialogResult.None,
 			changed: function () {
 				return (this.value !== this.initValue);
 			}
@@ -509,7 +509,7 @@
 		ctrLatex.mqDialBack.style.visibility = 'hidden';
 		ctrLatex.mqDialBack.style.opacity = '0';
 		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
-		DialLtx.result.type = result;
+		DialLtx.result.action = result;
 		DialLtx.dispatcher.dispatchEvent(DialLtx.onChange);
 	}
 	
@@ -557,7 +557,7 @@
 		ctrColor.opacityButton.addEventListener('latexChange', (e) => {
 			// change opacity
 			if (
-				e.detail.type === DialogResult.OK &&
+				e.detail.action === DialogResult.OK &&
 				e.detail.changed()
 			) {
 				setExprProp(ActiveItem.expression.id, {
@@ -582,7 +582,7 @@
 		ctrColor.widthButton.addEventListener('latexChange', (e) => {
 			// change line width
 			if (
-				e.detail.type === DialogResult.OK &&
+				e.detail.action === DialogResult.OK &&
 				e.detail.changed()
 			) {
 				setStateProp(ActiveItem.expression.index, {
