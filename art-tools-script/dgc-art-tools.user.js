@@ -1067,8 +1067,7 @@
 		// try if cssColor is a function
 		try {
 			output = parseCSSFunc(cssColor);
-			let funcName = output[0];
-			output = output.splice(1);
+			let funcName = output.splice(0, 1)[0];
 			
 			// maps current color space onto rgb and converts the normalized coefficients onto a hexadecimal string
 			output = (mapToColorSpace(funcName, 'rgb')(output)).map((num) => {
