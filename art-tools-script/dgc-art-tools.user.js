@@ -220,6 +220,25 @@
 					text-align: center;
 					line-height: 2em;
 				}
+				
+				.sli-dat-color-prev-back {
+					display: block;
+					width: 100%;
+					height: 100%;
+					border-radius: 5px;
+					background-color: white;
+					background-size: 10px 10px;
+					background-position: 0 0, 5px 5px;
+					background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
+				}
+				
+				.sli-dat-color-prev {
+					display: block;
+					width: 100%;
+					height: 100%;
+					background: black;
+					border-radius: 3px;
+				}
 				`
 			}]
 		});
@@ -235,16 +254,28 @@
 					'dcg-options-menu'
 				],
 				group : [{
-					tag : 'input',
+					tag : 'div',
 					varName : 'colorButton',
 					attributes: [
-						{name: 'type', value: 'color'},
 						{name: 'title', value: 'Color Picker'}
 					],
 					classes : [
 						'sli-menu-button',
 						'dcg-btn-flat-gray'
-					]
+					],
+					group : [{
+						tag : 'span',
+						classes : [
+							'sli-dat-color-prev-back'
+						],
+						group : [{
+							tag : 'span',
+							varName : 'colorButtonPreview',
+							classes : [
+								'sli-dat-color-prev'
+							]
+						}]
+					}]
 				}, {
 					tag : 'div',
 					varName : 'opacityButton',
