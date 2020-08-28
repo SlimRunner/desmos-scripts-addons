@@ -1091,6 +1091,41 @@
 		});
 	}
 	
+	// returns an array with RGB values from an HSV color space
+	function getRGBfromHSV(hue, sat, value) {
+		const mod = (n, m) => (n * m > 0 ? n % m : n % m + m);
+		const RGB_MAX = 255;
+		let vs_ratio = value*sat;
+		
+		return [5, 3, 1].map((offset, i) => {
+			return mod((offset + hue/60), 6);
+		}).map((kval, i) => {
+			return value - vs_ratio*Math.max(Math.min(Math.min(kval, 4 - kval),1),0);
+		});
+	}
+	
+	// returns an array with HSV values from an RGB color space
+	function getHSVfromRGB(red, green, blue) {
+		let value = Math.max(red, green, blue);
+		let range = value - Math.min(red, green, blue);
+		
+		let sat = (value === 0 ? 0 : range / value);
+		let hue;
+		if (range === 0)					hue = 0;
+		else if (value === red) 	hue = 60 * (green - blue) / range;
+		else if (value === green)	hue = 60 * (2 + (blue - red) / range);
+		else if (value === blue)	hue = 60 * (4 + (red - green) / range);
+		
+		return [hue, sat, value];
+	}
+	
+	// returns an array with HSV values from an HSL color space
+	function getHSVfromHSL(hue, sat, light) {
+		let v = light + sat * Math.min(light, 1 - light);
+		let s = (v == 0 ? 0 : 2 * (1 - light / v));
+		return [hue, s, v];
+	}
+	
 	// returns an array containing the CSS funcion name and its parameters destructured and normalized (except for degree angles those stay as they are)
 	function parseCSSFunc(value) {
 		if (typeof value !== 'string') throw new CustomError('Argument error', 'value is not a valid string');
