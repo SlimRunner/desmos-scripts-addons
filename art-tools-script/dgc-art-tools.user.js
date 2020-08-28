@@ -873,7 +873,7 @@
 		let arrowDisp = {
 			x: 0.1 * Math.cos(angle),
 			y: 0.1 * -Math.sin(angle)
-		}
+		};
 		let colSolid = `rgba(${color[0]},${color[1]},${color[2]},1)`;
 		let triangle = [0, 0, 0], midTri = [0, 0, 0];
 		
@@ -989,7 +989,7 @@
 			CPicker.show(null, ctrColor.colorButton);
 			//getCurrentColor()
 			//CPicker.show(ActiveItem.expression.);
-		})
+		});
 		
 		// event that triggers when user selects a color from color picker
 		ctrColor.colorButton.addEventListener('pickerChange', (e) => {
@@ -1142,7 +1142,7 @@
 					-mse.y + CANV_MID + CPicker.canvasOffset.x,
 					mse.x - CANV_MID - CPicker.canvasOffset.y
 				);
-				updateColorWheel()
+				updateColorWheel();
 			}
 		}
 		
