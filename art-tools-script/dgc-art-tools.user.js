@@ -982,9 +982,16 @@
 			showPropMenu(false);
 		});
 		
+		ctrColor.colorButton.addEventListener('click', (e) => {
+			CPicker.show(null, ctrColor.colorButton);
+			//getCurrentColor()
+			//CPicker.show(ActiveItem.expression.);
+		})
+		
 		// event that triggers when user selects a color from color picker
-		ctrColor.colorButton.addEventListener('change', (e) => {
-			setExprColor(ActiveItem.expression, e.target.value);
+		ctrColor.colorButton.addEventListener('pickerChange', (e) => {
+			// setExprColor(ActiveItem.expression, e.target.value);
+			console.log(e.detail);
 		});
 		
 		// event that triggers when user clicks opacity button
