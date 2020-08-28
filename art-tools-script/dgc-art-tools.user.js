@@ -634,6 +634,113 @@
 		appendTextToNode('sli-script-stylesheet',
 		`.sli-page-shade{position:fixed;left:0;top:0;width:100%;height:100%;z-index:99;padding:10px;background:rgba(0,0,0,0.4);visibility:hidden;opacity:0;transition:opacity 0.4s cubic-bezier(.22,.61,.36,1)}.sli-dialog-grid{display:grid;grid-template-columns:repeat(2, 2fr 1fr);grid-template-rows:1fr repeat(3, 1fr) repeat(2, 2fr) repeat(3,1fr);padding:8px}.sli-dialog-style{font-family:Arial,Helvetica,sans-serif;font-size:11pt;width:640px;height:480px;background:linear-gradient(#666, #555);position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);box-shadow:2.5px 4.3px 20px 2px rgba(0,0,0,0.5);border:4px solid #1c9969;border-radius:12px}.sli-item-picker{grid-column:1 / 3;grid-row:1 / 7}.sli-item-htmlTextLabel{grid-column:1;grid-row:7}.sli-item-htmlText{grid-column:2;grid-row:7}.sli-item-redText{grid-column:3;grid-row:2}.sli-item-greenText{grid-column:3;grid-row:3}.sli-item-blueText{grid-column:3;grid-row:4}.sli-item-dialOk{grid-column:2 / 3;grid-row:9}.sli-item-dialCancel{grid-column:3 / 4;grid-row:9}.sli-picker-canvas{background:#222;border-radius:100%;margin:auto;border:4px dashed #444}.sli-page-shade label{color:#DDD;margin:auto 4px auto auto;text-shadow:1px 2px 2px rgba(0,0,0,0.5)}.sli-text-box-monospace{font-family:"Lucida Console",Monaco,monospace;height:1.5em;text-align:left;margin:8px auto 8px auto}.sli-text-box-number{font-family:inherit;height:1.5em;text-align:right;margin:8px auto 8px auto}.sli-textbox-style-shadowBlue{border:none;box-shadow:inset 0 0 0 1.25px #ccc, inset 0 0 4px 2px #fff;border-radius:2px;padding:4px 6px 4px 6px;transition:0.2s}.sli-textbox-style-shadowBlue:hover{box-shadow:inset 0 0 0 1.25px #79e7ac, inset 0 0 4px 2px #aaeeca}.sli-textbox-style-shadowBlue:focus{box-shadow:inset 0 0 0 1.25px #b5e3c9, inset 0 0 4px 2px #daf1e4}.sli-textbox-style-shadowBlue:focus:hover{box-shadow:inset 0 0 0 1px #79e7ac, inset 0 0 4px 2px #aaeeca}.sli-textbox-style-shadowBlue-nonactive{border:none;box-shadow:inset 0 0 0 1.25px #ccc, inset 0 0 4px 2px #fff;border-radius:2px;padding:4px 6px 4px 6px;transition:0.2s}.sli-textbox-style-shadowBlue-nonactive:hover{box-shadow:inset 0 0 0 1.25px #b5e3c9, inset 0 0 4px 2px #daf1e4}.sli-textbox-style-shadowBlue-nonactive:focus{box-shadow:inset 0 0 0 1.25px #b5e3c9, inset 0 0 4px 2px #daf1e4}.button-size{font-family:inherit;font-size:1em;margin-top:8px;margin-bottom:8px;margin-left:8px;margin-right:8px;width:5em;height:2em}.sli-button-style-shadowGreen{font-family:inherit;border:none;color:black;background-color:#c6c6c6;background-size:100% 100%;border-radius:5px;border:1px solid #505050;transition:0.2s}.sli-button-style-shadowGreen:hover{border:1px solid #055633;background-color:#17ad6c;box-shadow:0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowGreen:focus{background-color:#17ad6c;box-shadow:0 1px 2px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowGreen:focus:hover{background-color:#17ad6c;box-shadow:0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowGreen:focus:active{background-color:#0c7f4d;transition:0.1s;box-shadow:0 2px 2px 0 rgba(0,0,0,0.12), 0 3px 4px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowRed{font-family:inherit;border:none;color:black;background-color:#c6c6c6;background-size:100% 100%;border-radius:5px;border:1px solid #505050;transition:0.2s}.sli-button-style-shadowRed:hover{background-color:#fb685e;border:1px solid #bd2d00;box-shadow:0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowRed:focus{background-color:#fb685e;box-shadow:0 1px 2px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowRed:focus:hover{background-color:#fb685e;box-shadow:0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowRed:focus:active{background-color:#dc3844;transition:0.1s;box-shadow:0 2px 2px 0 rgba(0,0,0,0.12), 0 3px 4px 0 rgba(0,0,0,0.10)}`);
 		
+		// adds elements for the color picker into the body
+		ctrPicker = insertNodes(document.body, {
+			group: [{
+				tag: 'div',
+				varName: 'background',
+				classes: [
+					'sli-page-shade'
+				],
+				group: [{
+					tag: 'div',
+					varName: 'dialFrame',
+					classes: [
+						'sli-dialog-style',
+						'sli-dialog-grid'
+					],
+					group: [{
+						tag: 'canvas',
+						varName: 'colorWheel',
+						nodeContent: "This browser doesn't support HTML5",
+						attributes: [
+							{name: 'width', value: CANV_SIZE + 'px'},
+							{name: 'height', value: CANV_SIZE + 'px'}
+						],
+						classes: [
+							'sli-picker-canvas',
+							'sli-item-picker'
+						]
+					}, {
+						tag : 'label',
+						varName : 'hexColorTextLabel',
+						nodeContent: 'Hex:',
+						attributes: [
+							{name: 'for', value : 'hexColorText'}
+						],
+						classes: [
+							'sli-item-htmlTextLabel'
+						]
+					}, {
+						tag: 'input',
+						varName: 'hexColorText',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'size', value: '12'}
+						],
+						classes: [
+							'sli-text-box-monospace',
+							'sli-textbox-style-shadowBlue',
+							'sli-item-htmlText'
+						]
+					}, {
+						tag: 'input',
+						varName: 'redText',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'size', value: '6'}
+						],
+						classes: [
+							'sli-text-box-number',
+							'sli-textbox-style-shadowBlue',
+							'sli-item-redText'
+						]
+					}, {
+						tag: 'input',
+						varName: 'greenText',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'size', value: '6'}
+						],
+						classes: [
+							'sli-text-box-number',
+							'sli-textbox-style-shadowBlue',
+							'sli-item-greenText'
+						]
+					}, {
+						tag: 'input',
+						varName: 'blueText',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'size', value: '6'}
+						],
+						classes: [
+							'sli-text-box-number',
+							'sli-textbox-style-shadowBlue',
+							'sli-item-blueText'
+						]
+					}, {
+						tag: 'button',
+						varName: 'dialOk',
+						nodeContent: '✔️',
+						classes: [
+							'button-size',
+							'sli-button-style-shadowGreen',
+							'sli-item-dialOk'
+						]
+					}, {
+						tag: 'button',
+						varName: 'dialCancel',
+						nodeContent: '❌',
+						classes: [
+							'button-size',
+							'sli-button-style-shadowRed',
+							'sli-item-dialCancel'
+						]
+					}]
+				}]
+			}]
+		});
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
