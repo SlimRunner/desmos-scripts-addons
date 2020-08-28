@@ -1099,6 +1099,16 @@
 	
 	// adds events listeners of the color picker
 	function loadColorPickerListeners() {
+		ctrPicker.dialOk.addEventListener('click', () => {
+			CPicker.result.action = DialogResult.OK;
+			CPicker.hide();
+		});
+		
+		ctrPicker.dialCancel.addEventListener('click', () => {
+			CPicker.result.action = DialogResult.Cancel;
+			CPicker.hide();
+		});
+		
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
