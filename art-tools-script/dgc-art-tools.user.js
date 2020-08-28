@@ -12,6 +12,9 @@
 
 /*jshint esversion: 6 */
 
+// BUG: shortcuts on during dialogs propagate back to Desmos allowing shortcuts to mutate the graph while an element is being edited.
+// try https://stackoverflow.com/a/53329665
+
 (function() {
 	'use strict';
 	var Calc;
@@ -1106,6 +1109,18 @@
 	
 	// adds events listeners of the color picker
 	function loadColorPickerListeners() {
+		// prevent keyboard shortcuts from reaching Desmos GUI
+		ctrPicker.background.addEventListener('keydown', (e) => {
+			e.stopPropagation();
+			return false;
+		});
+		
+		// prevent keyboard shortcuts from reaching Desmos GUI
+		ctrPicker.background.addEventListener('keyup', (e) => {
+			e.stopPropagation();
+			return false;
+		});
+		
 		ctrPicker.dialOk.addEventListener('click', () => {
 			CPicker.result.action = DialogResult.OK;
 			CPicker.hide();
