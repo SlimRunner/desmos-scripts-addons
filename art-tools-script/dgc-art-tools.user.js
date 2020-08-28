@@ -741,6 +741,8 @@
 				}]
 			}]
 		});
+		// adds custom event (to the global object?)
+		CPicker.onChange = new CustomEvent('pickerChange', {detail: CPicker.result});
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
