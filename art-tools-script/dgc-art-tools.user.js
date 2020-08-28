@@ -768,6 +768,26 @@
 		CPicker.onChange = new CustomEvent('pickerChange', {detail: CPicker.result});
 	}
 	
+	// CPicker method definition that shows the color picker
+	function showColorWheel(rgbpack, dispatcher) {
+		CPicker.dispatcher = dispatcher;
+		CPicker.value = 0;
+		
+		ctrPicker.background.style.visibility = 'visible';
+		ctrPicker.background.style.opacity = '1';
+		ctrPicker.hexColorText.focus();
+		
+		updateColorWheel();
+	}
+	
+	// CPicker method definition that hides the color picker
+	function hideColorWheel() {
+		ctrPicker.background.style.visibility = 'hidden';
+		ctrPicker.background.style.opacity = '0';
+		
+		CPicker.dispatcher.dispatchEvent(CPicker.onChange);
+	}
+	
 	// renders the color wheel onto the canvas
 	function updateColorWheel() {
 		let ctx = ctrPicker.colorWheel.getContext("2d");
