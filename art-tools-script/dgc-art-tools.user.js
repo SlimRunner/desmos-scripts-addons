@@ -769,6 +769,100 @@
 		} // !for
 	}
 	
+	// draws SV triangle to context and returns vertex data of triangle
+	function drawTriangle(ctx, angle, color) {
+		let triAngles = [
+			angle,
+			2.0943951023931953 + angle,
+			4.1887902047863905 + angle
+		];
+		let midAngles = [
+			1.0471975511965976 + angle,
+			3.141592653589793 + angle,
+			5.235987755982988 + angle
+		];
+		let arrowDisp = {
+			x: 0.1 * Math.cos(angle),
+			y: 0.1 * -Math.sin(angle)
+		}
+		let colSolid = `rgba(${color[0]},${color[1]},${color[2]},1)`;
+		let triangle = [0, 0, 0], midTri = [0, 0, 0];
+		
+		for (var i = 0; i < triangle.length; ++i) {
+			
+			triangle[i] = {
+				x: Math.cos(triAngles[i]),
+				y: -Math.sin(triAngles[i])
+			};
+			
+			midTri[i] = {
+				x: 0.5 * Math.cos(midAngles[i]),
+				y: 0.5 * -Math.sin(midAngles[i])
+			};
+			
+		}
+		
+		let arrow = [1, 0, 2].map((idx) => {
+			return {
+				x: 0.9 * triangle[0].x + 0.1 * triangle[idx].x + arrowDisp.x,
+				y: 0.9 * triangle[0].y + 0.1 * triangle[idx].y + arrowDisp.y
+			};
+		});
+		
+		ctx.save();
+		
+		ctx.transform(
+			TRIAG_RAD,	// x-scale
+			0,					// x-skew
+			0,					// y-skew
+			TRIAG_RAD,	// y-scale
+			CANV_MID,		// x-trans
+			CANV_MID		// y-trans
+		);
+		
+		// gradient from input color to black
+		let colorGrad = ctx.createLinearGradient(
+			triangle[0].x,	// from x
+			triangle[0].y,	// from y
+			midTri[1].x,		// to x
+			midTri[1].y			// to y
+		);
+		colorGrad.addColorStop(0, colSolid);
+		colorGrad.addColorStop(1, 'black');
+		
+		// gradient from black to white
+		let blackGrad = ctx.createLinearGradient(
+			midTri[0].x,		// from x
+			midTri[0].y,		// from y
+			triangle[2].x,	// to x
+			triangle[2].y		// to y
+		);
+		blackGrad.addColorStop(0, 'black');
+		blackGrad.addColorStop(1, 'white');	
+		
+		pathTriangle(ctx, arrow, false);
+		ctx.lineCap = 'round';
+		ctx.lineWidth = 3 / TRIAG_RAD;
+		ctx.strokeStyle = colSolid;
+		ctx.stroke();
+		
+		pathTriangle(ctx, triangle);
+		ctx.fillStyle = blackGrad;
+		ctx.fill();
+		ctx.globalCompositeOperation = 'lighter';
+		ctx.fillStyle = colorGrad;
+		ctx.fill();
+		
+		ctx.restore();
+		
+		return triangle.map(n => {
+			return {
+				x: n.x * TRIAG_RAD,
+				y: n.y * TRIAG_RAD
+			};
+		});
+	}
+	
 	// puts in the context the path of three given vertices
 	function pathTriangle(ctx, verts, close = true) {
 		ctx.beginPath();
