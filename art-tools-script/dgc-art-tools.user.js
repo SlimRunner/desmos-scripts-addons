@@ -745,6 +745,30 @@
 		CPicker.onChange = new CustomEvent('pickerChange', {detail: CPicker.result});
 	}
 	
+	// generates data image of a chromatic circle
+	function getRainbowRing(img, wdt) {
+		let x, y;
+		let pix;
+		
+		for (let i = 0; i < img.length; i += 4) {
+			//locData.x = i % wdt;
+			//locData.y = (i / wdt|0);
+			x = (i/4) % wdt - CANV_MID;
+			y = ((i/4) / wdt|0) - CANV_MID; // pipe used to convert operation to integer
+			
+			pix = getRGBfromHSV(
+				Math.atan2(-y, x)*RAD_TO_DEG, 1, 1
+			).map(
+				item => item * 255
+			);
+			
+			img[i]     = pix[0];
+			img[i + 1] = pix[1];
+			img[i + 2] = pix[2];
+			img[i + 3] = 255;
+		} // !for
+	}
+	
 	// puts in the context the path of three given vertices
 	function pathTriangle(ctx, verts, close = true) {
 		ctx.beginPath();
