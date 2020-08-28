@@ -745,6 +745,15 @@
 		CPicker.onChange = new CustomEvent('pickerChange', {detail: CPicker.result});
 	}
 	
+	// puts in the context the path of three given vertices
+	function pathTriangle(ctx, verts, close = true) {
+		ctx.beginPath();
+		ctx.moveTo(verts[0].x, verts[0].y);
+		ctx.lineTo(verts[1].x, verts[1].y);
+		ctx.lineTo(verts[2].x, verts[2].y);
+		if (close) ctx.closePath();
+	}
+	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// EVENT HANDLERS
 	
