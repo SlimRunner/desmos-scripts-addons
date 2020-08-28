@@ -473,7 +473,7 @@
 	
 	// initializes the latex dialog interface
 	function initLatexDialog() {
-		
+		// insert css styles into existing stylesheet
 		appendTextToNode('sli-script-stylesheet',
 		`/* LATEX DIALOG */
 		
@@ -543,6 +543,7 @@
 			ctrLatex.mqTextArea.setAttribute('tabindex', '-1');
 			catchMQArea.disconnect();
 		});
+		// initialize observer
 		catchMQArea.observe(ctrLatex.mqField, {
 			childList: true
 		});
@@ -592,7 +593,7 @@
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// EVENT HANDLERS
 	
-	// adds event handlers for the context menu
+	// adds event listeners for the context menu
 	function loadEvents() {
 		// hides button when menu is gone and the mouse left the button client area
 		bindListenerToNodes(buttonList, 'mouseleave', () => {
@@ -670,7 +671,7 @@
 		
 	}
 	
-	// adds event listeners for the latex dialog
+	// adds event listeners of the latex dialog
 	function loadDialogListeners() {
 		// DialLtx.onChange
 		ctrLatex.mqDialBack.addEventListener('mousedown', () => {
