@@ -1058,6 +1058,14 @@
 				convFunc = getRGBfromHSL;
 				rxAlpha = /[a-z]{3}a/;
 				break;
+			case /hsla?/.test(clFrom) && /hs[vb]a?/.test(clTo):
+				convFunc = getHSVfromHSL;
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			case /hs[vb]a?/.test(clFrom) && /rgba?/.test(clTo):
+				convFunc = getRGBfromHSV;
+				rxAlpha = /[a-z]{3}a/;
+				break;
 			default:
 				throw new CustomError('Argument error', `There is no conversion between ${clFrom} and ${clTo}`);
 		}
