@@ -741,6 +741,29 @@
 				}]
 			}]
 		});
+		
+		// get canvas context
+		let ctx = ctrPicker.colorWheel.getContext("2d");
+		// get canvas size
+		let ctxBBox = {
+			width: ctrPicker.colorWheel.clientWidth,
+			height: ctrPicker.colorWheel.clientHeight
+		};
+		// get border offset of canvas
+		CPicker.canvasOffset = {
+			x: ctrPicker.colorWheel.clientLeft,
+			y: ctrPicker.colorWheel.clientTop
+		};
+		// create an empty image for canvas
+		CPicker.pickerImage = ctx.createImageData(
+			ctxBBox.width, ctxBBox.height
+		);
+		// draw rainbow ring on canvas image
+		getRainbowRing(
+			CPicker.pickerImage.data,
+			Math.floor(ctxBBox.width)
+		);
+		
 		// adds custom event (to the global object?)
 		CPicker.onChange = new CustomEvent('pickerChange', {detail: CPicker.result});
 	}
