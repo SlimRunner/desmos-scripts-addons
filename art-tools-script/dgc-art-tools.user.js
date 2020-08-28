@@ -1131,6 +1131,30 @@
 			CPicker.hide();
 		});
 		
+		ctrPicker.colorWheel.addEventListener('mousedown', mouseEventOnWheel);
+		ctrPicker.colorWheel.addEventListener('mousemove', mouseEventOnWheel);
+		
+		// common function for mouse down and mouse move
+		function mouseEventOnWheel(e) {
+			if (e.buttons === 1) {
+				let mse = getCanvasMse(ctrPicker.colorWheel, e);
+				CPicker.value = Math.atan2(
+					-mse.y + CANV_MID + CPicker.canvasOffset.x,
+					mse.x - CANV_MID - CPicker.canvasOffset.y
+				);
+				updateColorWheel()
+			}
+		}
+		
+		// gets the mouse location of an element (including border)
+		function getCanvasMse(canvas, evt) {
+			var rect = canvas.getBoundingClientRect();
+			return {
+				x: evt.clientX - rect.left,
+				y: evt.clientY - rect.top
+			};
+		}
+		
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
