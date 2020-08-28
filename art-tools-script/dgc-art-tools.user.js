@@ -453,14 +453,14 @@
 			ctrColor.propMenu.style.visibility = 'visible';
 			ctrColor.propMenu.style.opacity = '1';
 			
-			ctrColor.colorButton.value = getHex6(getCurrentColor());
+			updateColorPreview();
 			
 			// update buttons dynamically while menu is open
 			Calc.observeEvent('change', () => {
 				// shows button when fill option is enabled
 				prepareMenu();
 				// updates color when color changes
-				ctrColor.colorButton.value = getHex6(getCurrentColor());
+				updateColorPreview();
 			});
 			
 		} else {
@@ -483,6 +483,10 @@
 		
 		ctrColor.propMenu.style.left = `${x}px`;
 		ctrColor.propMenu.style.top = `${y}px`;
+	}
+	
+	function updateColorPreview() {
+		ctrColor.colorButtonPreview.style.background = getCurrentColor();
 	}
 	
 	// returns color of expression with the menu active
