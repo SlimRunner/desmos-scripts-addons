@@ -48,6 +48,37 @@
 		}
 	}
 	
+	class HSVColor {
+		constructor(hue, sat, value, id = null) {
+			this.hue = hue;
+			this.saturation = sat;
+			this.value = value;
+			this.id = id;
+		}
+		
+		get HSV() {
+			return [this.hue, this.saturation, this.value];
+		}
+		
+		get RGB() {
+			return getRGBfromHSV(this.hue, this.saturation, this.value);
+		}
+		
+		setHSV(hue, sat, value) {
+			this.hue = hue;
+			this.saturation = sat;
+			this.value = value;
+		}
+		
+		setRGB(red, green, blue) {
+			[
+				this.hue,
+				this.saturation,
+				this.value
+			] = getHSVfromRGB(red, green, blue);
+		}
+	}
+	
 	// dialog result values
 	const DialogResult = Object.defineProperties({}, {
 		None: constProperty(0),
