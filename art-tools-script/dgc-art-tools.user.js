@@ -158,14 +158,27 @@
 		}
 	});
 	
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// GUI Management - Main
+	// radians to degrees ratio
+	const RAD_TO_DEG = 180 / Math.PI;
 	
-	// store all controls used in the script
+	// canvas properties
+	const CANV_SIZE = 256;
+	const CANV_MID = CANV_SIZE / 2;
+	
+	// color wheel properties
+	const TRIAG_RAD = CANV_SIZE * 45 / 128; // 90:256
+	const WHEEL_RAD_OUT = CANV_MID; // 2:256
+	const WHEEL_RAD_IN = CANV_SIZE * 53 / 128; // 106:256
+	
+	// stores all controls used in the script
 	var ctrColor;
 	var ctrLatex;
-	// store all buttons of the context menu
+	var ctrPicker;
+	// stores all buttons of the context menu
 	var buttonList;
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// GUI Management - Main
 	
 	// initializes the graphic interface
 	function initGUI() {
