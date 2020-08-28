@@ -882,6 +882,10 @@
 		});
 	}
 	
+	// adds events listeners of the color picker
+	function loadColorPickerListeners() {
+	}
+	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// DOM Helper functions
 	
@@ -1398,8 +1402,10 @@
 			try {
 				initGUI();
 				initLatexDialog();
+				initColorPicker();
 				loadEvents();
 				loadDialogListeners();
+				loadColorPickerListeners();
 				printSplash();
 			} catch (ex) {
 				console.error(`${ex.name}: ${ex.message}`);
