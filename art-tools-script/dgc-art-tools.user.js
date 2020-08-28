@@ -768,6 +768,49 @@
 		CPicker.onChange = new CustomEvent('pickerChange', {detail: CPicker.result});
 	}
 	
+	// renders the color wheel onto the canvas
+	function updateColorWheel() {
+		let ctx = ctrPicker.colorWheel.getContext("2d");
+		
+		// draws image data onto the canvas
+		ctx.putImageData(CPicker.pickerImage, 0, 0);
+		
+		let shadowPat = ctx.createRadialGradient(
+			CANV_MID,			// from x
+			CANV_MID,			// from y
+			0,						// from radius
+			CANV_MID,			// to x
+			CANV_MID,			// to y
+			WHEEL_RAD_IN	// to radius
+		);
+		shadowPat.addColorStop(0, '#444');
+		shadowPat.addColorStop(0.9, '#333');
+		shadowPat.addColorStop(1, '#111');
+		ctx.fillStyle = shadowPat;
+		
+		ctx.beginPath();
+		ctx.arc(
+			CANV_MID,			// center x
+			CANV_MID,			// center y
+			WHEEL_RAD_IN,	// arc radius
+			0,						// from angle
+			Math.PI*2			// to angle
+		);
+		ctx.closePath();
+		ctx.fill();
+		
+		let triagColor = getRGBfromHSV(
+			CPicker.value*RAD_TO_DEG, 1, 1
+		).map(
+			item => item * 255
+		);
+		
+		let triData = drawTriangle(ctx, CPicker.value, triagColor);
+		// drawMarkers();
+		
+		return triData;
+	}
+	
 	// generates data image of a chromatic circle
 	function getRainbowRing(img, wdt) {
 		let x, y;
