@@ -626,6 +626,14 @@
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// GUI Management - Custom Color Picker
+	
+	// initializes the color picker interface
+	function initColorPicker() {
+		
+	}
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// EVENT HANDLERS
 	
 	// adds event listeners for the context menu
