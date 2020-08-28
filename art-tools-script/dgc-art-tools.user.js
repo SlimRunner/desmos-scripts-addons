@@ -97,6 +97,7 @@
 	const DialLtx = Object.assign({}, {
 		show: showLatexDialog,
 		hide: hideLatexDialog,
+		onChange: null,
 		dispatcher: null,
 		mseState: 0,
 		MQ: null,
@@ -108,7 +109,39 @@
 			changed: function () {
 				return (this.value !== this.initValue);
 			}
+		}
+	});
+	
+	// type of result from color picker
+	const ColorResType = Object.defineProperties({}, {
+		SINGLE_COLOR : constProperty(0),
+		MULTIPLE_COLORS : constProperty(1),
+		TOGGLE_LIVE: constProperty(2)
+	});
+	
+	// stores the state of the color picker 
+	const CPicker = Object.assign({}, {
+		show: showColorWheel,
+		hide: hideColorWheel,
 		onChange: null,
+		dispatcher: null,
+		pickerImage: null,
+		canvasOffset: null,
+		
+		result: {
+			value: null, // HSVColor
+			initValue: null, // HSVColor
+			type: ColorResType.SINGLE_COLOR,
+			action: DialogResult.None,
+			changed: function () {
+				return !(
+					typeof this.value === typeof this.initValue &&
+					Array.isArray(this.value) ?
+					isEqual(this.value, this.initValue):
+					this.value === this.initValue
+				);
+			},
+		}
 	});
 	
 	// stores the state of the context menu
