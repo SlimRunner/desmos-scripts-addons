@@ -97,6 +97,9 @@
 	const DialLtx = Object.assign({}, {
 		show: showLatexDialog,
 		hide: hideLatexDialog,
+		dispatcher: null,
+		mseState: 0,
+		MQ: null,
 		
 		result: {
 			value: '',
@@ -105,11 +108,7 @@
 			changed: function () {
 				return (this.value !== this.initValue);
 			}
-		},
-		mseState: 0,
-		MQ: null,
 		onChange: null,
-		dispatcher: null
 	});
 	
 	// stores the state of the context menu
