@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.2.0
+// @version  	1.2.1
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -925,12 +925,14 @@
 		switch (hex.length) {
 			case 3:
 				output = hex.match(/(.)(.)(.)/).splice(1);
+				output = output.map(elem => elem + elem);
 				break;
 			case 6:
 				output = hex.match(/(..)(..)(..)/).splice(1);
 				break;
 			case 4:
 				output = hex.match(/(.)(.)(.)(.)/).splice(1);
+				output = output.map(elem => elem + elem);
 				break;
 			case 8:
 				output = hex.match(/(..)(..)(..)(..)/).splice(1);
@@ -1079,12 +1081,11 @@
 			output = output.map((item) => {
 				return (item.length === 1 ? '0' : '') + item;
 			});
-			
-			return `#${output.join('')}`;
 		} catch (e) {
 			console.error(`${e.name}:${e.message}`);
+			output = '#7F7F7F';
 		} finally {
-			return '#7F7F7F';
+			return `#${output.join('')}`;
 		}
 		
 	}
