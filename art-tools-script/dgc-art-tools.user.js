@@ -51,34 +51,64 @@
 		}
 	}
 	
+	// Color class for the HSV color picker
 	class HSVColor {
-		constructor(hue, sat, value, id = null) {
+		constructor(hue, sat, value, alpha = 1) {
 			this.hue = hue;
 			this.saturation = sat;
 			this.value = value;
-			this.id = id;
+			this.alpha = alpha;
 		}
 		
 		get HSV() {
-			return [this.hue, this.saturation, this.value];
+			return [this.hue, this.saturation, this.value, this.alpha];
 		}
 		
 		get RGB() {
-			return getRGBfromHSV(this.hue, this.saturation, this.value);
+			return getRGBfromHSV(
+				this.hue, this.saturation, this.value
+			).concat(this.alpha);
 		}
 		
-		setHSV(hue, sat, value) {
-			this.hue = hue;
-			this.saturation = sat;
-			this.value = value;
-		}
-		
-		setRGB(red, green, blue) {
-			[
+		getCSSRGBA() {
+			let rgb = getRGBfromHSV(
 				this.hue,
 				this.saturation,
 				this.value
+			).map((n) => {
+				return Math.round(n * 255);
+			});
+			
+			if (this.alpha === 1) {
+				return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+			}
+			
+			return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${this.alpha})`;
+		}
+		
+		setHSV(hue, sat, value, alpha = 1) {
+			this.hue = hue;
+			this.saturation = sat;
+			this.value = value;
+			this.alpha = alpha;
+		}
+		
+		setRGB(red, green, blue, alpha = 1) {
+			[
+				this.hue,
+				this.saturation,
+				this.value,
+				this.alpha = alpha
 			] = getHSVfromRGB(red, green, blue);
+		}
+		
+		static isEqual(lhs, rhs) {
+			return (
+				lhs.hue === rhs.hue &&
+				lhs.saturation === rhs.saturation &&
+				lhs.value === rhs.value &&
+				lhs.alpha === rhs.alpha
+			);
 		}
 	}
 	
