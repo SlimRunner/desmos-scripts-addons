@@ -1631,6 +1631,15 @@
 		}
 	}
 	
+	// converts a hsl pack into an hsl CSS function
+	function getCSS_hsl(hue, sat, light, alpha = 1) {
+		if (alpha === 1) {
+			return `hsl(${hue},${sat * 100}%,${light * 100}%)`;
+		} else {
+			return `hsla(${hue},${sat * 100}%,${light * 100}%, ${alpha})`;
+		}
+	}
+	
 	// returns a 6-digit hex of any given CSS color
 	function getHex6(cssColor) {
 		let output;
