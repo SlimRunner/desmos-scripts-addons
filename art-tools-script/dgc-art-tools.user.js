@@ -1340,7 +1340,53 @@
 					mse.x - CANV_MID - CPicker.canvasOffset.y
 				);
 			}
+		
+		function fetchValidMarker(mse) {
+			if (
+				distance(mse, {x: CANV_MID, y: CANV_MID}) > WHEEL_RAD_IN
+			) {
+				CPicker.markers.active = {
+					type: 'hue', id: 0
+				};
+			} else if (
+				isInTriangle(mse, CPicker.triangle)
+			) {
+				CPicker.markers.active = {
+					type: 'satv', id: 0
+				};
+			} else {
+				return false;
+			}
+			
+			return true;
+		}
+		
+		function setMarkerByMouse(mse) {
+			if (CPicker.markers.active === null) return false;
+			
+			switch (CPicker.markers.active.type) {
+				case 'hue':
+					setHueMarkerByMse(CPicker.markers.active.id, mse);
 					CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+					setSatValMarkerByNumber(
+						CPicker.markers.active.id,
+						CPicker.markers.satv[0].sat,
+						CPicker.markers.satv[0].val,
+						CPicker.triangle
+					);
+					drawMarkers();
+					break;
+				case 'satv':
+					setSatValMarkerByMse(CPicker.markers.active.id, mse, CPicker.triangle);
+					// this should not update CPicker.triangle ever
+					updateColorWheel(CPicker.markers.hue[0].angle);
+					drawMarkers();
+					break;
+				default:
+					// throw; // ADD CUSTOM ERROR
+			}
+			
+			return true;
 		}
 		
 		// gets the mouse location of an element (including border)
