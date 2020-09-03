@@ -209,6 +209,7 @@
 	const TRIAG_RAD = CANV_SIZE * 45 / 128; // 90:256
 	const WHEEL_RAD_OUT = CANV_MID; // 2:256
 	const WHEEL_RAD_IN = CANV_SIZE * 53 / 128; // 106:256
+	const MARK_SIZE = 5;
 	
 	// stores all controls used in the script
 	var ctrColor;
