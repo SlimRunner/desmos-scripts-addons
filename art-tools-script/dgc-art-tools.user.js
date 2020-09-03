@@ -1355,6 +1355,70 @@
 		};
 	}
 	
+	// returns the distance between the points a and b
+	function distance(a, b) {
+		return Math.hypot(b.x - a.x, b.y - a.y);
+	}
+	
+	// returns a point that is in the middle of a and b
+	function midpoint(a, b) {
+		return {
+			x: (a.x + b.x) / 2,
+			y: (a.y + b.y) / 2
+		};
+	}
+	
+	// gets the normal vector of the input
+	function getNormal(v) {
+		return {
+			x: -v.y,
+			y: v.x
+		};
+	}
+	
+	// returns the linear interpolation of a and b at t
+	function vecLerp(a, b, t) {
+		return {
+			x: (1 - t) * a.x + t * b.x,
+			y: (1 - t) * a.y + t * b.y
+		};
+	}
+	
+	// returns how far perpendicularly p is from a line that passes thru a and b
+	function getWinding(p, a, b) {
+		return (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x);
+	}
+	
+	// finds the intersection point between lines (a1, a2) and (b1, b2)
+	function findIntersection(a1, a2, b1, b2) {
+		// denominator might be zero and return NaN
+		return (
+			(b1.x - a1.x) * (b1.y - b2.y) - (b1.y - a1.y) * (b1.x - b2.x)
+		) / (
+			(a2.x - a1.x) * (b1.y - b2.y) - (a2.y - a1.y) * (b1.x - b2.x)
+		);
+	}
+	
+	// projects v1 onto the normal of v2 offset to the head of v2
+	function normalProjection(v1, v2) {
+		let sq2x = v2.x * v2.x;
+		let sq2y = v2.y * v2.y;
+		
+		return {
+			x: (sq2y * (v2.x + v1.x) + v2.x * (sq2x - v2.y * v1.y)) / (sq2y + sq2x),
+			y: (sq2x * (v2.y + v1.y) + v2.y * (sq2y - v2.x * v1.x)) / (sq2y + sq2x)
+		};
+	}
+	
+	// determines if loc is inside a triangle
+	function isInTriangle(loc, triVtx) {
+		return (
+			getWinding(loc, triVtx[0], triVtx[1]) > 0 &&
+			getWinding(loc, triVtx[1], triVtx[2]) > 0 &&
+			getWinding(loc, triVtx[2], triVtx[0]) > 0
+		);
+	}
+	
 	// determines if two arrays are equal (memberwise)
 	function isEqual(lhs, rhs) {
 		if (lhs.length !== rhs.length) return false;
