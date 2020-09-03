@@ -1731,6 +1731,46 @@
 		
 	}
 	
+	function getHSVpack(cssColor) {
+		let output;
+		
+		// try if cssColor is a named color
+		try {
+			output = parseCSSHex(parseNamedColor(cssColor), true);
+			output = mapToColorSpace('rgb', 'hsv')(output);
+			return output;
+		} catch (e) {
+			
+		}
+		
+		// try if cssColor is a hex value
+		try {
+			output = parseCSSHex(cssColor, true);
+			if (output.length === 4) {
+				output = mapToColorSpace('rgba', 'hsva')(output);
+			} else {
+				output = mapToColorSpace('rgb', 'hsva')(output);
+			}
+			return output;
+		} catch (e) {
+			
+		}
+		
+		// try if cssColor is a function
+		try {
+			output = parseCSSFunc(cssColor);
+			let funcName = output.splice(0, 1)[0];
+			
+			// maps current color space onto hsl
+			output = mapToColorSpace(funcName, 'hsv')(output);
+		} catch (e) {
+			console.error(`${e.name}:${e.message}`);
+			output = '#7F7F7F';
+		} finally {
+			return output;
+		}
+	}
+	
 	// prints something cool into the console :)
 	function printSplash() {
 		console.log('Custom art tools were loaded properly');
