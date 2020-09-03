@@ -1489,6 +1489,47 @@
 		);
 	}
 	
+	// returns a value confined to the boundaries of a triangle
+	function getConfinedProbe(loc, triVtx) {
+		/*jshint bitwise: false */
+		const AREA_OUT_A = 2;
+		const AREA_OUT_B = 4;
+		const AREA_OUT_C = 1;
+		const AREA_OUT_AB = AREA_OUT_A | AREA_OUT_B;
+		const AREA_OUT_BC = AREA_OUT_B | AREA_OUT_C;
+		const AREA_OUT_CA = AREA_OUT_C | AREA_OUT_A;
+		const AREA_IN = AREA_OUT_A | AREA_OUT_B | AREA_OUT_C;
+		
+		let A = triVtx[0];
+		let B = triVtx[1];
+		let C = triVtx[2];
+		let ab = getWinding(loc, A, B);
+		let bc = getWinding(loc, B, C);
+		let ca = getWinding(loc, C, A);
+		
+		let bitfi = (ab > 0 ? 1 : 0) | (bc > 0 ? 2 : 0) | (ca > 0 ? 4 : 0);
+		/*jshint bitwise: true */
+		
+		switch (true) {
+			case bitfi === AREA_IN:
+				return loc;
+			case bitfi === AREA_OUT_AB:
+				return vecLerp(loc, C, findIntersection(loc, C, A, B));
+			case bitfi === AREA_OUT_BC:
+				return vecLerp(loc, A, findIntersection(loc, A, B, C));
+			case bitfi === AREA_OUT_CA:
+				return vecLerp(loc, B, findIntersection(loc, B, C, A));
+			case bitfi === AREA_OUT_A:
+				return A;
+			case bitfi === AREA_OUT_B:
+				return B;
+			case bitfi === AREA_OUT_C:
+				return C;
+			default:
+				// throw; // ADD CUSTOM ERROR
+		}
+	}
+	
 	// determines if two arrays are equal (memberwise)
 	function isEqual(lhs, rhs) {
 		if (lhs.length !== rhs.length) return false;
