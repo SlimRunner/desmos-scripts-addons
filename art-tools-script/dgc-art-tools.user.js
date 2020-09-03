@@ -160,6 +160,13 @@
 		dispatcher: null,
 		pickerImage: null,
 		canvasOffset: null,
+		triangle: null,
+		
+		markers: {
+			active: null,
+			hue: [],
+			satv: []
+		},
 		
 		result: {
 			value: null, // HSVColor
@@ -170,8 +177,8 @@
 				return !(
 					typeof this.value === typeof this.initValue &&
 					Array.isArray(this.value) ?
-					isEqual(this.value, this.initValue):
-					this.value === this.initValue
+					false: // implementation pending
+					HSVColor.isEqual(this.value, this.initValue)
 				);
 			},
 		}
