@@ -1550,17 +1550,7 @@
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// General Helper Functions
-	
-	// add constant property
-	function constProperty(val) {
-		return {
-			value: val,
-			writable: false,
-			enumerable: true,
-			configurable: true
-		};
-	}
+	// Mathematical Helper Functions
 	
 	// returns the distance between the points a and b
 	function distance(a, b) {
@@ -1665,6 +1655,19 @@
 			default:
 				// throw; // ADD CUSTOM ERROR
 		}
+	}
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// General Helper Functions
+	
+	// add constant property
+	function constProperty(val) {
+		return {
+			value: val,
+			writable: false,
+			enumerable: true,
+			configurable: true
+		};
 	}
 	
 	// determines if two arrays are equal (memberwise)
