@@ -1458,6 +1458,29 @@
 		return [hue, s, v];
 	}
 	
+	// returns an array with HSL values from an RGB color space
+	function getHSLfromRGB(red, green, blue) {
+		let max = Math.max(red, green, blue);
+		let range = max - Math.min(red, green, blue);
+		
+		let li = max - range / 2;
+		let sat = (li == 0 || li == 1 ? 0 : (max - li) / Math.min(li, 1 - li));
+		let hue;
+		if (range === 0)				hue = 0;
+		else if (max === red) 	hue = 60 * (green - blue) / range;
+		else if (max === green)	hue = 60 * (2 + (blue - red) / range);
+		else if (max === blue)	hue = 60 * (4 + (red - green) / range);
+		
+		return [hue, sat, li];
+	}
+	
+	// returns an array with HSL values from an HSV color space
+	function getHSLfromHSV(hue, sat, value) {
+		let li = value * (1 - sat / 2);
+		let s = (li == 0 || li == 1 ? 0 : (value - li) / Math.min(li, 1 - li));
+		return [hue, s, li];
+	}
+	
 	// returns an array containing the CSS funcion name and its parameters destructured and normalized (except for degree angles those stay as they are)
 	function parseCSSFunc(value) {
 		if (typeof value !== 'string') throw new CustomError('Argument error', 'value is not a valid string');
