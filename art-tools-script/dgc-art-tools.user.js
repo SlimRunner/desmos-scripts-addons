@@ -887,10 +887,11 @@
 		let pix;
 		
 		for (let i = 0; i < img.length; i += 4) {
-			//locData.x = i % wdt;
-			//locData.y = (i / wdt|0);
+			/*jshint bitwise: false */
 			x = (i/4) % wdt - CANV_MID;
-			y = ((i/4) / wdt|0) - CANV_MID; // pipe used to convert operation to integer
+			// pipe used to convert operation to integer
+			y = ((i/4) / wdt|0) - CANV_MID; 
+			/*jshint bitwise: true */
 			
 			pix = getRGBfromHSV(
 				Math.atan2(-y, x)*RAD_TO_DEG, 1, 1
@@ -1581,8 +1582,10 @@
 				throw new CustomError('Argument error', `There is no conversion between ${clFrom} and ${clTo}`);
 		}
 		
+		/*jshint bitwise: false */
 		// bitfield to decide what to do with alpha disparity
 		let aBf = (rxAlpha.test(clFrom) ? 1 : 0) | (rxAlpha.test(clTo) ? 2 : 0);
+		/*jshint bitwise: true */
 		
 		switch (aBf) {
 			case 0: // none to none
