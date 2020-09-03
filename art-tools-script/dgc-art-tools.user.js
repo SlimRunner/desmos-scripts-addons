@@ -1425,7 +1425,7 @@
 	
 	// returns an array with RGB values from an HSL color space
 	function getRGBfromHSL(hue, sat, light) {
-		const mod = (n, m) => (n * m > 0 ? n % m : n % m + m);
+		const mod = (n, m) => (n * m >= 0 ? n % m : n % m + m);
 		let ls_ratio = Math.min(light, 1 - light)*sat;
 		
 		return [0, 8, 4].map((offset, i) => {
@@ -1437,8 +1437,7 @@
 	
 	// returns an array with RGB values from an HSV color space
 	function getRGBfromHSV(hue, sat, value) {
-		const mod = (n, m) => (n * m > 0 ? n % m : n % m + m);
-		const RGB_MAX = 255;
+		const mod = (n, m) => (n * m >= 0 ? n % m : n % m + m);
 		let vs_ratio = value*sat;
 		
 		return [5, 3, 1].map((offset, i) => {
