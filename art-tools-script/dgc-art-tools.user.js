@@ -840,7 +840,7 @@
 	}
 	
 	// renders the color wheel onto the canvas
-	function updateColorWheel() {
+	function updateColorWheel(angle) {
 		let ctx = ctrPicker.colorWheel.getContext("2d");
 		
 		// draws image data onto the canvas
@@ -871,13 +871,12 @@
 		ctx.fill();
 		
 		let triagColor = getRGBfromHSV(
-			CPicker.value*RAD_TO_DEG, 1, 1
+			angle, 1, 1
 		).map(
 			item => item * 255
 		);
 		
-		let triData = drawTriangle(ctx, CPicker.value, triagColor);
-		// drawMarkers();
+		let triData = drawTriangle(ctx, angle / RAD_TO_DEG, triagColor);
 		
 		return triData;
 	}
@@ -994,8 +993,8 @@
 		
 		return triangle.map(n => {
 			return {
-				x: n.x * TRIAG_RAD,
-				y: n.y * TRIAG_RAD
+				x: n.x * TRIAG_RAD + CANV_MID,
+				y: n.y * TRIAG_RAD + CANV_MID
 			};
 		});
 	}
@@ -1033,10 +1032,12 @@
 			showPropMenu(false);
 		});
 		
+		// event that triggers when user clicks color button
 		ctrColor.colorButton.addEventListener('click', (e) => {
-			CPicker.show(null, ctrColor.colorButton);
-			//getCurrentColor()
-			//CPicker.show(ActiveItem.expression.);
+			CPicker.show(
+				getHSVpack(getCurrentColor()),
+				ctrColor.colorButton
+			);
 		});
 		
 		// event that triggers when user selects a color from color picker
@@ -1190,8 +1191,8 @@
 					-mse.y + CANV_MID + CPicker.canvasOffset.x,
 					mse.x - CANV_MID - CPicker.canvasOffset.y
 				);
-				updateColorWheel();
 			}
+					CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
 		}
 		
 		// gets the mouse location of an element (including border)
