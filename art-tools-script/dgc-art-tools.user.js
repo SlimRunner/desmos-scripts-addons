@@ -1008,6 +1008,76 @@
 		if (close) ctx.closePath();
 	}
 	
+	// initialize color wheel markers
+	function initMarkers() {
+		CPicker.markers.hue = [{
+			x: 0,
+			y: 0,
+			angle: 0
+		}];
+		CPicker.markers.satv = [{
+			x: 0,
+			y: 0,
+			sat: 0,
+			val: 0
+		}];
+		CPicker.markers.active = {
+			type: 'hue', id: 0
+		};
+	}
+	
+	// draws all markers in the picker
+	function drawMarkers() {
+		let ctx = ctrPicker.colorWheel.getContext('2d');
+		
+		// alias
+		const MRK = CPicker.markers;
+		const mainHue = MRK.hue[0].angle;
+		
+		ctx.save();
+		ctx.lineWidth = 2;
+		ctx.strokeStyle = 'black';
+		
+		MRK.hue.forEach((item) => {
+			ctx.fillStyle = getCSS_hsl(item.angle, 1, 0.5);
+			ctx.beginPath();
+			ctx.arc(item.x, item.y, MARK_SIZE, 0, 6.283185307179586);
+			ctx.fill();
+			ctx.stroke();
+		});
+		
+		MRK.satv.forEach((item) => {
+			ctx.strokeStyle = item.val < 0.5 ? 'white' : 'black';
+			ctx.fillStyle = getCSS_hsl(
+				...getHSLfromHSV(mainHue, item.sat, item.val)
+			);
+			ctx.beginPath();
+			ctx.arc(item.x, item.y, MARK_SIZE, 0, 6.283185307179586);
+			ctx.fill();
+			ctx.stroke();
+		});
+		ctx.restore();
+	}
+	
+	// selects the appropriate marker based on location
+	function selectMarker(loc) {
+		let idOut;
+		idOut = CPicker.markers.hue.findIndex(item => {
+			return distance(loc, item) < MARK_SIZE;
+		});
+		if (idOut > -1) return {
+			type: 'hue', id: idOut
+		};
+		
+		idOut = CPicker.markers.satv.findIndex(item => {
+			return distance(loc, item) < MARK_SIZE;
+		});
+		if (idOut > -1) return {
+			type: 'satv', id: idOut
+		};
+		
+		return null;
+	}
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// EVENT HANDLERS
 	
