@@ -1676,11 +1676,12 @@
 				return (item.length === 1 ? '0' : '') + item;
 			});
 			
-			return `#${output.join('')}`;
+			output = `#${output.join('')}`;
 		} catch (e) {
 			console.error(`${e.name}:${e.message}`);
+			output = '#7F7F7F';
 		} finally {
-			return '#7F7F7F';
+			return output;
 		}
 		
 	}
