@@ -1522,12 +1522,14 @@
 		switch (hex.length) {
 			case 3:
 				output = hex.match(/(.)(.)(.)/).splice(1);
+				output = output.map(elem => elem + elem);
 				break;
 			case 6:
 				output = hex.match(/(..)(..)(..)/).splice(1);
 				break;
 			case 4:
 				output = hex.match(/(.)(.)(.)(.)/).splice(1);
+				output = output.map(elem => elem + elem);
 				break;
 			case 8:
 				output = hex.match(/(..)(..)(..)(..)/).splice(1);
@@ -1537,8 +1539,8 @@
 		}
 		
 		if (numeric) {
-			output = output.map((item, i) => {
-				return Number(`0x${output}`);
+			output = output.map((item) => {
+				return (Number(`0x${item}`)) / 255;
 			});
 		}
 		
