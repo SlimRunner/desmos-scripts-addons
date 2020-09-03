@@ -1190,8 +1190,13 @@
 		
 		// event that triggers when user selects a color from color picker
 		ctrColor.colorButton.addEventListener('pickerChange', (e) => {
-			// setExprColor(ActiveItem.expression, e.target.value);
-			console.log(e.detail);
+			if (
+				e.detail.action === DialogResult.OK &&
+				e.detail.changed()
+			) {
+				let color = e.detail.value.getCSSRGBA();
+				setExprColor(ActiveItem.expression, color);
+			}
 		});
 		
 		// event that triggers when user clicks opacity button
@@ -1328,18 +1333,26 @@
 			CPicker.hide();
 		});
 		
-		ctrPicker.colorWheel.addEventListener('mousedown', mouseEventOnWheel);
-		ctrPicker.colorWheel.addEventListener('mousemove', mouseEventOnWheel);
-		
-		// common function for mouse down and mouse move
-		function mouseEventOnWheel(e) {
+		ctrPicker.colorWheel.addEventListener('mousedown', (e) => {
 			if (e.buttons === 1) {
-				let mse = getCanvasMse(ctrPicker.colorWheel, e);
-				CPicker.value = Math.atan2(
-					-mse.y + CANV_MID + CPicker.canvasOffset.x,
-					mse.x - CANV_MID - CPicker.canvasOffset.y
-				);
+				let mse = getCanvasMse(ctrPicker.colorWheel, e, CPicker.canvasOffset);
+				
+				if (!setMarkerByMouse(mse)) {
+					fetchValidMarker(mse);
+					setMarkerByMouse(mse);
+				}
 			}
+		});
+		
+		ctrPicker.colorWheel.addEventListener('mousemove', (e) => {
+			let mse = getCanvasMse(ctrPicker.colorWheel, e, CPicker.canvasOffset);
+			
+			if (e.buttons === 0) {
+				CPicker.markers.active = selectMarker(mse);
+			} else if (e.buttons === 1) {
+				setMarkerByMouse(mse);
+			}
+		});
 		
 		function fetchValidMarker(mse) {
 			if (
@@ -1390,11 +1403,11 @@
 		}
 		
 		// gets the mouse location of an element (including border)
-		function getCanvasMse(canvas, evt) {
+		function getCanvasMse(canvas, evt, offset) {
 			var rect = canvas.getBoundingClientRect();
 			return {
-				x: evt.clientX - rect.left,
-				y: evt.clientY - rect.top
+				x: evt.clientX - rect.left - offset.x,
+				y: evt.clientY - rect.top - offset.y
 			};
 		}
 		
