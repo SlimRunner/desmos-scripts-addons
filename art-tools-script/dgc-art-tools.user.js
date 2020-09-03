@@ -810,15 +810,20 @@
 	}
 	
 	// CPicker method definition that shows the color picker
-	function showColorWheel(rgbpack, dispatcher) {
+	function showColorWheel(hsvPack, dispatcher) {
+		initMarkers();
 		CPicker.dispatcher = dispatcher;
-		CPicker.value = 0;
+		CPicker.result.value = new HSVColor(...hsvPack);
+		CPicker.result.initValue = new HSVColor(...hsvPack);
 		
 		ctrPicker.background.style.visibility = 'visible';
 		ctrPicker.background.style.opacity = '1';
 		ctrPicker.hexColorText.focus();
 		
-		updateColorWheel();
+		setHueMarkerByAngle(0, CPicker.result.value.hue);
+		CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+		setSatValMarkerByNumber(0, CPicker.result.value.saturation, CPicker.result.value.value, CPicker.triangle);
+		drawMarkers();
 	}
 	
 	// CPicker method definition that hides the color picker
@@ -826,6 +831,11 @@
 		ctrPicker.background.style.visibility = 'hidden';
 		ctrPicker.background.style.opacity = '0';
 		
+		CPicker.result.value.setHSV(
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val
+		);
 		CPicker.dispatcher.dispatchEvent(CPicker.onChange);
 	}
 	
