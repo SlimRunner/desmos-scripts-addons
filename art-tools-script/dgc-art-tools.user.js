@@ -1079,6 +1079,83 @@
 		
 		return null;
 	}
+	
+	// sets the hue marker using a location provided (e.g. mouse)
+	function setHueMarkerByMse(index, newLoc) {
+		let angle = Math.atan2(-newLoc.y + CANV_MID, newLoc.x - CANV_MID);
+		CPicker.markers.hue[index].angle = angle * RAD_TO_DEG;
+		let radius = (WHEEL_RAD_OUT + WHEEL_RAD_IN) / 2;
+		CPicker.markers.hue[index].x = radius * Math.cos(angle) + CANV_MID;
+		CPicker.markers.hue[index].y = -radius * Math.sin(angle) + CANV_MID;
+	}
+	
+	// sets the hue marker using an angle
+	function setHueMarkerByAngle(index, angle) {
+		CPicker.markers.hue[index].angle = angle;
+		angle /= RAD_TO_DEG;
+		let radius = (WHEEL_RAD_OUT + WHEEL_RAD_IN) / 2;
+		CPicker.markers.hue[index].x = radius * Math.cos(angle) + CANV_MID;
+		CPicker.markers.hue[index].y = -radius * Math.sin(angle) + CANV_MID;
+	}
+	
+	// sets the saturation and value markers using a location provided
+	function setSatValMarkerByMse(index, newLoc, triVtx) {
+		// get confined location [maybe not]
+		// proxy prevents from overriding objects returned by function
+		let proxyLoc = getConfinedProbe(newLoc, triVtx);
+		let confLoc = {
+			x: proxyLoc.x,
+			y: proxyLoc.y
+		};
+		
+		CPicker.markers.satv[index].x = confLoc.x;
+		CPicker.markers.satv[index].y = confLoc.y;
+		confLoc.x -= CANV_MID;
+		confLoc.y -= CANV_MID;
+		
+		/*
+		Computes the distance between the B corner of the triangle and the distance
+		the bisector of B would travel to reach the mouse with its tangent attached
+		to its head (mouse-distance).
+		*/
+		CPicker.markers.satv[index].val = distance(
+			confLoc,
+			normalProjection({
+				x: confLoc.x,
+				y: confLoc.y
+			}, {
+				x: triVtx[1].x - CANV_MID,
+				y: triVtx[1].y - CANV_MID
+			})
+		) / (TRIAG_RAD * 1.5);
+		
+		/*
+		Computes ratio between the slice tangent to the head of bisector of B at
+		mouse-distance and the side length of triangle.
+		*/
+		let val = CPicker.markers.satv[index].val;
+		let satA = vecLerp(triVtx[1], triVtx[0], val);
+		let satC = vecLerp(triVtx[1], triVtx[2], val);
+		let sat = distance(proxyLoc, satC) / distance(satA, satC);
+		CPicker.markers.satv[index].sat = isFinite(sat) ? sat : 0;
+	}
+	
+	// sets the saturation and value markers using values
+	function setSatValMarkerByNumber(index, sat, val, triVtx) {
+		/*
+		calculates the distance between the B and the farthest edge to compute the
+		value then uses those two points linearly interpolate the saturation.
+		*/
+		let satA = vecLerp(triVtx[1], triVtx[0], val);
+		let satC = vecLerp(triVtx[1], triVtx[2], val);
+		let markerLoc = vecLerp(satC, satA, sat);
+		
+		CPicker.markers.satv[index].sat = sat;
+		CPicker.markers.satv[index].val = val;
+		CPicker.markers.satv[index].x = markerLoc.x;
+		CPicker.markers.satv[index].y = markerLoc.y;
+	}
+	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// EVENT HANDLERS
 	
