@@ -527,8 +527,17 @@
 		ctrColor.propMenu.style.top = `${y}px`;
 	}
 	
+	// sets the color preview on contex menu button
 	function updateColorPreview() {
-		ctrColor.colorButtonPreview.style.background = getCurrentColor();
+		let [r, g, b, al = 1] = getRGBpack(
+			getCurrentColor()
+		).map((n, i) => {
+			if (i !== 3) return Math.round(n * 255);
+			else return n;
+		});
+		ctrColor.colorButtonPreview.style.background = (
+			`linear-gradient(-45deg,rgba(${r},${g},${b}) 49%,rgba(${r},${g},${b},${al}) 51%)`
+		);
 	}
 	
 	// returns color of expression with the menu active
@@ -2080,7 +2089,7 @@
 			}
 			return output;
 		} catch (e) {
-			
+			// no need to log error, color might still be parsable
 		}
 		
 		// try if cssColor is a function
@@ -2088,11 +2097,44 @@
 			output = parseCSSFunc(cssColor);
 			let funcName = output.splice(0, 1)[0];
 			
-			// maps current color space onto hsl
-			output = mapToColorSpace(funcName, 'hsv')(output);
+			// maps current color space onto hsv
+			output = mapToColorSpace(funcName, 'hsva')(output);
 		} catch (e) {
 			console.error(`${e.name}:${e.message}`);
-			output = '#7F7F7F';
+			output = [0, 0.5, 0, 1]; // gray
+		} finally {
+			return output;
+		}
+	}
+	
+	// returns an RGB array from any given CSS color
+	function getRGBpack(cssColor) {
+		let output;
+		
+		// try if cssColor is a named color
+		try {
+			return parseCSSHex(parseNamedColor(cssColor), true);
+		} catch (e) {
+			// no need to log error, color might still be parsable
+		}
+		
+		// try if cssColor is a hex value
+		try {
+			return parseCSSHex(cssColor, true);
+		} catch (e) {
+			// no need to log error, color might still be parsable
+		}
+		
+		// try if cssColor is a function
+		try {
+			output = parseCSSFunc(cssColor);
+			let funcName = output.splice(0, 1)[0];
+			
+			// maps current color space onto rgb
+			output = mapToColorSpace(funcName, 'rgba')(output);
+		} catch (e) {
+			console.error(`${e.name}:${e.message}`);
+			output = [0.5, 0.5, 0.5, 1]; // gray
 		} finally {
 			return output;
 		}
