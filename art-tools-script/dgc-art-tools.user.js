@@ -1363,12 +1363,17 @@
 		});
 		
 		// prevent the focus from going rogue
-		ctrPicker.background.addEventListener('mouseup', (e) => {
+		ctrPicker.background.addEventListener('focus', (e) => {
 			ctrPicker.hexColorText.focus();
 		});
 		
 		// prevent the focus from going rogue
-		ctrPicker.dialFrame.addEventListener('mouseup', (e) => {
+		ctrPicker.dialFrame.addEventListener('focus', (e) => {
+			ctrPicker.hexColorText.focus();
+		});
+		
+		// prevent the focus from going rogue
+		ctrPicker.colorWheel.addEventListener('mouseup', (e) => {
 			ctrPicker.hexColorText.focus();
 		});
 		
