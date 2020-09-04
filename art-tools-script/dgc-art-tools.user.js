@@ -1248,7 +1248,7 @@
 				item => item * 255
 			);
 			
-			img[i]     = pix[0];
+			img[i] = pix[0];
 			img[i + 1] = pix[1];
 			img[i + 2] = pix[2];
 			img[i + 3] = 255;
@@ -1418,16 +1418,20 @@
 		idOut = CPicker.markers.hue.findIndex(item => {
 			return distance(loc, item) < MARK_SIZE;
 		});
-		if (idOut > -1) return {
-			type: 'hue', id: idOut
-		};
+		if (idOut > -1) {
+			return {
+				type: 'hue', id: idOut
+			};
+		}
 		
 		idOut = CPicker.markers.satv.findIndex(item => {
 			return distance(loc, item) < MARK_SIZE;
 		});
-		if (idOut > -1) return {
-			type: 'satv', id: idOut
-		};
+		if (idOut > -1) {
+			return {
+				type: 'satv', id: idOut
+			};
+		}
 		
 		return null;
 	}
