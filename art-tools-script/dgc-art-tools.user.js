@@ -695,7 +695,320 @@
 	function initColorPicker() {
 		// insert css styles into existing stylesheet
 		appendTextToNode('sli-script-stylesheet',
-		`.sli-page-shade{position:fixed;left:0;top:0;width:100%;height:100%;z-index:99;padding:10px;background:rgba(0,0,0,0.4);visibility:hidden;opacity:0;transition:opacity 0.4s cubic-bezier(.22,.61,.36,1)}.sli-dialog-grid{display:grid;grid-template-columns:repeat(2, 2fr 1fr);grid-template-rows:1fr repeat(3, 1fr) repeat(2, 2fr) repeat(3,1fr);padding:8px}.sli-dialog-style{font-family:Arial,Helvetica,sans-serif;font-size:11pt;width:640px;height:480px;background:linear-gradient(#666, #555);position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);box-shadow:2.5px 4.3px 20px 2px rgba(0,0,0,0.5);border:4px solid #1c9969;border-radius:12px}.sli-item-picker{grid-column:1 / 3;grid-row:1 / 7}.sli-item-htmlTextLabel{grid-column:1;grid-row:7}.sli-item-htmlText{grid-column:2;grid-row:7}.sli-item-redText{grid-column:3;grid-row:2}.sli-item-greenText{grid-column:3;grid-row:3}.sli-item-blueText{grid-column:3;grid-row:4}.sli-item-dialOk{grid-column:2 / 3;grid-row:9}.sli-item-dialCancel{grid-column:3 / 4;grid-row:9}.sli-picker-canvas{background:#222;border-radius:50%;margin:auto;border:4px dashed #444}.sli-page-shade label{color:#DDD;margin:auto 4px auto auto;text-shadow:1px 2px 2px rgba(0,0,0,0.5)}.sli-text-box-monospace{font-family:"Lucida Console",Monaco,monospace;height:1.5em;text-align:left;margin:8px auto 8px auto}.sli-text-box-number{font-family:inherit;height:1.5em;text-align:right;margin:8px auto 8px auto}.sli-textbox-style-shadowBlue{border:none;box-shadow:inset 0 0 0 1.25px #ccc, inset 0 0 4px 2px #fff;border-radius:2px;padding:4px 6px 4px 6px;transition:0.2s}.sli-textbox-style-shadowBlue:hover{box-shadow:inset 0 0 0 1.25px #79e7ac, inset 0 0 4px 2px #aaeeca}.sli-textbox-style-shadowBlue:focus{box-shadow:inset 0 0 0 1.25px #b5e3c9, inset 0 0 4px 2px #daf1e4}.sli-textbox-style-shadowBlue:focus:hover{box-shadow:inset 0 0 0 1px #79e7ac, inset 0 0 4px 2px #aaeeca}.sli-textbox-style-shadowBlue-nonactive{border:none;box-shadow:inset 0 0 0 1.25px #ccc, inset 0 0 4px 2px #fff;border-radius:2px;padding:4px 6px 4px 6px;transition:0.2s}.sli-textbox-style-shadowBlue-nonactive:hover{box-shadow:inset 0 0 0 1.25px #b5e3c9, inset 0 0 4px 2px #daf1e4}.sli-textbox-style-shadowBlue-nonactive:focus{box-shadow:inset 0 0 0 1.25px #b5e3c9, inset 0 0 4px 2px #daf1e4}.button-size{font-family:inherit;font-size:1em;margin-top:8px;margin-bottom:8px;margin-left:8px;margin-right:8px;width:5em;height:2em}.sli-button-style-shadowGreen{font-family:inherit;border:none;color:black;background-color:#c6c6c6;background-size:100% 100%;border-radius:5px;border:1px solid #505050;transition:0.2s}.sli-button-style-shadowGreen:hover{border:1px solid #055633;background-color:#17ad6c;box-shadow:0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowGreen:focus{background-color:#17ad6c;box-shadow:0 1px 2px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowGreen:focus:hover{background-color:#17ad6c;box-shadow:0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowGreen:focus:active{background-color:#0c7f4d;transition:0.1s;box-shadow:0 2px 2px 0 rgba(0,0,0,0.12), 0 3px 4px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowRed{font-family:inherit;border:none;color:black;background-color:#c6c6c6;background-size:100% 100%;border-radius:5px;border:1px solid #505050;transition:0.2s}.sli-button-style-shadowRed:hover{background-color:#fb685e;border:1px solid #bd2d00;box-shadow:0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowRed:focus{background-color:#fb685e;box-shadow:0 1px 2px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowRed:focus:hover{background-color:#fb685e;box-shadow:0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10)}.sli-button-style-shadowRed:focus:active{background-color:#dc3844;transition:0.1s;box-shadow:0 2px 2px 0 rgba(0,0,0,0.12), 0 3px 4px 0 rgba(0,0,0,0.10)}`);
+		`/* COLOR PICKER DIALOG */
+		
+		/***********************************************************************/
+		/* Styles of full-page shade */
+		.sli-page-shade {
+		  position: fixed;
+		  left: 0;
+		  top: 0;
+		  width: 100%;
+		  height: 100%;
+		  z-index: 99;
+		  padding: 10px;
+		  background: rgba(0,0,0,0.4);
+		  visibility: hidden;
+		  opacity: 0;
+		  transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
+		}
+		
+		/***********************************************************************/
+		/* Styles of dialog */
+		.sli-dialog-grid {
+		  display: grid;
+		  grid-template-columns: repeat(2, 2fr 1fr);
+		  grid-template-rows: 1fr repeat(3, 1fr) repeat(2, 2fr) repeat(3, 1fr);
+		  padding: 8px;
+		}
+		
+		.sli-dialog-style {
+		  font-family: Arial, Helvetica, sans-serif;
+		  font-size: 11pt;
+		  width: 640px;
+		  height: 480px;
+		  background: linear-gradient(#666, #555);
+		  position: absolute;
+		  left: 50%;
+		  top: 50%;
+		  transform: translate(-50%, -50%);
+		  box-shadow: 2.5px 4.3px 20px 2px rgba(0,0,0,0.5);
+		  border: 4px solid #1c9969;
+		  border-radius: 12px;
+		}
+		
+		/***********************************************************************/
+		/* Styles of grid items */
+		.sli-item-picker {
+		  grid-column: 1 / 3;
+		  grid-row: 1 / 7;
+		}
+		
+		.sli-item-htmlTextLabel {
+		  grid-column: 1;
+		  grid-row: 7;
+		}
+		
+		.sli-item-htmlText {
+		  grid-column: 2;
+		  grid-row: 7;
+		}
+		
+		.sli-item-redText {
+		  grid-column: 3;
+		  grid-row: 2;
+		}
+		
+		.sli-item-greenText {
+		  grid-column: 3;
+		  grid-row: 3;
+		}
+		
+		.sli-item-blueText {
+		  grid-column: 3;
+		  grid-row: 4;
+		}
+		
+		.sli-item-dialOk {
+		  grid-column: 2 / 3;
+		  grid-row: 9;
+		}
+		
+		.sli-item-dialCancel {
+		  grid-column: 3 / 4;
+		  grid-row: 9;
+		}
+		
+		/***********************************************************************/
+		/* Styles of canvas */
+		.sli-picker-canvas {
+		  background: #222;
+		  border-radius: 50%;
+		  margin: auto;
+		  border: 4px dashed #444;
+		}
+		
+		/***********************************************************************/
+		/* Styles of Labels and Icons */
+		.sli-page-shade label {
+			color: #DDD;
+		  margin: auto 4px auto auto;
+			text-shadow: 1px 2px 2px rgba(0,0,0,0.5);
+		}
+		
+		/***********************************************************************/
+		/* Styles Slider */
+		
+		.sli-cpk-slider {
+		  -webkit-appearance: none;
+		  width: 100%;
+		  height: 10px;
+		  border-radius: 3px;
+		  background: #d3d3d3;
+		  outline: none;
+		  opacity: 0.7;
+		  -webkit-transition: .2s;
+		  transition: opacity .2s;
+		  box-shadow: 1px 1px 5px 0 #0007 inset
+		}
+		
+		.sli-cpk-slider:hover {
+			background: #dfdfdf;
+		}
+		
+		.sli-cpk-slider::-webkit-slider-thumb {
+		  -webkit-appearance: none;
+		  appearance: none;
+		  width: 25px;
+		  height: 25px;
+		  border-radius: 50%;
+		  background: #1c9969;
+		  cursor: pointer;
+		}
+		
+		.sli-cpk-slider::-webkit-slider-thumb:hover {
+		  background: #53dfa9;
+		}
+		
+		.sli-cpk-slider::-moz-range-thumb {
+		  width: 25px;
+		  height: 25px;
+		  border-radius: 50%;
+		  background: #1c9969;
+		  cursor: pointer;
+		}
+		
+		.sli-cpk-slider::-moz-range-thumb:hover {
+		  background: #53dfa9;
+		}
+		
+		/***********************************************************************/
+		/* Styles textbox */
+		.sli-text-box-monospace {
+		  font-family: "Lucida Console", Monaco, monospace;
+		  height: 1.5em;
+		  text-align: left;
+		  margin: 8px auto 8px auto;
+		}
+		
+		.sli-text-box-number {
+		  font-family: inherit;
+		  height: 1.5em;
+		  text-align: right;
+		  margin: 8px auto 8px auto;
+		}
+		
+		/*normal*/
+		.sli-textbox-style-shadowBlue {
+			border: none;
+			box-shadow:
+		    inset 0 0 0 1.25px #ccc,
+		    inset 0 0 4px 2px #fff;
+			border-radius: 2px;
+			padding: 4px 6px 4px 6px;
+			transition: 0.2s;
+		}
+		
+		/*hover*/
+		.sli-textbox-style-shadowBlue:hover {
+			box-shadow:
+		    inset 0 0 0 1.25px #79e7ac,
+		    inset 0 0 4px 2px #aaeeca;
+		}
+		
+		/*focus*/
+		.sli-textbox-style-shadowBlue:focus {
+			box-shadow:
+		    inset 0 0 0 1.25px #b5e3c9,
+		    inset 0 0 4px 2px #daf1e4;
+		}
+		
+		/*focus and hover*/
+		.sli-textbox-style-shadowBlue:focus:hover {
+			box-shadow:
+		    inset 0 0 0 1px #79e7ac,
+		    inset 0 0 4px 2px #aaeeca;
+		}
+		
+		/*disabled*/
+		.sli-textbox-style-shadowBlue-nonactive {
+			border: none;
+			box-shadow:
+		    inset 0 0 0 1.25px #ccc,
+		    inset 0 0 4px 2px #fff;
+			border-radius: 2px;
+			padding: 4px 6px 4px 6px;
+			transition: 0.2s;
+		}
+		
+		/*hover*/
+		.sli-textbox-style-shadowBlue-nonactive:hover {
+			box-shadow:
+		    inset 0 0 0 1.25px #b5e3c9,
+		    inset 0 0 4px 2px #daf1e4;
+		}
+		
+		/*focus*/
+		.sli-textbox-style-shadowBlue-nonactive:focus {
+			box-shadow:
+		    inset 0 0 0 1.25px #b5e3c9,
+		    inset 0 0 4px 2px #daf1e4;
+		}
+		
+		/***********************************************************************/
+		/* Styles buttons */
+		/*resizes the button elements to a comfortable size*/
+		.button-size {
+			font-family: inherit;
+			font-size: 1em;
+			margin-top: 8px;
+			margin-bottom: 8px;
+			margin-left: 8px;
+			margin-right: 8px;
+			width: 5em;/*200px;*/
+			height: 2em;/*25px;*/
+			/* text-shadow: 1px 2px 2px rgba(0.75,0.75,0.75,0.25); */
+		}
+		
+		/* GREEN BUTTON */
+		.sli-button-style-shadowGreen {
+			font-family: inherit;
+			border: none;
+			color: black;
+			background-color: #888;
+			background-size: 100% 100%;
+			border-radius: 5px;
+			border: 1px solid #333;
+			transition: 0.2s
+		}
+		
+		/*button mouse over*/
+		.sli-button-style-shadowGreen:hover {
+		  border: 1px solid #055633;
+			background-color: #17ad6c;
+			box-shadow: 0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10);
+		}
+		
+		/*button focus*/
+		.sli-button-style-shadowGreen:focus {
+			background-color: #17ad6c;
+			box-shadow: 0 1px 2px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.10);
+		}
+		
+		/*button focus and mouse over*/
+		.sli-button-style-shadowGreen:focus:hover {
+			background-color: #17ad6c;
+			box-shadow: 0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10);
+		}
+		
+		/*button focus and press*/
+		.sli-button-style-shadowGreen:focus:active {
+			padding: 0px;
+			background-color: #0c7f4d;
+			transition: 0.1s;
+			box-shadow: 0 2px 2px 0 rgba(0,0,0,0.12), 0 3px 4px 0 rgba(0,0,0,0.10);
+		}
+		
+		/* RED BUTTON */
+		.sli-button-style-shadowRed {
+			font-family: inherit;
+			border: none;
+			color: black;
+			background-color: #888;
+			background-size: 100% 100%;
+			border-radius: 5px;
+			border: 1px solid #333;
+			transition: 0.2s
+		}
+		
+		/*button mouse over*/
+		.sli-button-style-shadowRed:hover {
+			border: 1px solid #6b2525;
+			background-color: #d54646;
+			box-shadow: 0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10);
+		
+		}
+		
+		/*button focus*/
+		.sli-button-style-shadowRed:focus {
+			background-color: #d54646;
+			box-shadow: 0 1px 2px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.10);
+		}
+		
+		/*button focus and mouse over*/
+		.sli-button-style-shadowRed:focus:hover {
+			background-color: #d54646;
+			box-shadow: 0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10);
+		}
+		
+		/*button focus and press*/
+		.sli-button-style-shadowRed:focus:active {
+			padding: 0px;
+			background-color: #ba2b2b;
+			transition: 0.1s;
+			box-shadow: 0 2px 2px 0 rgba(0,0,0,0.12), 0 3px 4px 0 rgba(0,0,0,0.10);
+		}
+		`);
 		
 		// adds elements for the color picker into the body
 		ctrPicker = insertNodes(document.body, {
