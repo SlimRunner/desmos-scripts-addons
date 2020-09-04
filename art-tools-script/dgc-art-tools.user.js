@@ -209,7 +209,7 @@
 	const TRIAG_RAD = CANV_SIZE * 45 / 128; // 90:256
 	const WHEEL_RAD_OUT = CANV_MID; // 2:256
 	const WHEEL_RAD_IN = CANV_SIZE * 53 / 128; // 106:256
-	const MARK_SIZE = 5;
+	const MARK_SIZE = 6;
 	
 	// stores all controls used in the script
 	var ctrColor;
@@ -1388,25 +1388,28 @@
 		const mainHue = MRK.hue[0].angle;
 		
 		ctx.save();
-		ctx.lineWidth = 2;
-		ctx.strokeStyle = 'black';
 		
 		MRK.hue.forEach((item) => {
-			ctx.fillStyle = getCSS_hsl(item.angle, 1, 0.5);
 			ctx.beginPath();
 			ctx.arc(item.x, item.y, MARK_SIZE, 0, 6.283185307179586);
+			ctx.fillStyle = getCSS_hsl(item.angle, 1, 0.5);
 			ctx.fill();
+			ctx.lineWidth = 2.1; ctx.strokeStyle = 'white';
+			ctx.stroke();
+			ctx.lineWidth = 1.9; ctx.strokeStyle = 'black';
 			ctx.stroke();
 		});
 		
 		MRK.satv.forEach((item) => {
-			ctx.strokeStyle = item.val < 0.5 ? 'white' : 'black';
+			ctx.beginPath();
+			ctx.arc(item.x, item.y, MARK_SIZE, 0, 6.283185307179586);
 			ctx.fillStyle = getCSS_hsl(
 				...getHSLfromHSV(mainHue, item.sat, item.val)
 			);
-			ctx.beginPath();
-			ctx.arc(item.x, item.y, MARK_SIZE, 0, 6.283185307179586);
 			ctx.fill();
+			ctx.lineWidth = 2.1; ctx.strokeStyle = 'black';
+			ctx.stroke();
+			ctx.lineWidth = 1.9; ctx.strokeStyle = 'white';
 			ctx.stroke();
 		});
 		ctx.restore();
