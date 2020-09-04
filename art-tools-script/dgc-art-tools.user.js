@@ -1736,13 +1736,13 @@
 		/*jshint bitwise: true */
 		
 		switch (aBf) {
-			case 0: // none to none
+			case 0: // none to none - does nothing
 				return (args) => convFunc(...args);
-			case 1: // alpha to none
-				return (args) => {args.pop(); return convFunc(...args);};
-			case 2: // none to alpha
+			case 1: // alpha to none - alpha value gets ignored
+				return (args) => {return convFunc(...args);};
+			case 2: // none to alpha - 1 is added as alpha value
 				return (args) => {return convFunc(...args).concat(1);};
-			case 3: // alpha to alpha
+			case 3: // alpha to alpha - alpha value gets added to output
 				return (args) => {let al = args.pop(); return convFunc(...args).concat(al);};
 			default:
 				throw new CustomError('Unknown error', `The bitfield has a value of ${aBf}. What kind of sorcery is this?`);
@@ -2011,7 +2011,7 @@
 			output = parseNamedColor(cssColor);
 			return output;
 		} catch (e) {
-			
+			// no need to log error, color might still be parsable
 		}
 		
 		// try if cssColor is a hex value
@@ -2029,7 +2029,7 @@
 			return `#${output.join('')}`;
 			
 		} catch (e) {
-			
+			// no need to log error, color might still be parsable
 		}
 		
 		// try if cssColor is a function
@@ -2057,16 +2057,17 @@
 		
 	}
 	
+	// returns an HSV array from any given CSS color
 	function getHSVpack(cssColor) {
 		let output;
 		
 		// try if cssColor is a named color
 		try {
 			output = parseCSSHex(parseNamedColor(cssColor), true);
-			output = mapToColorSpace('rgb', 'hsv')(output);
+			output = mapToColorSpace('rgb', 'hsva')(output);
 			return output;
 		} catch (e) {
-			
+			// no need to log error, color might still be parsable
 		}
 		
 		// try if cssColor is a hex value
