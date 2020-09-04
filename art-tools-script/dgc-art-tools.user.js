@@ -12,9 +12,6 @@
 
 /*jshint esversion: 6 */
 
-// BUG: shortcuts during dialogs propagate back to Desmos allowing shortcuts to mutate the graph while an element is being edited.
-// try https://stackoverflow.com/a/53329665
-
 (function() {
 	'use strict';
 	var Calc;
