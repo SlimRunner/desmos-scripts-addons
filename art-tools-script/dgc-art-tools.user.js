@@ -266,11 +266,13 @@
 					display: block;
 					width: 100%;
 					height: 100%;
-					border-radius: 5px;
+					border: 1px solid #d3d3d3;
+					border-radius: 3px;
 					background-color: white;
 					background-size: 10px 10px;
 					background-position: 0 0, 5px 5px;
 					background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
+					overflow: hidden;
 				}
 				
 				.sli-dat-color-prev {
@@ -278,7 +280,6 @@
 					width: 100%;
 					height: 100%;
 					background: black;
-					border-radius: 3px;
 				}
 				`
 			}]
