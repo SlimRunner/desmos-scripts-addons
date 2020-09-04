@@ -1701,12 +1701,20 @@
 				convFunc = getHSVfromRGB;
 				rxAlpha = /[a-z]{3}a/;
 				break;
+			case /hsla?/.test(clFrom) && /hsla?/.test(clTo):
+				convFunc = (h, s, l) => [h, s, l];
+				rxAlpha = /[a-z]{3}a/;
+				break;
 			case /hsla?/.test(clFrom) && /rgba?/.test(clTo):
 				convFunc = getRGBfromHSL;
 				rxAlpha = /[a-z]{3}a/;
 				break;
 			case /hsla?/.test(clFrom) && /hs[vb]a?/.test(clTo):
 				convFunc = getHSVfromHSL;
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			case /hs[vb]a?/.test(clFrom) && /hs[vb]a?/.test(clTo):
+				convFunc = (h, s, v) => [h, s, v];
 				rxAlpha = /[a-z]{3}a/;
 				break;
 			case /hs[vb]a?/.test(clFrom) && /rgba?/.test(clTo):
