@@ -747,7 +747,12 @@
 		/* Styles of grid items */
 		.sli-item-picker {
 		  grid-column: 1;
-		  grid-row: 1 / 10;
+		  grid-row: 1 / 9;
+		}
+		
+		.sli-item-slider {
+			grid-column: 1;
+		  grid-row: 9;
 		}
 		
 		.sli-item-hexInput-label {
@@ -770,6 +775,11 @@
 		  grid-row: 5;
 		}
 		
+		.sli-item-alphaInput-label {
+			grid-column: 2;
+		  grid-row: 6;
+		}
+		
 		.sli-item-hexInput {
 		  grid-column: 3;
 		  grid-row: 2;
@@ -788,6 +798,11 @@
 		.sli-item-valInput {
 		  grid-column: 3;
 		  grid-row: 5;
+		}
+		
+		.sli-item-alphaInput {
+			grid-column: 3;
+		  grid-row: 6;
 		}
 		
 		.sli-item-buttons-div {
@@ -1107,6 +1122,15 @@
 							'sli-item-valInput-label'
 						]
 					}, {
+						tag : 'label',
+						nodeContent: 'Alpha:',
+						attributes: [
+							{name: 'for', value : 'alphaInput-hsl-picker'}
+						],
+						classes: [
+							'sli-item-alphaInput-label'
+						]
+					}, {
 						tag: 'input',
 						varName: 'hexInput',
 						id: 'hexInput-hsl-picker',
@@ -1159,6 +1183,19 @@
 							'sli-item-valInput'
 						]
 					}, {
+						tag: 'input',
+						varName: 'alphaInput',
+						id: 'alphaInput-hsl-picker',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'tabindex', value: '8'}
+						],
+						classes: [
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-alphaInput'
+						]
+					}, {
 						tag: 'div',
 						classes: [
 							'sli-button-picker-divisor',
@@ -1169,7 +1206,7 @@
 							varName: 'dialOk',
 							nodeContent: '✔️',
 							attributes: [
-								{name: 'tabindex', value: '8'}
+								{name: 'tabindex', value: '9'}
 							],
 							classes: [
 								'button-size',
@@ -1181,7 +1218,7 @@
 							varName: 'dialCancel',
 							nodeContent: '❌',
 							attributes: [
-								{name: 'tabindex', value: '9'}
+								{name: 'tabindex', value: '10'}
 							],
 							classes: [
 								'button-size',
