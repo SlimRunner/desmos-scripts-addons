@@ -1060,6 +1060,17 @@
 							'sli-item-picker'
 						]
 					}, {
+						tag: 'input',
+						varName: 'alphaSlider',
+						attributes: [
+							{name: 'type', value: 'range'},
+							{name: 'tabindex', value: '3'}
+						],
+						classes: [
+							'sli-picker-canvas',
+							'sli-item-picker'
+						]
+					}, {
 						tag : 'label',
 						nodeContent: 'Hex:',
 						attributes: [
@@ -1101,7 +1112,7 @@
 						id: 'hexInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '3'}
+							{name: 'tabindex', value: '4'}
 						],
 						classes: [
 							'sli-text-box-hex-appearance',
@@ -1114,7 +1125,7 @@
 						id: 'hueInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '4'}
+							{name: 'tabindex', value: '5'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1127,7 +1138,7 @@
 						id: 'satInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '5'}
+							{name: 'tabindex', value: '6'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1140,7 +1151,7 @@
 						id: 'valInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '6'}
+							{name: 'tabindex', value: '7'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1158,7 +1169,7 @@
 							varName: 'dialOk',
 							nodeContent: '✔️',
 							attributes: [
-								{name: 'tabindex', value: '7'}
+								{name: 'tabindex', value: '8'}
 							],
 							classes: [
 								'button-size',
@@ -1170,7 +1181,7 @@
 							varName: 'dialCancel',
 							nodeContent: '❌',
 							attributes: [
-								{name: 'tabindex', value: '8'}
+								{name: 'tabindex', value: '9'}
 							],
 							classes: [
 								'button-size',
