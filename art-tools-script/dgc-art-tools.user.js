@@ -707,21 +707,30 @@
 		  background: rgba(0,0,0,0.4);
 		  visibility: hidden;
 		  opacity: 0;
-		  transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
+		  transition: 0.4s cubic-bezier(.22,.61,.36,1);
 		}
 		
 		/***********************************************************************/
 		/* Styles of dialog */
 		.sli-dialog-grid {
 		  display: grid;
-		  grid-template-columns: repeat(2, 2fr 1fr);
-		  grid-template-rows: 1fr repeat(3, 1fr) repeat(2, 2fr) repeat(3, 1fr);
+		  grid-template-columns: 50% repeat(2, 1fr 2fr);
+		  grid-template-rows: repeat(11, 1fr);
 		  padding: 8px;
 		}
 		
+		.sli-button-picker-divisor {
+			width: 100%;
+			height: 100%;
+			display: grid;
+			grid-template-columns: 1fr 1fr 2fr 2fr;
+			grid-template-rows: 1fr;
+		}
+		
 		.sli-dialog-style {
+			color: whitesmoke;
 		  font-family: Arial, Helvetica, sans-serif;
-		  font-size: 11pt;
+		  font-size: 12pt;
 		  width: 640px;
 		  height: 480px;
 		  background: linear-gradient(#666, #555);
@@ -737,43 +746,63 @@
 		/***********************************************************************/
 		/* Styles of grid items */
 		.sli-item-picker {
-		  grid-column: 1 / 3;
-		  grid-row: 1 / 7;
-		}
-		
-		.sli-item-htmlTextLabel {
 		  grid-column: 1;
-		  grid-row: 7;
+		  grid-row: 1 / 10;
 		}
 		
-		.sli-item-htmlText {
+		.sli-item-hexInput-label {
 		  grid-column: 2;
-		  grid-row: 7;
+		  grid-row: 2;
 		}
 		
-		.sli-item-redText {
+		.sli-item-hueInput-label {
+		  grid-column: 2;
+		  grid-row: 3;
+		}
+		
+		.sli-item-satInput-label {
+		  grid-column: 2;
+		  grid-row: 4;
+		}
+		
+		.sli-item-valInput-label {
+		  grid-column: 2;
+		  grid-row: 5;
+		}
+		
+		.sli-item-hexInput {
 		  grid-column: 3;
 		  grid-row: 2;
 		}
 		
-		.sli-item-greenText {
+		.sli-item-hueInput {
 		  grid-column: 3;
 		  grid-row: 3;
 		}
 		
-		.sli-item-blueText {
+		.sli-item-satInput {
 		  grid-column: 3;
 		  grid-row: 4;
 		}
 		
+		.sli-item-valInput {
+		  grid-column: 3;
+		  grid-row: 5;
+		}
+		
+		.sli-item-buttons-div {
+			grid-column: 2 / 6;
+		  grid-row: 11;
+		}
+		
 		.sli-item-dialOk {
-		  grid-column: 2 / 3;
-		  grid-row: 9;
+		  grid-column: 3;
+		  grid-row: 1;
 		}
 		
 		.sli-item-dialCancel {
-		  grid-column: 3 / 4;
-		  grid-row: 9;
+		  grid-column: 4;
+		  grid-row: 1;
 		}
 		
 		/***********************************************************************/
@@ -783,6 +812,12 @@
 		  border-radius: 50%;
 		  margin: auto;
 		  border: 4px dashed #444;
+			transition: 0.2s;
+		}
+		
+		.sli-picker-canvas:hover {
+			border: 4px dashed #666;
+			background: #333;
 		}
 		
 		/***********************************************************************/
@@ -841,170 +876,153 @@
 		
 		/***********************************************************************/
 		/* Styles textbox */
-		.sli-text-box-monospace {
-		  font-family: "Lucida Console", Monaco, monospace;
-		  height: 1.5em;
-		  text-align: left;
-		  margin: 8px auto 8px auto;
+		.sli-text-box-color-appearance {
+			font-family: inherit;
+			font-weight: bold;
+			letter-spacing: 2px;
+			font-variant-numeric: tabular-nums;
+		  text-align: right;
+			width: 5em;
+		  margin: 8px auto 8px 8px;
 		}
 		
-		.sli-text-box-number {
-		  font-family: inherit;
-		  height: 1.5em;
-		  text-align: right;
-		  margin: 8px auto 8px auto;
+		.sli-text-box-hex-appearance {
+			font-family: "Lucida Console", Monaco, monospace;
+		  text-align: left;
+			width: 7em;
+		  margin: 8px auto 8px 8px;
 		}
 		
 		/*normal*/
-		.sli-textbox-style-shadowBlue {
-			border: none;
+		.sli-textbox-style-darkShade {
+			color: gainsboro;
+			background-color: #333;
+			border: 1px solid #fff6;
 			box-shadow:
-		    inset 0 0 0 1.25px #ccc,
-		    inset 0 0 4px 2px #fff;
-			border-radius: 2px;
-			padding: 4px 6px 4px 6px;
+		    inset 0 0 4px 0 #000a;
+			border-radius: 3px;
+			padding: 0.4em 0.5em 0.4em 0.5em;
 			transition: 0.2s;
 		}
 		
 		/*hover*/
-		.sli-textbox-style-shadowBlue:hover {
+		.sli-textbox-style-darkShade:hover {
+			border: 1px solid #7fc;
 			box-shadow:
-		    inset 0 0 0 1.25px #79e7ac,
-		    inset 0 0 4px 2px #aaeeca;
+		    0 0 0 1px #7fc2,
+				inset 0 0 2px 0 #fffa;
 		}
 		
 		/*focus*/
-		.sli-textbox-style-shadowBlue:focus {
+		.sli-textbox-style-darkShade:focus {
+			border: 1px solid #7fc;
 			box-shadow:
-		    inset 0 0 0 1.25px #b5e3c9,
-		    inset 0 0 4px 2px #daf1e4;
+		    0 0 0 1px #7fc2,
+				inset 0 0 2px 0 #fffa;
 		}
 		
 		/*focus and hover*/
-		.sli-textbox-style-shadowBlue:focus:hover {
+		.sli-textbox-style-darkShade:focus:hover {
+			background-color: #3a3a3a;
+			border: 1px solid #7fc;
 			box-shadow:
-		    inset 0 0 0 1px #79e7ac,
-		    inset 0 0 4px 2px #aaeeca;
-		}
-		
-		/*disabled*/
-		.sli-textbox-style-shadowBlue-nonactive {
-			border: none;
-			box-shadow:
-		    inset 0 0 0 1.25px #ccc,
-		    inset 0 0 4px 2px #fff;
-			border-radius: 2px;
-			padding: 4px 6px 4px 6px;
-			transition: 0.2s;
-		}
-		
-		/*hover*/
-		.sli-textbox-style-shadowBlue-nonactive:hover {
-			box-shadow:
-		    inset 0 0 0 1.25px #b5e3c9,
-		    inset 0 0 4px 2px #daf1e4;
-		}
-		
-		/*focus*/
-		.sli-textbox-style-shadowBlue-nonactive:focus {
-			box-shadow:
-		    inset 0 0 0 1.25px #b5e3c9,
-		    inset 0 0 4px 2px #daf1e4;
+		    0 0 0 1px #7fc2,
+				inset 0 0 2px 0 #fffa;
 		}
 		
 		/***********************************************************************/
-		/* Styles buttons */
+		/* Button Styles */
 		/*resizes the button elements to a comfortable size*/
 		.button-size {
 			font-family: inherit;
-			font-size: 1em;
+			font-size: 11pt;
 			margin-top: 8px;
 			margin-bottom: 8px;
-			margin-left: 8px;
-			margin-right: 8px;
-			width: 5em;/*200px;*/
+			margin-left: auto;
+			margin-right: auto;
+			width: 6em;/*200px;*/
 			height: 2em;/*25px;*/
-			/* text-shadow: 1px 2px 2px rgba(0.75,0.75,0.75,0.25); */
 		}
 		
 		/* GREEN BUTTON */
 		.sli-button-style-shadowGreen {
 			font-family: inherit;
 			border: none;
-			color: black;
 			background-color: #888;
 			background-size: 100% 100%;
 			border-radius: 5px;
 			border: 1px solid #333;
-			transition: 0.2s
+			transition: 0.2s;
 		}
 		
 		/*button mouse over*/
 		.sli-button-style-shadowGreen:hover {
 		  border: 1px solid #055633;
 			background-color: #17ad6c;
-			box-shadow: 0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10);
+			box-shadow: 0 4px 8px -1px #0003;
 		}
 		
 		/*button focus*/
 		.sli-button-style-shadowGreen:focus {
+			border: 1px solid #055633;
 			background-color: #17ad6c;
-			box-shadow: 0 1px 2px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.10);
-		}
-		
-		/*button focus and mouse over*/
-		.sli-button-style-shadowGreen:focus:hover {
-			background-color: #17ad6c;
-			box-shadow: 0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10);
+			box-shadow: 0 4px 8px -1px #0003;
 		}
 		
 		/*button focus and press*/
 		.sli-button-style-shadowGreen:focus:active {
-			padding: 0px;
+			border: 1px solid #444;
+			padding-top: 1px;
 			background-color: #0c7f4d;
 			transition: 0.1s;
-			box-shadow: 0 2px 2px 0 rgba(0,0,0,0.12), 0 3px 4px 0 rgba(0,0,0,0.10);
+			box-shadow: inset 0 1px 3px 0px #0006;
+		}
+		
+		/*prevent firefox from moving the text on press*/
+		.sli-button-style-shadowGreen:active{
+				padding: 0px;
 		}
 		
 		/* RED BUTTON */
 		.sli-button-style-shadowRed {
 			font-family: inherit;
 			border: none;
-			color: black;
 			background-color: #888;
 			background-size: 100% 100%;
 			border-radius: 5px;
 			border: 1px solid #333;
-			transition: 0.2s
+			transition: 0.2s;
 		}
 		
 		/*button mouse over*/
 		.sli-button-style-shadowRed:hover {
 			border: 1px solid #6b2525;
 			background-color: #d54646;
-			box-shadow: 0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10);
+			box-shadow: 0 4px 8px -1px #0003;
 		
 		}
 		
 		/*button focus*/
 		.sli-button-style-shadowRed:focus {
+			border: 1px solid #6b2525;
 			background-color: #d54646;
-			box-shadow: 0 1px 2px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.10);
-		}
-		
-		/*button focus and mouse over*/
-		.sli-button-style-shadowRed:focus:hover {
-			background-color: #d54646;
-			box-shadow: 0 2px 6px 0 rgba(0,0,0,0.12), 0 6px 8px 0 rgba(0,0,0,0.10);
+			box-shadow: 0 4px 8px -1px #0003;
 		}
 		
 		/*button focus and press*/
 		.sli-button-style-shadowRed:focus:active {
-			padding: 0px;
+			border: 1px solid #444;
+			padding-top: 1px;
 			background-color: #ba2b2b;
 			transition: 0.1s;
-			box-shadow: 0 2px 2px 0 rgba(0,0,0,0.12), 0 3px 4px 0 rgba(0,0,0,0.10);
+			box-shadow: inset 0 1px 3px 0px #0006;
 		}
+		
+		/*prevent firefox from moving the text on press*/
+		.sli-button-style-shadowRed:active{
+				padding: 0px;
+		}
+		
 		`);
 		
 		// adds elements for the color picker into the body
@@ -1043,90 +1061,123 @@
 						]
 					}, {
 						tag : 'label',
-						varName : 'hexColorTextLabel',
 						nodeContent: 'Hex:',
 						attributes: [
-							{name: 'for', value : 'hexColorText'}
+							{name: 'for', value : 'hexInput-hsl-picker'}
 						],
 						classes: [
-							'sli-item-htmlTextLabel'
+							'sli-item-hexInput-label'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'H:',
+						attributes: [
+							{name: 'for', value : 'hueInput-hsl-picker'}
+						],
+						classes: [
+							'sli-item-hueInput-label'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'S:',
+						attributes: [
+							{name: 'for', value : 'satInput-hsl-picker'}
+						],
+						classes: [
+							'sli-item-satInput-label'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'V:',
+						attributes: [
+							{name: 'for', value : 'valInput-hsl-picker'}
+						],
+						classes: [
+							'sli-item-valInput-label'
 						]
 					}, {
 						tag: 'input',
-						varName: 'hexColorText',
+						varName: 'hexInput',
+						id: 'hexInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'size', value: '12'},
 							{name: 'tabindex', value: '3'}
 						],
 						classes: [
-							'sli-text-box-monospace',
-							'sli-textbox-style-shadowBlue',
-							'sli-item-htmlText'
+							'sli-text-box-hex-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-hexInput'
 						]
 					}, {
 						tag: 'input',
-						varName: 'redText',
+						varName: 'hueInput',
+						id: 'hueInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'size', value: '6'},
 							{name: 'tabindex', value: '4'}
 						],
 						classes: [
-							'sli-text-box-number',
-							'sli-textbox-style-shadowBlue',
-							'sli-item-redText'
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-hueInput'
 						]
 					}, {
 						tag: 'input',
-						varName: 'greenText',
+						varName: 'satInput',
+						id: 'satInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'size', value: '6'},
 							{name: 'tabindex', value: '5'}
 						],
 						classes: [
-							'sli-text-box-number',
-							'sli-textbox-style-shadowBlue',
-							'sli-item-greenText'
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-satInput'
 						]
 					}, {
 						tag: 'input',
-						varName: 'blueText',
+						varName: 'valInput',
+						id: 'valInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'size', value: '6'},
 							{name: 'tabindex', value: '6'}
 						],
 						classes: [
-							'sli-text-box-number',
-							'sli-textbox-style-shadowBlue',
-							'sli-item-blueText'
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-valInput'
 						]
 					}, {
-						tag: 'button',
-						varName: 'dialOk',
-						nodeContent: '✔️',
-						attributes: [
-							{name: 'tabindex', value: '7'}
-						],
+						tag: 'div',
 						classes: [
-							'button-size',
-							'sli-button-style-shadowGreen',
-							'sli-item-dialOk'
-						]
-					}, {
-						tag: 'button',
-						varName: 'dialCancel',
-						nodeContent: '❌',
-						attributes: [
-							{name: 'tabindex', value: '8'}
+							'sli-button-picker-divisor',
+							'sli-item-buttons-div'
 						],
-						classes: [
-							'button-size',
-							'sli-button-style-shadowRed',
-							'sli-item-dialCancel'
-						]
+						group: [{
+							tag: 'button',
+							varName: 'dialOk',
+							nodeContent: '✔️',
+							attributes: [
+								{name: 'tabindex', value: '7'}
+							],
+							classes: [
+								'button-size',
+								'sli-button-style-shadowGreen',
+								'sli-item-dialOk'
+							]
+						}, {
+							tag: 'button',
+							varName: 'dialCancel',
+							nodeContent: '❌',
+							attributes: [
+								{name: 'tabindex', value: '8'}
+							],
+							classes: [
+								'button-size',
+								'sli-button-style-shadowRed',
+								'sli-item-dialCancel'
+							]
+						}]
 					}]
 				}]
 			}]
@@ -1167,7 +1218,7 @@
 		
 		ctrPicker.background.style.visibility = 'visible';
 		ctrPicker.background.style.opacity = '1';
-		ctrPicker.hexColorText.focus();
+		ctrPicker.hexInput.focus();
 		
 		setHueMarkerByAngle(0, CPicker.result.value.hue);
 		CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
@@ -1681,17 +1732,17 @@
 		
 		// prevent the focus from going rogue
 		ctrPicker.background.addEventListener('focus', (e) => {
-			ctrPicker.hexColorText.focus();
+			ctrPicker.hexInput.focus();
 		});
 		
 		// prevent the focus from going rogue
 		ctrPicker.dialFrame.addEventListener('focus', (e) => {
-			ctrPicker.hexColorText.focus();
+			ctrPicker.hexInput.focus();
 		});
 		
 		// prevent the focus from going rogue
 		ctrPicker.colorWheel.addEventListener('mouseup', (e) => {
-			ctrPicker.hexColorText.focus();
+			ctrPicker.hexInput.focus();
 		});
 		
 		// Ok dialog button
