@@ -1294,10 +1294,13 @@
 		ctrPicker.background.style.opacity = '1';
 		ctrPicker.hexInput.focus();
 		
+		ctrPicker.alphaSlider.value = CPicker.result.value.alpha;
+		updateAlphaInput();
 		setHueMarkerByAngle(0, CPicker.result.value.hue);
 		CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
 		setSatValMarkerByNumber(0, CPicker.result.value.saturation, CPicker.result.value.value, CPicker.triangle);
 		drawMarkers();
+		updateTextInputs();
 	}
 	
 	// CPicker method definition that hides the color picker
@@ -1308,9 +1311,37 @@
 		CPicker.result.value.setHSV(
 			CPicker.markers.hue[0].angle,
 			CPicker.markers.satv[0].sat,
-			CPicker.markers.satv[0].val
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
 		);
 		CPicker.dispatcher.dispatchEvent(CPicker.onChange);
+	}
+	
+	function updateTextInputs() {
+		let hsvCol = [
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
+		];
+		
+		let hexCodes = getRGBfromHSV(...hsvCol).map((n, i) => {
+			let st = Math.round(n * 255).toString(16);
+			if (st.length === 1) st = '0' + st;
+			return st;
+		});
+		
+		ctrPicker.hexInput.value = '#' + hexCodes.join('');
+		ctrPicker.hueInput.value = getPositiveCotAngle(hsvCol[0]).toFixed();
+		ctrPicker.satInput.value = (hsvCol[1] * 100).toFixed();
+		ctrPicker.valInput.value = (hsvCol[2] * 100).toFixed();
+	}
+	
+	// updates the alpha text input
+	function updateAlphaInput() {
+		ctrPicker.alphaInput.value = (
+			ctrPicker.alphaSlider.value * 100
+		).toFixed();
 	}
 	
 	// renders the color wheel onto the canvas
@@ -1819,6 +1850,12 @@
 			ctrPicker.hexInput.focus();
 		});
 		
+		// triggers when the alpha slider has been changed
+		ctrPicker.alphaSlider.addEventListener('change', updateAlphaInput);
+		
+		// triggers each time the alpha slider is changed
+		ctrPicker.alphaSlider.addEventListener('input', updateAlphaInput);
+		
 		// Ok dialog button
 		ctrPicker.dialOk.addEventListener('click', () => {
 			CPicker.result.action = DialogResult.OK;
@@ -1890,12 +1927,14 @@
 						CPicker.triangle
 					);
 					drawMarkers();
+					updateTextInputs();
 					break;
 				case 'satv':
 					setSatValMarkerByMse(CPicker.markers.active.id, mse, CPicker.triangle);
 					// this should not update CPicker.triangle ever
 					updateColorWheel(CPicker.markers.hue[0].angle);
 					drawMarkers();
+					updateTextInputs();
 					break;
 				default:
 					// throw; // ADD CUSTOM ERROR
@@ -2053,6 +2092,13 @@
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// Mathematical Helper Functions
+	
+	// returns a positive coterminal angle
+	function getPositiveCotAngle(src, max = 360) {
+		if (src >= 0 && src < max) return src;
+		const mod = (n, m) => (n * m >= 0 ? n % m : n % m + m);
+		return mod(src, max);
+	}
 	
 	// returns the distance between the points a and b
 	function distance(a, b) {
