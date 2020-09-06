@@ -840,45 +840,66 @@
 		
 		.sli-cpk-slider {
 		  -webkit-appearance: none;
-		  width: 100%;
-		  height: 10px;
+		  width: 256px;
+		  height: 8px;
 		  border-radius: 3px;
-		  background: #d3d3d3;
+		  background: #333;
 		  outline: none;
 		  opacity: 0.7;
-		  -webkit-transition: .2s;
-		  transition: opacity .2s;
-		  box-shadow: 1px 1px 5px 0 #0007 inset
+		  -webkit-transition: 0.2s;
+		  transition: opacity 0.2s;
+			border: 1px solid #fff6;
+		  box-shadow: inset 0 0 4px 0 #000a;
+			margin: auto;
 		}
 		
-		.sli-cpk-slider:hover {
-			background: #dfdfdf;
+		.sli-cpk-slider:hover,
+		.sli-cpk-slider:focus,
+		.sli-cpk-slider:focus:active {
+			background: #444;
+			border: 1px solid #fff6;
 		}
 		
 		.sli-cpk-slider::-webkit-slider-thumb {
 		  -webkit-appearance: none;
 		  appearance: none;
-		  width: 25px;
-		  height: 25px;
-		  border-radius: 50%;
-		  background: #1c9969;
+			width: 8px;
+		  height: 20px;
+		  border-radius: 5px;
+		  background: black;
 		  cursor: pointer;
+			border: 1px solid #fffc;
+			transition: 0.2s;
 		}
 		
-		.sli-cpk-slider::-webkit-slider-thumb:hover {
-		  background: #53dfa9;
+		.sli-cpk-slider::-webkit-slider-thumb:hover,
+		.sli-cpk-slider:focus::-webkit-slider-thumb, {
+		  background: #17ad6c;
+		}
+		
+		.sli-cpk-slider:focus:active::-webkit-slider-thumb {
+			border: 1px solid #fff;
+		  background: #1fe18d;
 		}
 		
 		.sli-cpk-slider::-moz-range-thumb {
-		  width: 25px;
-		  height: 25px;
-		  border-radius: 50%;
-		  background: #1c9969;
+		  width: 8px;
+		  height: 20px;
+		  border-radius: 5px;
+		  background: black;
 		  cursor: pointer;
+			border: 1px solid #fffc;
+			transition: 0.2s;
 		}
 		
-		.sli-cpk-slider::-moz-range-thumb:hover {
-		  background: #53dfa9;
+		.sli-cpk-slider::-moz-range-thumb:hover,
+		.sli-cpk-slider:focus::-moz-range-thumb {
+		  background: #17ad6c;
+		}
+		
+		.sli-cpk-slider:focus:active::-moz-range-thumb {
+			border: 1px solid #fff;
+		  background: #1fe18d;
 		}
 		
 		/***********************************************************************/
@@ -1079,11 +1100,16 @@
 						varName: 'alphaSlider',
 						attributes: [
 							{name: 'type', value: 'range'},
+							{name: 'title', value: 'transparency'},
+							{name: 'min', value: '0'},
+							{name: 'max', value: '1'},
+							{name: 'step', value: '0.01'},
+							{name: 'value', value: '1'},
 							{name: 'tabindex', value: '3'}
 						],
 						classes: [
-							'sli-picker-canvas',
-							'sli-item-picker'
+							'sli-cpk-slider',
+							'sli-item-slider'
 						]
 					}, {
 						tag : 'label',
