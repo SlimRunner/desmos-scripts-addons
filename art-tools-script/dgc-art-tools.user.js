@@ -18,7 +18,7 @@
 	var Desmos;
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// Data structures
+	// Global data structures & objects
 	
 	// creates an error with custom name
 	class CustomError extends Error {
@@ -48,6 +48,67 @@
 		}
 	}
 	
+	// Color class for the HSV color picker
+	class HSVColor {
+		constructor(hue, sat, value, alpha = 1) {
+			this.hue = hue;
+			this.saturation = sat;
+			this.value = value;
+			this.alpha = alpha;
+		}
+		
+		get HSV() {
+			return [this.hue, this.saturation, this.value, this.alpha];
+		}
+		
+		get RGB() {
+			return getRGBfromHSV(
+				this.hue, this.saturation, this.value
+			).concat(this.alpha);
+		}
+		
+		getCSSRGBA() {
+			let rgb = getRGBfromHSV(
+				this.hue,
+				this.saturation,
+				this.value
+			).map((n) => {
+				return Math.round(n * 255);
+			});
+			
+			if (this.alpha === 1) {
+				return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+			}
+			
+			return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${this.alpha})`;
+		}
+		
+		setHSV(hue, sat, value, alpha = 1) {
+			this.hue = hue;
+			this.saturation = sat;
+			this.value = value;
+			this.alpha = alpha;
+		}
+		
+		setRGB(red, green, blue, alpha = 1) {
+			[
+				this.hue,
+				this.saturation,
+				this.value,
+				this.alpha = alpha
+			] = getHSVfromRGB(red, green, blue);
+		}
+		
+		static isEqual(lhs, rhs) {
+			return (
+				lhs.hue === rhs.hue &&
+				lhs.saturation === rhs.saturation &&
+				lhs.value === rhs.value &&
+				lhs.alpha === rhs.alpha
+			);
+		}
+	}
+	
 	// dialog result values
 	const DialogResult = Object.defineProperties({}, {
 		None: constProperty(0),
@@ -66,19 +127,58 @@
 	const DialLtx = Object.assign({}, {
 		show: showLatexDialog,
 		hide: hideLatexDialog,
+		onChange: null,
+		dispatcher: null,
+		mseState: 0,
+		MQ: null,
 		
 		result: {
 			value: '',
 			initValue: '',
-			type: DialogResult.None,
+			action: DialogResult.None,
 			changed: function () {
 				return (this.value !== this.initValue);
 			}
-		},
-		mseState: 0,
-		MQ: null,
+		}
+	});
+	
+	// type of result from color picker
+	const ColorResType = Object.defineProperties({}, {
+		SINGLE_COLOR : constProperty(0),
+		MULTIPLE_COLORS : constProperty(1),
+		TOGGLE_LIVE: constProperty(2)
+	});
+	
+	// stores the state of the color picker 
+	const CPicker = Object.assign({}, {
+		show: showColorWheel,
+		hide: hideColorWheel,
 		onChange: null,
-		dispatcher: null
+		dispatcher: null,
+		pickerImage: null,
+		canvasOffset: null,
+		triangle: null,
+		
+		markers: {
+			active: null,
+			hue: [],
+			satv: []
+		},
+		
+		result: {
+			value: null, // HSVColor
+			initValue: null, // HSVColor
+			type: ColorResType.SINGLE_COLOR,
+			action: DialogResult.None,
+			changed: function () {
+				return !(
+					typeof this.value === typeof this.initValue &&
+					Array.isArray(this.value) ?
+					false: // implementation pending
+					HSVColor.isEqual(this.value, this.initValue)
+				);
+			},
+		}
 	});
 	
 	// stores the state of the context menu
@@ -95,14 +195,28 @@
 		}
 	});
 	
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// GUI Management - Main
+	// radians to degrees ratio
+	const RAD_TO_DEG = 180 / Math.PI;
 	
-	// store all controls used in the script
+	// canvas properties
+	const CANV_SIZE = 256;
+	const CANV_MID = CANV_SIZE / 2;
+	
+	// color wheel properties
+	const TRIAG_RAD = CANV_SIZE * 45 / 128; // 90:256
+	const WHEEL_RAD_OUT = CANV_MID; // 2:256
+	const WHEEL_RAD_IN = CANV_SIZE * 53 / 128; // 106:256
+	const MARK_SIZE = 6;
+	
+	// stores all controls used in the script
 	var ctrColor;
 	var ctrLatex;
-	// store all buttons of the context menu
+	var ctrPicker;
+	// stores all buttons of the context menu
 	var buttonList;
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// GUI Management - Main
 	
 	// initializes the graphic interface
 	function initGUI() {
@@ -144,6 +258,26 @@
 					text-align: center;
 					line-height: 2em;
 				}
+				
+				.sli-dat-color-prev-back {
+					display: block;
+					width: 100%;
+					height: 100%;
+					border: 1px solid #d3d3d3;
+					border-radius: 3px;
+					background-color: white;
+					background-size: 10px 10px;
+					background-position: 0 0, 5px 5px;
+					background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
+					overflow: hidden;
+				}
+				
+				.sli-dat-color-prev {
+					display: block;
+					width: 100%;
+					height: 100%;
+					background: black;
+				}
 				`
 			}]
 		});
@@ -159,16 +293,28 @@
 					'dcg-options-menu'
 				],
 				group : [{
-					tag : 'input',
+					tag : 'div',
 					varName : 'colorButton',
 					attributes: [
-						{name: 'type', value: 'color'},
 						{name: 'title', value: 'Color Picker'}
 					],
 					classes : [
 						'sli-menu-button',
 						'dcg-btn-flat-gray'
-					]
+					],
+					group : [{
+						tag : 'span',
+						classes : [
+							'sli-dat-color-prev-back'
+						],
+						group : [{
+							tag : 'span',
+							varName : 'colorButtonPreview',
+							classes : [
+								'sli-dat-color-prev'
+							]
+						}]
+					}]
 				}, {
 					tag : 'div',
 					varName : 'opacityButton',
@@ -346,14 +492,14 @@
 			ctrColor.propMenu.style.visibility = 'visible';
 			ctrColor.propMenu.style.opacity = '1';
 			
-			ctrColor.colorButton.value = getHex6(getCurrentColor());
+			updateColorPreview();
 			
 			// update buttons dynamically while menu is open
 			Calc.observeEvent('change', () => {
 				// shows button when fill option is enabled
 				prepareMenu();
 				// updates color when color changes
-				ctrColor.colorButton.value = getHex6(getCurrentColor());
+				updateColorPreview();
 			});
 			
 		} else {
@@ -378,6 +524,19 @@
 		ctrColor.propMenu.style.top = `${y}px`;
 	}
 	
+	// sets the color preview on contex menu button
+	function updateColorPreview() {
+		let [r, g, b, al = 1] = getRGBpack(
+			getCurrentColor()
+		).map((n, i) => {
+			if (i !== 3) return Math.round(n * 255);
+			else return n;
+		});
+		ctrColor.colorButtonPreview.style.background = (
+			`linear-gradient(-45deg,rgba(${r},${g},${b}) 49%,rgba(${r},${g},${b},${al}) 51%)`
+		);
+	}
+	
 	// returns color of expression with the menu active
 	function getCurrentColor() {
 		let expr = getPureExpr(ActiveItem.expression.index);
@@ -397,7 +556,7 @@
 	
 	// initializes the latex dialog interface
 	function initLatexDialog() {
-		
+		// insert css styles into existing stylesheet
 		appendTextToNode('sli-script-stylesheet',
 		`/* LATEX DIALOG */
 		
@@ -441,18 +600,27 @@
 				tag: 'div',
 				varName: 'mqDialBack',
 				id: 'latex-dialog-background',
+				attributes: [
+					{name: 'tabindex', value: '0'}
+				],
 				classes: [
 					'sli-mq-page-shade'
 				],
 				group : [{
 					tag : 'div',
 					varName : 'mqContainer',
+					attributes: [
+						{name: 'tabindex', value: '1'}
+					],
 					classes : [
 						'sli-mq-container'
 					],
 					group : [{
 						tag : 'span',
 						varName : 'mqField',
+						attributes: [
+							{name: 'tabindex', value: '2'}
+						],
 						classes : [
 							'sli-mq-field'
 						]
@@ -464,9 +632,13 @@
 		// captures the span element created by MathQuill
 		let catchMQArea = new MutationObserver( obsRec => {
 			ctrLatex.mqTextArea = ctrLatex.mqField.getElementsByTagName('textarea')[0];
-			ctrLatex.mqTextArea.setAttribute('tabindex', '-1');
+			ctrLatex.mqTextArea.setAttribute('tabindex', '3');
+			ctrLatex.mqTextArea.addEventListener('blur', () => {
+				ctrLatex.mqTextArea.focus();
+			});
 			catchMQArea.disconnect();
 		});
+		// initialize observer
 		catchMQArea.observe(ctrLatex.mqField, {
 			childList: true
 		});
@@ -509,14 +681,997 @@
 		ctrLatex.mqDialBack.style.visibility = 'hidden';
 		ctrLatex.mqDialBack.style.opacity = '0';
 		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
-		DialLtx.result.type = result;
+		DialLtx.result.action = result;
 		DialLtx.dispatcher.dispatchEvent(DialLtx.onChange);
+	}
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// GUI Management - Custom Color Picker
+	
+	// initializes the color picker interface
+	function initColorPicker() {
+		// insert css styles into existing stylesheet
+		appendTextToNode('sli-script-stylesheet',
+		`/* COLOR PICKER DIALOG */
+		
+		/***********************************************************************/
+		/* Styles of full-page shade */
+		.sli-page-shade {
+		  position: fixed;
+		  left: 0;
+		  top: 0;
+		  width: 100%;
+		  height: 100%;
+		  z-index: 99;
+		  padding: 10px;
+		  background: rgba(0,0,0,0.4);
+		  visibility: hidden;
+		  opacity: 0;
+		  transition: 0.4s cubic-bezier(.22,.61,.36,1);
+		}
+		
+		/***********************************************************************/
+		/* Styles of dialog */
+		.sli-dialog-grid {
+		  display: grid;
+		  grid-template-columns: 50% repeat(2, 1fr 2fr);
+		  grid-template-rows: repeat(11, 1fr);
+		  padding: 8px;
+		}
+		
+		.sli-button-picker-divisor {
+			width: 100%;
+			height: 100%;
+			display: grid;
+			grid-template-columns: 1fr 1fr 2fr 2fr;
+			grid-template-rows: 1fr;
+		}
+		
+		.sli-dialog-style {
+			color: whitesmoke;
+		  font-family: Arial, Helvetica, sans-serif;
+		  font-size: 12pt;
+		  width: 640px;
+		  height: 480px;
+		  background: linear-gradient(#666, #555);
+		  position: absolute;
+		  left: 50%;
+		  top: 50%;
+		  transform: translate(-50%, -50%);
+		  box-shadow: 2.5px 4.3px 20px 2px rgba(0,0,0,0.5);
+		  border: 4px solid #1c9969;
+		  border-radius: 12px;
+		}
+		
+		/***********************************************************************/
+		/* Styles of grid items */
+		.sli-item-picker {
+		  grid-column: 1;
+		  grid-row: 1 / 9;
+		}
+		
+		.sli-item-slider {
+			grid-column: 1;
+		  grid-row: 9;
+		}
+		
+		.sli-item-hexInput-label {
+		  grid-column: 2;
+		  grid-row: 2;
+		}
+		
+		.sli-item-hueInput-label {
+		  grid-column: 2;
+		  grid-row: 3;
+		}
+		
+		.sli-item-satInput-label {
+		  grid-column: 2;
+		  grid-row: 4;
+		}
+		
+		.sli-item-valInput-label {
+		  grid-column: 2;
+		  grid-row: 5;
+		}
+		
+		.sli-item-alphaInput-label {
+			grid-column: 2;
+		  grid-row: 6;
+		}
+		
+		.sli-item-hexInput {
+		  grid-column: 3;
+		  grid-row: 2;
+		}
+		
+		.sli-item-hueInput {
+		  grid-column: 3;
+		  grid-row: 3;
+		}
+		
+		.sli-item-satInput {
+		  grid-column: 3;
+		  grid-row: 4;
+		}
+		
+		.sli-item-valInput {
+		  grid-column: 3;
+		  grid-row: 5;
+		}
+		
+		.sli-item-alphaInput {
+			grid-column: 3;
+		  grid-row: 6;
+		}
+		
+		.sli-item-buttons-div {
+			grid-column: 2 / 6;
+		  grid-row: 11;
+		}
+		
+		.sli-item-dialOk {
+		  grid-column: 3;
+		  grid-row: 1;
+		}
+		
+		.sli-item-dialCancel {
+		  grid-column: 4;
+		  grid-row: 1;
+		}
+		
+		/***********************************************************************/
+		/* Styles of canvas */
+		.sli-picker-canvas {
+		  background: #222;
+		  border-radius: 50%;
+		  margin: auto;
+		  border: 4px dashed #444;
+			transition: 0.2s;
+		}
+		
+		.sli-picker-canvas:hover {
+			border: 4px dashed #666;
+			background: #333;
+		}
+		
+		/***********************************************************************/
+		/* Styles Slider */
+		
+		.sli-cpk-slider {
+		  -webkit-appearance: none;
+		  width: 256px;
+		  height: 8px;
+		  border-radius: 3px;
+		  background: #333;
+		  outline: none;
+		  opacity: 0.7;
+		  -webkit-transition: 0.2s;
+		  transition: opacity 0.2s;
+			border: 1px solid #fff6;
+		  box-shadow: inset 0 0 4px 0 #000a;
+			margin: auto;
+		}
+		
+		.sli-cpk-slider:hover,
+		.sli-cpk-slider:focus,
+		.sli-cpk-slider:focus:active {
+			background: #444;
+			border: 1px solid #fff6;
+		}
+		
+		.sli-cpk-slider::-webkit-slider-thumb {
+		  -webkit-appearance: none;
+		  appearance: none;
+			width: 8px;
+		  height: 20px;
+		  border-radius: 5px;
+		  background: black;
+		  cursor: pointer;
+			border: 1px solid #fffc;
+			transition: 0.2s;
+		}
+		
+		.sli-cpk-slider::-webkit-slider-thumb:hover,
+		.sli-cpk-slider:focus::-webkit-slider-thumb, {
+		  background: #17ad6c;
+		}
+		
+		.sli-cpk-slider:focus:active::-webkit-slider-thumb {
+			border: 1px solid #fff;
+		  background: #1fe18d;
+		}
+		
+		.sli-cpk-slider::-moz-range-thumb {
+		  width: 8px;
+		  height: 20px;
+		  border-radius: 5px;
+		  background: black;
+		  cursor: pointer;
+			border: 1px solid #fffc;
+			transition: 0.2s;
+		}
+		
+		.sli-cpk-slider::-moz-range-thumb:hover,
+		.sli-cpk-slider:focus::-moz-range-thumb {
+		  background: #17ad6c;
+		}
+		
+		.sli-cpk-slider:focus:active::-moz-range-thumb {
+			border: 1px solid #fff;
+		  background: #1fe18d;
+		}
+		
+		/***********************************************************************/
+		/* Styles of Labels and Icons */
+		.sli-page-shade label {
+			color: #DDD;
+		  margin: auto 4px auto auto;
+			text-shadow: 1px 2px 2px rgba(0,0,0,0.5);
+		}
+		
+		/***********************************************************************/
+		/* Styles textbox */
+		.sli-text-box-color-appearance {
+			font-family: inherit;
+			font-weight: bold;
+			letter-spacing: 2px;
+			font-variant-numeric: tabular-nums;
+		  text-align: right;
+			width: 5em;
+		  margin: 8px auto 8px 8px;
+		}
+		
+		.sli-text-box-hex-appearance {
+			font-family: "Lucida Console", Monaco, monospace;
+		  text-align: left;
+			width: 7em;
+		  margin: 8px auto 8px 8px;
+		}
+		
+		/*normal*/
+		.sli-textbox-style-darkShade {
+			color: gainsboro;
+			background-color: #333;
+			border: 1px solid #fff6;
+			box-shadow:
+		    inset 0 0 4px 0 #000a;
+			border-radius: 3px;
+			padding: 0.4em 0.5em 0.4em 0.5em;
+			transition: 0.2s;
+		}
+		
+		/*hover*/
+		.sli-textbox-style-darkShade:hover {
+			border: 1px solid #7fc;
+			box-shadow:
+		    0 0 0 1px #7fc2,
+				inset 0 0 2px 0 #fffa;
+		}
+		
+		/*focus*/
+		.sli-textbox-style-darkShade:focus {
+			border: 1px solid #7fc;
+			box-shadow:
+		    0 0 0 1px #7fc2,
+				inset 0 0 2px 0 #fffa;
+		}
+		
+		/*focus and hover*/
+		.sli-textbox-style-darkShade:focus:hover {
+			background-color: #3a3a3a;
+			border: 1px solid #7fc;
+			box-shadow:
+		    0 0 0 1px #7fc2,
+				inset 0 0 2px 0 #fffa;
+		}
+		
+		/***********************************************************************/
+		/* Button Styles */
+		/*resizes the button elements to a comfortable size*/
+		.button-size {
+			font-family: inherit;
+			font-size: 11pt;
+			margin-top: 8px;
+			margin-bottom: 8px;
+			margin-left: auto;
+			margin-right: auto;
+			width: 6em;/*200px;*/
+			height: 2em;/*25px;*/
+		}
+		
+		/* GREEN BUTTON */
+		.sli-button-style-shadowGreen {
+			font-family: inherit;
+			border: none;
+			background-color: #888;
+			background-size: 100% 100%;
+			border-radius: 5px;
+			border: 1px solid #333;
+			transition: 0.2s;
+		}
+		
+		/*button mouse over*/
+		.sli-button-style-shadowGreen:hover {
+		  border: 1px solid #055633;
+			background-color: #17ad6c;
+			box-shadow: 0 4px 8px -1px #0003;
+		}
+		
+		/*button focus*/
+		.sli-button-style-shadowGreen:focus {
+			border: 1px solid #055633;
+			background-color: #17ad6c;
+			box-shadow: 0 4px 8px -1px #0003;
+		}
+		
+		/*button focus and press*/
+		.sli-button-style-shadowGreen:focus:active {
+			border: 1px solid #444;
+			padding-top: 1px;
+			background-color: #0c7f4d;
+			transition: 0.1s;
+			box-shadow: inset 0 1px 3px 0px #0006;
+		}
+		
+		/*prevent firefox from moving the text on press*/
+		.sli-button-style-shadowGreen:active{
+				padding: 0px;
+		}
+		
+		/* RED BUTTON */
+		.sli-button-style-shadowRed {
+			font-family: inherit;
+			border: none;
+			background-color: #888;
+			background-size: 100% 100%;
+			border-radius: 5px;
+			border: 1px solid #333;
+			transition: 0.2s;
+		}
+		
+		/*button mouse over*/
+		.sli-button-style-shadowRed:hover {
+			border: 1px solid #6b2525;
+			background-color: #d54646;
+			box-shadow: 0 4px 8px -1px #0003;
+		
+		}
+		
+		/*button focus*/
+		.sli-button-style-shadowRed:focus {
+			border: 1px solid #6b2525;
+			background-color: #d54646;
+			box-shadow: 0 4px 8px -1px #0003;
+		}
+		
+		/*button focus and press*/
+		.sli-button-style-shadowRed:focus:active {
+			border: 1px solid #444;
+			padding-top: 1px;
+			background-color: #ba2b2b;
+			transition: 0.1s;
+			box-shadow: inset 0 1px 3px 0px #0006;
+		}
+		
+		/*prevent firefox from moving the text on press*/
+		.sli-button-style-shadowRed:active{
+				padding: 0px;
+		}
+		
+		`);
+		
+		// adds elements for the color picker into the body
+		ctrPicker = insertNodes(document.body, {
+			group: [{
+				tag: 'div',
+				varName: 'background',
+				attributes: [
+					{name: 'tabindex', value: '0'}
+				],
+				classes: [
+					'sli-page-shade'
+				],
+				group: [{
+					tag: 'div',
+					varName: 'dialFrame',
+					attributes: [
+						{name: 'tabindex', value: '1'}
+					],
+					classes: [
+						'sli-dialog-style',
+						'sli-dialog-grid'
+					],
+					group: [{
+						tag: 'canvas',
+						varName: 'colorWheel',
+						nodeContent: "This browser doesn't support HTML5",
+						attributes: [
+							{name: 'width', value: CANV_SIZE + 'px'},
+							{name: 'height', value: CANV_SIZE + 'px'},
+							{name: 'tabindex', value: '2'}
+						],
+						classes: [
+							'sli-picker-canvas',
+							'sli-item-picker'
+						]
+					}, {
+						tag: 'input',
+						varName: 'alphaSlider',
+						attributes: [
+							{name: 'type', value: 'range'},
+							{name: 'title', value: 'transparency'},
+							{name: 'min', value: '0'},
+							{name: 'max', value: '1'},
+							{name: 'step', value: '0.01'},
+							{name: 'value', value: '1'},
+							{name: 'tabindex', value: '3'}
+						],
+						classes: [
+							'sli-cpk-slider',
+							'sli-item-slider'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'Hex:',
+						attributes: [
+							{name: 'for', value : 'hexInput-hsl-picker'}
+						],
+						classes: [
+							'sli-item-hexInput-label'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'H:',
+						attributes: [
+							{name: 'for', value : 'hueInput-hsl-picker'}
+						],
+						classes: [
+							'sli-item-hueInput-label'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'S:',
+						attributes: [
+							{name: 'for', value : 'satInput-hsl-picker'}
+						],
+						classes: [
+							'sli-item-satInput-label'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'V:',
+						attributes: [
+							{name: 'for', value : 'valInput-hsl-picker'}
+						],
+						classes: [
+							'sli-item-valInput-label'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'Alpha:',
+						attributes: [
+							{name: 'for', value : 'alphaInput-hsl-picker'}
+						],
+						classes: [
+							'sli-item-alphaInput-label'
+						]
+					}, {
+						tag: 'input',
+						varName: 'hexInput',
+						id: 'hexInput-hsl-picker',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'tabindex', value: '4'}
+						],
+						classes: [
+							'sli-text-box-hex-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-hexInput'
+						]
+					}, {
+						tag: 'input',
+						varName: 'hueInput',
+						id: 'hueInput-hsl-picker',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'tabindex', value: '5'}
+						],
+						classes: [
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-hueInput'
+						]
+					}, {
+						tag: 'input',
+						varName: 'satInput',
+						id: 'satInput-hsl-picker',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'tabindex', value: '6'}
+						],
+						classes: [
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-satInput'
+						]
+					}, {
+						tag: 'input',
+						varName: 'valInput',
+						id: 'valInput-hsl-picker',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'tabindex', value: '7'}
+						],
+						classes: [
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-valInput'
+						]
+					}, {
+						tag: 'input',
+						varName: 'alphaInput',
+						id: 'alphaInput-hsl-picker',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'tabindex', value: '8'}
+						],
+						classes: [
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-alphaInput'
+						]
+					}, {
+						tag: 'div',
+						classes: [
+							'sli-button-picker-divisor',
+							'sli-item-buttons-div'
+						],
+						group: [{
+							tag: 'button',
+							varName: 'dialOk',
+							nodeContent: '✔️',
+							attributes: [
+								{name: 'tabindex', value: '9'}
+							],
+							classes: [
+								'button-size',
+								'sli-button-style-shadowGreen',
+								'sli-item-dialOk'
+							]
+						}, {
+							tag: 'button',
+							varName: 'dialCancel',
+							nodeContent: '❌',
+							attributes: [
+								{name: 'tabindex', value: '10'}
+							],
+							classes: [
+								'button-size',
+								'sli-button-style-shadowRed',
+								'sli-item-dialCancel'
+							]
+						}]
+					}]
+				}]
+			}]
+		});
+		
+		// get canvas context
+		let ctx = ctrPicker.colorWheel.getContext("2d");
+		// get canvas size
+		let ctxBBox = {
+			width: ctrPicker.colorWheel.clientWidth,
+			height: ctrPicker.colorWheel.clientHeight
+		};
+		// get border offset of canvas
+		CPicker.canvasOffset = {
+			x: ctrPicker.colorWheel.clientLeft,
+			y: ctrPicker.colorWheel.clientTop
+		};
+		// create an empty image for canvas
+		CPicker.pickerImage = ctx.createImageData(
+			ctxBBox.width, ctxBBox.height
+		);
+		// draw rainbow ring on canvas image
+		getRainbowRing(
+			CPicker.pickerImage.data,
+			Math.floor(ctxBBox.width)
+		);
+		
+		// adds custom event (to the global object?)
+		CPicker.onChange = new CustomEvent('pickerChange', {detail: CPicker.result});
+	}
+	
+	// CPicker method definition that shows the color picker
+	function showColorWheel(hsvPack, dispatcher) {
+		initMarkers();
+		CPicker.dispatcher = dispatcher;
+		CPicker.result.value = new HSVColor(...hsvPack);
+		CPicker.result.initValue = new HSVColor(...hsvPack);
+		
+		ctrPicker.background.style.visibility = 'visible';
+		ctrPicker.background.style.opacity = '1';
+		ctrPicker.hexInput.focus();
+		
+		ctrPicker.alphaSlider.value = CPicker.result.value.alpha;
+		updateAlphaInput();
+		setHueMarkerByAngle(0, CPicker.result.value.hue);
+		CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+		setSatValMarkerByNumber(0, CPicker.result.value.saturation, CPicker.result.value.value, CPicker.triangle);
+		drawMarkers();
+		updateTextInputs();
+	}
+	
+	// CPicker method definition that hides the color picker
+	function hideColorWheel() {
+		ctrPicker.background.style.visibility = 'hidden';
+		ctrPicker.background.style.opacity = '0';
+		
+		CPicker.result.value.setHSV(
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
+		);
+		CPicker.dispatcher.dispatchEvent(CPicker.onChange);
+	}
+	
+	function updateTextInputs() {
+		let hsvCol = [
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
+		];
+		
+		let hexCodes = getRGBfromHSV(...hsvCol).map((n, i) => {
+			let st = Math.round(n * 255).toString(16);
+			if (st.length === 1) st = '0' + st;
+			return st;
+		});
+		
+		ctrPicker.hexInput.value = '#' + hexCodes.join('');
+		ctrPicker.hueInput.value = getPositiveCotAngle(hsvCol[0]).toFixed();
+		ctrPicker.satInput.value = (hsvCol[1] * 100).toFixed();
+		ctrPicker.valInput.value = (hsvCol[2] * 100).toFixed();
+	}
+	
+	// updates the alpha text input
+	function updateAlphaInput() {
+		ctrPicker.alphaInput.value = (
+			ctrPicker.alphaSlider.value * 100
+		).toFixed();
+	}
+	
+	// renders the color wheel onto the canvas
+	function updateColorWheel(angle) {
+		let ctx = ctrPicker.colorWheel.getContext("2d");
+		
+		// draws image data onto the canvas
+		ctx.putImageData(CPicker.pickerImage, 0, 0);
+		
+		let shadowPat = ctx.createRadialGradient(
+			CANV_MID,			// from x
+			CANV_MID,			// from y
+			0,						// from radius
+			CANV_MID,			// to x
+			CANV_MID,			// to y
+			WHEEL_RAD_IN	// to radius
+		);
+		shadowPat.addColorStop(0, '#444');
+		shadowPat.addColorStop(0.9, '#333');
+		shadowPat.addColorStop(1, '#111');
+		ctx.fillStyle = shadowPat;
+		
+		ctx.beginPath();
+		ctx.arc(
+			CANV_MID,			// center x
+			CANV_MID,			// center y
+			WHEEL_RAD_IN,	// arc radius
+			0,						// from angle
+			Math.PI*2			// to angle
+		);
+		ctx.closePath();
+		ctx.fill();
+		
+		let triagColor = getRGBfromHSV(
+			angle, 1, 1
+		).map(
+			item => item * 255
+		);
+		
+		let triData = drawTriangle(ctx, angle / RAD_TO_DEG, triagColor);
+		
+		return triData;
+	}
+	
+	// generates data image of a chromatic circle
+	function getRainbowRing(img, wdt) {
+		let x, y;
+		let pix;
+		
+		for (let i = 0; i < img.length; i += 4) {
+			/*jshint bitwise: false */
+			x = (i/4) % wdt - CANV_MID;
+			// pipe used to convert operation to integer
+			y = ((i/4) / wdt|0) - CANV_MID; 
+			/*jshint bitwise: true */
+			
+			pix = getRGBfromHSV(
+				Math.atan2(-y, x)*RAD_TO_DEG, 1, 1
+			).map(
+				item => item * 255
+			);
+			
+			img[i] = pix[0];
+			img[i + 1] = pix[1];
+			img[i + 2] = pix[2];
+			img[i + 3] = 255;
+		} // !for
+	}
+	
+	// draws SV triangle to context and returns vertex data of triangle
+	function drawTriangle(ctx, angle, color) {
+		let triAngles = [
+			angle,
+			2.0943951023931953 + angle,
+			4.1887902047863905 + angle
+		];
+		let midAngles = [
+			1.0471975511965976 + angle,
+			3.141592653589793 + angle,
+			5.235987755982988 + angle
+		];
+		let arrowDisp = {
+			x: 0.1 * Math.cos(angle),
+			y: 0.1 * -Math.sin(angle)
+		};
+		let colSolid = `rgba(${color[0]},${color[1]},${color[2]},1)`;
+		let triangle = [0, 0, 0], midTri = [0, 0, 0];
+		
+		for (var i = 0; i < triangle.length; ++i) {
+			
+			triangle[i] = {
+				x: Math.cos(triAngles[i]),
+				y: -Math.sin(triAngles[i])
+			};
+			
+			midTri[i] = {
+				x: 0.5 * Math.cos(midAngles[i]),
+				y: 0.5 * -Math.sin(midAngles[i])
+			};
+			
+		}
+		
+		let arrow = [1, 0, 2].map((idx) => {
+			return {
+				x: 0.9 * triangle[0].x + 0.1 * triangle[idx].x + arrowDisp.x,
+				y: 0.9 * triangle[0].y + 0.1 * triangle[idx].y + arrowDisp.y
+			};
+		});
+		
+		ctx.save();
+		
+		ctx.transform(
+			TRIAG_RAD,	// x-scale
+			0,					// x-skew
+			0,					// y-skew
+			TRIAG_RAD,	// y-scale
+			CANV_MID,		// x-trans
+			CANV_MID		// y-trans
+		);
+		
+		// gradient from input color to black
+		let colorGrad = ctx.createLinearGradient(
+			triangle[0].x,	// from x
+			triangle[0].y,	// from y
+			midTri[1].x,		// to x
+			midTri[1].y			// to y
+		);
+		colorGrad.addColorStop(0, colSolid);
+		colorGrad.addColorStop(1, 'black');
+		
+		// gradient from black to white
+		let blackGrad = ctx.createLinearGradient(
+			midTri[0].x,		// from x
+			midTri[0].y,		// from y
+			triangle[2].x,	// to x
+			triangle[2].y		// to y
+		);
+		blackGrad.addColorStop(0, 'black');
+		blackGrad.addColorStop(1, 'white');	
+		
+		pathTriangle(ctx, arrow, false);
+		ctx.lineCap = 'round';
+		ctx.lineWidth = 3 / TRIAG_RAD;
+		ctx.strokeStyle = colSolid;
+		ctx.stroke();
+		
+		pathTriangle(ctx, triangle);
+		ctx.fillStyle = blackGrad;
+		ctx.fill();
+		ctx.globalCompositeOperation = 'lighter';
+		ctx.fillStyle = colorGrad;
+		ctx.fill();
+		
+		ctx.restore();
+		
+		return triangle.map(n => {
+			return {
+				x: n.x * TRIAG_RAD + CANV_MID,
+				y: n.y * TRIAG_RAD + CANV_MID
+			};
+		});
+	}
+	
+	// puts in the context the path of three given vertices
+	function pathTriangle(ctx, verts, close = true) {
+		ctx.beginPath();
+		ctx.moveTo(verts[0].x, verts[0].y);
+		ctx.lineTo(verts[1].x, verts[1].y);
+		ctx.lineTo(verts[2].x, verts[2].y);
+		if (close) ctx.closePath();
+	}
+	
+	// initialize color wheel markers
+	function initMarkers() {
+		CPicker.markers.hue = [{
+			x: 0,
+			y: 0,
+			angle: 0
+		}];
+		CPicker.markers.satv = [{
+			x: 0,
+			y: 0,
+			sat: 0,
+			val: 0
+		}];
+		CPicker.markers.active = {
+			type: 'hue', id: 0
+		};
+	}
+	
+	// draws all markers in the picker
+	function drawMarkers() {
+		let ctx = ctrPicker.colorWheel.getContext('2d');
+		
+		// alias
+		const MRK = CPicker.markers;
+		const mainHue = MRK.hue[0].angle;
+		
+		ctx.save();
+		
+		MRK.hue.forEach((item) => {
+			ctx.beginPath();
+			ctx.arc(item.x, item.y, MARK_SIZE, 0, 6.283185307179586);
+			ctx.fillStyle = getCSS_hsl(item.angle, 1, 0.5);
+			ctx.fill();
+			ctx.lineWidth = 2.1; ctx.strokeStyle = 'white';
+			ctx.stroke();
+			ctx.lineWidth = 1.9; ctx.strokeStyle = 'black';
+			ctx.stroke();
+		});
+		
+		MRK.satv.forEach((item) => {
+			ctx.beginPath();
+			ctx.arc(item.x, item.y, MARK_SIZE, 0, 6.283185307179586);
+			ctx.fillStyle = getCSS_hsl(
+				...getHSLfromHSV(mainHue, item.sat, item.val)
+			);
+			ctx.fill();
+			ctx.lineWidth = 2.1; ctx.strokeStyle = 'black';
+			ctx.stroke();
+			ctx.lineWidth = 1.9; ctx.strokeStyle = 'white';
+			ctx.stroke();
+		});
+		ctx.restore();
+	}
+	
+	// selects the appropriate marker based on location
+	function selectMarker(loc) {
+		let idOut;
+		idOut = CPicker.markers.hue.findIndex(item => {
+			return distance(loc, item) < MARK_SIZE;
+		});
+		if (idOut > -1) {
+			return {
+				type: 'hue', id: idOut
+			};
+		}
+		
+		idOut = CPicker.markers.satv.findIndex(item => {
+			return distance(loc, item) < MARK_SIZE;
+		});
+		if (idOut > -1) {
+			return {
+				type: 'satv', id: idOut
+			};
+		}
+		
+		return null;
+	}
+	
+	// sets the hue marker using a location provided (e.g. mouse)
+	function setHueMarkerByMse(index, newLoc) {
+		let angle = Math.atan2(-newLoc.y + CANV_MID, newLoc.x - CANV_MID);
+		CPicker.markers.hue[index].angle = angle * RAD_TO_DEG;
+		let radius = (WHEEL_RAD_OUT + WHEEL_RAD_IN) / 2;
+		CPicker.markers.hue[index].x = radius * Math.cos(angle) + CANV_MID;
+		CPicker.markers.hue[index].y = -radius * Math.sin(angle) + CANV_MID;
+	}
+	
+	// sets the hue marker using an angle
+	function setHueMarkerByAngle(index, angle) {
+		CPicker.markers.hue[index].angle = angle;
+		angle /= RAD_TO_DEG;
+		let radius = (WHEEL_RAD_OUT + WHEEL_RAD_IN) / 2;
+		CPicker.markers.hue[index].x = radius * Math.cos(angle) + CANV_MID;
+		CPicker.markers.hue[index].y = -radius * Math.sin(angle) + CANV_MID;
+	}
+	
+	// sets the saturation and value markers using a location provided
+	function setSatValMarkerByMse(index, newLoc, triVtx) {
+		// get confined location [maybe not]
+		// proxy prevents from overriding objects returned by function
+		let proxyLoc = getConfinedProbe(newLoc, triVtx);
+		let confLoc = {
+			x: proxyLoc.x,
+			y: proxyLoc.y
+		};
+		
+		CPicker.markers.satv[index].x = confLoc.x;
+		CPicker.markers.satv[index].y = confLoc.y;
+		confLoc.x -= CANV_MID;
+		confLoc.y -= CANV_MID;
+		
+		/*
+		Computes the distance between the B corner of the triangle and the distance
+		the bisector of B would travel to reach the mouse with its tangent attached
+		to its head (mouse-distance).
+		*/
+		CPicker.markers.satv[index].val = distance(
+			confLoc,
+			normalProjection({
+				x: confLoc.x,
+				y: confLoc.y
+			}, {
+				x: triVtx[1].x - CANV_MID,
+				y: triVtx[1].y - CANV_MID
+			})
+		) / (TRIAG_RAD * 1.5);
+		
+		/*
+		Computes ratio between the slice tangent to the head of bisector of B at
+		mouse-distance and the side length of triangle.
+		*/
+		let val = CPicker.markers.satv[index].val;
+		let satA = vecLerp(triVtx[1], triVtx[0], val);
+		let satC = vecLerp(triVtx[1], triVtx[2], val);
+		let sat = distance(proxyLoc, satC) / distance(satA, satC);
+		CPicker.markers.satv[index].sat = isFinite(sat) ? sat : 0;
+	}
+	
+	// sets the saturation and value markers using values
+	function setSatValMarkerByNumber(index, sat, val, triVtx) {
+		/*
+		calculates the distance between the B and the farthest edge to compute the
+		value then uses those two points linearly interpolate the saturation.
+		*/
+		let satA = vecLerp(triVtx[1], triVtx[0], val);
+		let satC = vecLerp(triVtx[1], triVtx[2], val);
+		let markerLoc = vecLerp(satC, satA, sat);
+		
+		CPicker.markers.satv[index].sat = sat;
+		CPicker.markers.satv[index].val = val;
+		CPicker.markers.satv[index].x = markerLoc.x;
+		CPicker.markers.satv[index].y = markerLoc.y;
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// EVENT HANDLERS
 	
-	// adds event handlers for the context menu
+	// adds event listeners for the context menu
 	function loadEvents() {
 		// hides button when menu is gone and the mouse left the button client area
 		bindListenerToNodes(buttonList, 'mouseleave', () => {
@@ -537,9 +1692,23 @@
 			showPropMenu(false);
 		});
 		
+		// event that triggers when user clicks color button
+		ctrColor.colorButton.addEventListener('click', (e) => {
+			CPicker.show(
+				getHSVpack(getCurrentColor()),
+				ctrColor.colorButton
+			);
+		});
+		
 		// event that triggers when user selects a color from color picker
-		ctrColor.colorButton.addEventListener('change', (e) => {
-			setExprColor(ActiveItem.expression, e.target.value);
+		ctrColor.colorButton.addEventListener('pickerChange', (e) => {
+			if (
+				e.detail.action === DialogResult.OK &&
+				e.detail.changed()
+			) {
+				let color = e.detail.value.getCSSRGBA();
+				setExprColor(ActiveItem.expression, color);
+			}
 		});
 		
 		// event that triggers when user clicks opacity button
@@ -557,7 +1726,7 @@
 		ctrColor.opacityButton.addEventListener('latexChange', (e) => {
 			// change opacity
 			if (
-				e.detail.type === DialogResult.OK &&
+				e.detail.action === DialogResult.OK &&
 				e.detail.changed()
 			) {
 				setExprProp(ActiveItem.expression.id, {
@@ -582,7 +1751,7 @@
 		ctrColor.widthButton.addEventListener('latexChange', (e) => {
 			// change line width
 			if (
-				e.detail.type === DialogResult.OK &&
+				e.detail.action === DialogResult.OK &&
 				e.detail.changed()
 			) {
 				setStateProp(ActiveItem.expression.index, {
@@ -594,7 +1763,7 @@
 		
 	}
 	
-	// adds event listeners for the latex dialog
+	// adds event listeners of the latex dialog
 	function loadDialogListeners() {
 		// DialLtx.onChange
 		ctrLatex.mqDialBack.addEventListener('mousedown', () => {
@@ -650,6 +1819,139 @@
 		], 'mouseup', (e) => {
 			DialLtx.mseState = MseDial.NORMAL_STATE;
 		});
+	}
+	
+	// adds events listeners of the color picker
+	function loadColorPickerListeners() {
+		// prevent keyboard shortcuts from reaching Desmos GUI
+		ctrPicker.background.addEventListener('keydown', (e) => {
+			e.stopPropagation();
+			return false;
+		});
+		
+		// prevent keyboard shortcuts from reaching Desmos GUI
+		ctrPicker.background.addEventListener('keyup', (e) => {
+			e.stopPropagation();
+			return false;
+		});
+		
+		// prevent the focus from going rogue
+		ctrPicker.background.addEventListener('focus', (e) => {
+			ctrPicker.hexInput.focus();
+		});
+		
+		// prevent the focus from going rogue
+		ctrPicker.dialFrame.addEventListener('focus', (e) => {
+			ctrPicker.hexInput.focus();
+		});
+		
+		// prevent the focus from going rogue
+		ctrPicker.colorWheel.addEventListener('mouseup', (e) => {
+			ctrPicker.hexInput.focus();
+		});
+		
+		// triggers when the alpha slider has been changed
+		ctrPicker.alphaSlider.addEventListener('change', updateAlphaInput);
+		
+		// triggers each time the alpha slider is changed
+		ctrPicker.alphaSlider.addEventListener('input', updateAlphaInput);
+		
+		// Ok dialog button
+		ctrPicker.dialOk.addEventListener('click', () => {
+			CPicker.result.action = DialogResult.OK;
+			CPicker.hide();
+		});
+		
+		// Cancel dialog button
+		ctrPicker.dialCancel.addEventListener('click', () => {
+			CPicker.result.action = DialogResult.Cancel;
+			CPicker.hide();
+		});
+		
+		// mouse button event of color picker
+		ctrPicker.colorWheel.addEventListener('mousedown', (e) => {
+			if (e.buttons === 1) {
+				let mse = getCanvasMse(ctrPicker.colorWheel, e, CPicker.canvasOffset);
+				
+				if (!setMarkerByMouse(mse)) {
+					fetchValidMarker(mse);
+					setMarkerByMouse(mse);
+				}
+			}
+		});
+		
+		// move event of color picker
+		ctrPicker.colorWheel.addEventListener('mousemove', (e) => {
+			let mse = getCanvasMse(ctrPicker.colorWheel, e, CPicker.canvasOffset);
+			
+			if (e.buttons === 0) {
+				CPicker.markers.active = selectMarker(mse);
+			} else if (e.buttons === 1) {
+				setMarkerByMouse(mse);
+			}
+		});
+		
+		// finds a valid marker on canvas given a mouse location
+		function fetchValidMarker(mse) {
+			if (
+				distance(mse, {x: CANV_MID, y: CANV_MID}) > WHEEL_RAD_IN
+			) {
+				CPicker.markers.active = {
+					type: 'hue', id: 0
+				};
+			} else if (
+				isInTriangle(mse, CPicker.triangle)
+			) {
+				CPicker.markers.active = {
+					type: 'satv', id: 0
+				};
+			} else {
+				return false;
+			}
+			
+			return true;
+		}
+		
+		// sets active marker with given mouse location
+		function setMarkerByMouse(mse) {
+			if (CPicker.markers.active === null) return false;
+			
+			switch (CPicker.markers.active.type) {
+				case 'hue':
+					setHueMarkerByMse(CPicker.markers.active.id, mse);
+					CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+					setSatValMarkerByNumber(
+						CPicker.markers.active.id,
+						CPicker.markers.satv[CPicker.markers.active.id].sat,
+						CPicker.markers.satv[CPicker.markers.active.id].val,
+						CPicker.triangle
+					);
+					drawMarkers();
+					updateTextInputs();
+					break;
+				case 'satv':
+					setSatValMarkerByMse(CPicker.markers.active.id, mse, CPicker.triangle);
+					// this should not update CPicker.triangle ever
+					updateColorWheel(CPicker.markers.hue[0].angle);
+					drawMarkers();
+					updateTextInputs();
+					break;
+				default:
+					// throw; // ADD CUSTOM ERROR
+			}
+			
+			return true;
+		}
+		
+		// gets the mouse location of an element (including border)
+		function getCanvasMse(canvas, evt, offset) {
+			var rect = canvas.getBoundingClientRect();
+			return {
+				x: evt.clientX - rect.left - offset.x,
+				y: evt.clientY - rect.top - offset.y
+			};
+		}
+		
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -789,6 +2091,121 @@
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// Mathematical Helper Functions
+	
+	// returns a positive coterminal angle
+	function getPositiveCotAngle(src, max = 360) {
+		if (src >= 0 && src < max) return src;
+		const mod = (n, m) => (n * m >= 0 ? n % m : n % m + m);
+		return mod(src, max);
+	}
+	
+	// returns the distance between the points a and b
+	function distance(a, b) {
+		return Math.hypot(b.x - a.x, b.y - a.y);
+	}
+	
+	// returns a point that is in the middle of a and b
+	function midpoint(a, b) {
+		return {
+			x: (a.x + b.x) / 2,
+			y: (a.y + b.y) / 2
+		};
+	}
+	
+	// gets the normal vector of the input
+	function getNormal(v) {
+		return {
+			x: -v.y,
+			y: v.x
+		};
+	}
+	
+	// returns the linear interpolation of a and b at t
+	function vecLerp(a, b, t) {
+		return {
+			x: (1 - t) * a.x + t * b.x,
+			y: (1 - t) * a.y + t * b.y
+		};
+	}
+	
+	// returns how far perpendicularly p is from a line that passes thru a and b
+	function getWinding(p, a, b) {
+		return (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x);
+	}
+	
+	// finds the intersection point between lines (a1, a2) and (b1, b2)
+	function findIntersection(a1, a2, b1, b2) {
+		// denominator might be zero and return NaN
+		return (
+			(b1.x - a1.x) * (b1.y - b2.y) - (b1.y - a1.y) * (b1.x - b2.x)
+		) / (
+			(a2.x - a1.x) * (b1.y - b2.y) - (a2.y - a1.y) * (b1.x - b2.x)
+		);
+	}
+	
+	// projects v1 onto the normal of v2 offset to the head of v2
+	function normalProjection(v1, v2) {
+		let sq2x = v2.x * v2.x;
+		let sq2y = v2.y * v2.y;
+		
+		return {
+			x: (sq2y * (v2.x + v1.x) + v2.x * (sq2x - v2.y * v1.y)) / (sq2y + sq2x),
+			y: (sq2x * (v2.y + v1.y) + v2.y * (sq2y - v2.x * v1.x)) / (sq2y + sq2x)
+		};
+	}
+	
+	// determines if loc is inside a triangle
+	function isInTriangle(loc, triVtx) {
+		return (
+			getWinding(loc, triVtx[0], triVtx[1]) > 0 &&
+			getWinding(loc, triVtx[1], triVtx[2]) > 0 &&
+			getWinding(loc, triVtx[2], triVtx[0]) > 0
+		);
+	}
+	
+	// returns a value confined to the boundaries of a triangle
+	function getConfinedProbe(loc, triVtx) {
+		/*jshint bitwise: false */
+		const AREA_OUT_A = 2;
+		const AREA_OUT_B = 4;
+		const AREA_OUT_C = 1;
+		const AREA_OUT_AB = AREA_OUT_A | AREA_OUT_B;
+		const AREA_OUT_BC = AREA_OUT_B | AREA_OUT_C;
+		const AREA_OUT_CA = AREA_OUT_C | AREA_OUT_A;
+		const AREA_IN = AREA_OUT_A | AREA_OUT_B | AREA_OUT_C;
+		
+		let A = triVtx[0];
+		let B = triVtx[1];
+		let C = triVtx[2];
+		let ab = getWinding(loc, A, B);
+		let bc = getWinding(loc, B, C);
+		let ca = getWinding(loc, C, A);
+		
+		let bitfi = (ab > 0 ? 1 : 0) | (bc > 0 ? 2 : 0) | (ca > 0 ? 4 : 0);
+		/*jshint bitwise: true */
+		
+		switch (true) {
+			case bitfi === AREA_IN:
+				return loc;
+			case bitfi === AREA_OUT_AB:
+				return vecLerp(loc, C, findIntersection(loc, C, A, B));
+			case bitfi === AREA_OUT_BC:
+				return vecLerp(loc, A, findIntersection(loc, A, B, C));
+			case bitfi === AREA_OUT_CA:
+				return vecLerp(loc, B, findIntersection(loc, B, C, A));
+			case bitfi === AREA_OUT_A:
+				return A;
+			case bitfi === AREA_OUT_B:
+				return B;
+			case bitfi === AREA_OUT_C:
+				return C;
+			default:
+				// throw; // ADD CUSTOM ERROR
+		}
+	}
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// General Helper Functions
 	
 	// add constant property
@@ -824,25 +2241,55 @@
 				convFunc = (r, g, b) => [r, g, b];
 				rxAlpha = /[a-z]{3}a/;
 				break;
+			case /rgba?/.test(clFrom) && /hsla?/.test(clTo):
+				convFunc = getHSLfromRGB;
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			case /rgba?/.test(clFrom) && /hs[vb]a?/.test(clTo):
+				convFunc = getHSVfromRGB;
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			case /hsla?/.test(clFrom) && /hsla?/.test(clTo):
+				convFunc = (h, s, l) => [h, s, l];
+				rxAlpha = /[a-z]{3}a/;
+				break;
 			case /hsla?/.test(clFrom) && /rgba?/.test(clTo):
 				convFunc = getRGBfromHSL;
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			case /hsla?/.test(clFrom) && /hs[vb]a?/.test(clTo):
+				convFunc = getHSVfromHSL;
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			case /hs[vb]a?/.test(clFrom) && /hs[vb]a?/.test(clTo):
+				convFunc = (h, s, v) => [h, s, v];
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			case /hs[vb]a?/.test(clFrom) && /rgba?/.test(clTo):
+				convFunc = getRGBfromHSV;
+				rxAlpha = /[a-z]{3}a/;
+				break;
+			case /hs[vb]a?/.test(clFrom) && /hsla?/.test(clTo):
+				convFunc = getHSLfromHSV;
 				rxAlpha = /[a-z]{3}a/;
 				break;
 			default:
 				throw new CustomError('Argument error', `There is no conversion between ${clFrom} and ${clTo}`);
 		}
 		
+		/*jshint bitwise: false */
 		// bitfield to decide what to do with alpha disparity
 		let aBf = (rxAlpha.test(clFrom) ? 1 : 0) | (rxAlpha.test(clTo) ? 2 : 0);
+		/*jshint bitwise: true */
 		
 		switch (aBf) {
-			case 0: // none to none
+			case 0: // none to none - does nothing
 				return (args) => convFunc(...args);
-			case 1: // alpha to none
-				return (args) => {args.pop(); return convFunc(...args);};
-			case 2: // none to alpha
+			case 1: // alpha to none - alpha value gets ignored
+				return (args) => {return convFunc(...args);};
+			case 2: // none to alpha - 1 is added as alpha value
 				return (args) => {return convFunc(...args).concat(1);};
-			case 3: // alpha to alpha
+			case 3: // alpha to alpha - alpha value gets added to output
 				return (args) => {let al = args.pop(); return convFunc(...args).concat(al);};
 			default:
 				throw new CustomError('Unknown error', `The bitfield has a value of ${aBf}. What kind of sorcery is this?`);
@@ -851,7 +2298,7 @@
 	
 	// returns an array with RGB values from an HSL color space
 	function getRGBfromHSL(hue, sat, light) {
-		const mod = (n, m) => (n * m > 0 ? n % m : n % m + m);
+		const mod = (n, m) => (n * m >= 0 ? n % m : n % m + m);
 		let ls_ratio = Math.min(light, 1 - light)*sat;
 		
 		return [0, 8, 4].map((offset, i) => {
@@ -859,6 +2306,63 @@
 		}).map((kval, i) => {
 			return light - ls_ratio*Math.max(Math.min(Math.min(kval - 3, 9 - kval), 1), -1);
 		});
+	}
+	
+	// returns an array with RGB values from an HSV color space
+	function getRGBfromHSV(hue, sat, value) {
+		const mod = (n, m) => (n * m >= 0 ? n % m : n % m + m);
+		let vs_ratio = value*sat;
+		
+		return [5, 3, 1].map((offset, i) => {
+			return mod((offset + hue/60), 6);
+		}).map((kval, i) => {
+			return value - vs_ratio*Math.max(Math.min(Math.min(kval, 4 - kval),1),0);
+		});
+	}
+	
+	// returns an array with HSV values from an RGB color space
+	function getHSVfromRGB(red, green, blue) {
+		let value = Math.max(red, green, blue);
+		let range = value - Math.min(red, green, blue);
+		
+		let sat = (value === 0 ? 0 : range / value);
+		let hue;
+		if (range === 0)					hue = 0;
+		else if (value === red) 	hue = 60 * (green - blue) / range;
+		else if (value === green)	hue = 60 * (2 + (blue - red) / range);
+		else if (value === blue)	hue = 60 * (4 + (red - green) / range);
+		
+		return [hue, sat, value];
+	}
+	
+	// returns an array with HSV values from an HSL color space
+	function getHSVfromHSL(hue, sat, light) {
+		let v = light + sat * Math.min(light, 1 - light);
+		let s = (v == 0 ? 0 : 2 * (1 - light / v));
+		return [hue, s, v];
+	}
+	
+	// returns an array with HSL values from an RGB color space
+	function getHSLfromRGB(red, green, blue) {
+		let max = Math.max(red, green, blue);
+		let range = max - Math.min(red, green, blue);
+		
+		let li = max - range / 2;
+		let sat = (li == 0 || li == 1 ? 0 : (max - li) / Math.min(li, 1 - li));
+		let hue;
+		if (range === 0)				hue = 0;
+		else if (max === red) 	hue = 60 * (green - blue) / range;
+		else if (max === green)	hue = 60 * (2 + (blue - red) / range);
+		else if (max === blue)	hue = 60 * (4 + (red - green) / range);
+		
+		return [hue, sat, li];
+	}
+	
+	// returns an array with HSL values from an HSV color space
+	function getHSLfromHSV(hue, sat, value) {
+		let li = value * (1 - sat / 2);
+		let s = (li == 0 || li == 1 ? 0 : (value - li) / Math.min(li, 1 - li));
+		return [hue, s, li];
 	}
 	
 	// returns an array containing the CSS funcion name and its parameters destructured and normalized (except for degree angles those stay as they are)
@@ -942,8 +2446,8 @@
 		}
 		
 		if (numeric) {
-			output = output.map((item, i) => {
-				return Number(`0x${output}`);
+			output = output.map((item) => {
+				return (Number(`0x${item}`)) / 255;
 			});
 		}
 		
@@ -1036,6 +2540,15 @@
 		}
 	}
 	
+	// converts a hsl pack into an hsl CSS function
+	function getCSS_hsl(hue, sat, light, alpha = 1) {
+		if (alpha === 1) {
+			return `hsl(${hue},${sat * 100}%,${light * 100}%)`;
+		} else {
+			return `hsla(${hue},${sat * 100}%,${light * 100}%, ${alpha})`;
+		}
+	}
+	
 	// returns a 6-digit hex of any given CSS color
 	function getHex6(cssColor) {
 		let output;
@@ -1045,7 +2558,7 @@
 			output = parseNamedColor(cssColor);
 			return output;
 		} catch (e) {
-			
+			// no need to log error, color might still be parsable
 		}
 		
 		// try if cssColor is a hex value
@@ -1063,14 +2576,13 @@
 			return `#${output.join('')}`;
 			
 		} catch (e) {
-			
+			// no need to log error, color might still be parsable
 		}
 		
 		// try if cssColor is a function
 		try {
 			output = parseCSSFunc(cssColor);
-			let funcName = output[0];
-			output = output.splice(1);
+			let funcName = output.splice(0, 1)[0];
 			
 			// maps current color space onto rgb and converts the normalized coefficients onto a hexadecimal string
 			output = (mapToColorSpace(funcName, 'rgb')(output)).map((num) => {
@@ -1081,19 +2593,101 @@
 			output = output.map((item) => {
 				return (item.length === 1 ? '0' : '') + item;
 			});
+			
+			output = `#${output.join('')}`;
 		} catch (e) {
 			console.error(`${e.name}:${e.message}`);
 			output = '#7F7F7F';
 		} finally {
-			return `#${output.join('')}`;
+			return output;
 		}
 		
+	}
+	
+	// returns an HSV array from any given CSS color
+	function getHSVpack(cssColor) {
+		let output;
+		
+		// try if cssColor is a named color
+		try {
+			output = parseCSSHex(parseNamedColor(cssColor), true);
+			output = mapToColorSpace('rgb', 'hsva')(output);
+			return output;
+		} catch (e) {
+			// no need to log error, color might still be parsable
+		}
+		
+		// try if cssColor is a hex value
+		try {
+			output = parseCSSHex(cssColor, true);
+			if (output.length === 4) {
+				output = mapToColorSpace('rgba', 'hsva')(output);
+			} else {
+				output = mapToColorSpace('rgb', 'hsva')(output);
+			}
+			return output;
+		} catch (e) {
+			// no need to log error, color might still be parsable
+		}
+		
+		// try if cssColor is a function
+		try {
+			output = parseCSSFunc(cssColor);
+			let funcName = output.splice(0, 1)[0];
+			
+			// maps current color space onto hsv
+			output = mapToColorSpace(funcName, 'hsva')(output);
+		} catch (e) {
+			console.error(`${e.name}:${e.message}`);
+			output = [0, 0.5, 0, 1]; // gray
+		} finally {
+			return output;
+		}
+	}
+	
+	// returns an RGB array from any given CSS color
+	function getRGBpack(cssColor) {
+		let output;
+		
+		// try if cssColor is a named color
+		try {
+			return parseCSSHex(parseNamedColor(cssColor), true);
+		} catch (e) {
+			// no need to log error, color might still be parsable
+		}
+		
+		// try if cssColor is a hex value
+		try {
+			return parseCSSHex(cssColor, true);
+		} catch (e) {
+			// no need to log error, color might still be parsable
+		}
+		
+		// try if cssColor is a function
+		try {
+			output = parseCSSFunc(cssColor);
+			let funcName = output.splice(0, 1)[0];
+			
+			// maps current color space onto rgb
+			output = mapToColorSpace(funcName, 'rgba')(output);
+		} catch (e) {
+			console.error(`${e.name}:${e.message}`);
+			output = [0.5, 0.5, 0.5, 1]; // gray
+		} finally {
+			return output;
+		}
 	}
 	
 	// prints something cool into the console :)
 	function printSplash() {
 		console.log('Custom art tools were loaded properly');
-		console.log('written by\n _____ _ _          ______                            \n/  ___| (_)         | ___ \\                           \n\\ `--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n `--. \\ | | \'_ ` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n                                                      \n                                                      ');
+		console.log(`written by
+ _____ _ _          ______                            
+/  ___| (_)         | ___ \\                           
+\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ 
+ \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|
+/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   
+\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   `);
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1127,8 +2721,10 @@
 			try {
 				initGUI();
 				initLatexDialog();
+				initColorPicker();
 				loadEvents();
 				loadDialogListeners();
+				loadColorPickerListeners();
 				printSplash();
 			} catch (ex) {
 				console.error(`${ex.name}: ${ex.message}`);
