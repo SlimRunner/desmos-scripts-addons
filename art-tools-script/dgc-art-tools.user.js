@@ -821,14 +821,6 @@
 		}
 		
 		/***********************************************************************/
-		/* Styles of Labels and Icons */
-		.sli-page-shade label {
-			color: #DDD;
-		  margin: auto 4px auto auto;
-			text-shadow: 1px 2px 2px rgba(0,0,0,0.5);
-		}
-		
-		/***********************************************************************/
 		/* Styles Slider */
 		
 		.sli-cpk-slider {
@@ -872,6 +864,14 @@
 		
 		.sli-cpk-slider::-moz-range-thumb:hover {
 		  background: #53dfa9;
+		}
+		
+		/***********************************************************************/
+		/* Styles of Labels and Icons */
+		.sli-page-shade label {
+			color: #DDD;
+		  margin: auto 4px auto auto;
+			text-shadow: 1px 2px 2px rgba(0,0,0,0.5);
 		}
 		
 		/***********************************************************************/
