@@ -643,7 +643,7 @@
 			childList: true
 		});
 		
-		// initializes tha MathQuill field
+		// initializes the MathQuill field
 		DialLtx.MQ = new MQField(ctrLatex.mqField, () => {
 			if (DialLtx.MQ) {
 				DialLtx.result.value = DialLtx.MQ.mathField.latex();
@@ -2146,6 +2146,7 @@
 	
 	// projects v1 onto the normal of v2 offset to the head of v2
 	function normalProjection(v1, v2) {
+		// equation written by u/MLGcrumpets
 		let sq2x = v2.x * v2.x;
 		let sq2y = v2.y * v2.y;
 		
