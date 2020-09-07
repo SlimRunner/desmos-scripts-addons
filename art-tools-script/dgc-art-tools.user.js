@@ -1332,7 +1332,7 @@
 		});
 		
 		ctrPicker.hexInput.value = '#' + hexCodes.join('');
-		ctrPicker.hueInput.value = getPositiveCotAngle(hsvCol[0]).toFixed();
+		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol[0]).toFixed();
 		ctrPicker.satInput.value = (hsvCol[1] * 100).toFixed();
 		ctrPicker.valInput.value = (hsvCol[2] * 100).toFixed();
 	}
@@ -2094,7 +2094,7 @@
 	// Mathematical Helper Functions
 	
 	// returns a positive coterminal angle
-	function getPositiveCotAngle(src, max = 360) {
+	function getCoterminalAngle(src, max = 360) {
 		if (src >= 0 && src < max) return src;
 		const mod = (n, m) => (n * m >= 0 ? n % m : n % m + m);
 		return mod(src, max);
