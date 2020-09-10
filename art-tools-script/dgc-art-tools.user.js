@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.3.0
+// @version  	1.3.1
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -1722,7 +1722,7 @@
 			let expr = getStateExpr(ActiveItem.expression.index);
 			let elemBound = ActiveItem.expression.elem.getBoundingClientRect();
 			DialLtx.show(
-				expr.stringFillOpacity,
+				expr.fillOpacity,
 				{x: elemBound.right, y: elemBound.top, width: 400},
 				ctrColor.opacityButton
 			);
