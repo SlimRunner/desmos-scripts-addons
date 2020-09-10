@@ -919,6 +919,7 @@
 			/***********************************************************************/
 			/* Styles textbox */
 			.sli-text-box-color-appearance {
+				outline: none;
 				font-family: inherit;
 				font-weight: bold;
 				letter-spacing: 2px;
@@ -976,6 +977,7 @@
 			/* Button Styles */
 			/*resizes the button elements to a comfortable size*/
 			.button-size {
+				outline: none;
 				font-family: inherit;
 				font-size: 11pt;
 				margin-top: 8px;
