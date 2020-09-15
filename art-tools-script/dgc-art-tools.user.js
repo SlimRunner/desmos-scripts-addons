@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.3.1
+// @version  	1.3.2
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -919,7 +919,6 @@
 			/***********************************************************************/
 			/* Styles textbox */
 			.sli-text-box-color-appearance {
-				outline: none;
 				font-family: inherit;
 				font-weight: bold;
 				letter-spacing: 2px;
@@ -938,6 +937,7 @@
 			
 			/*normal*/
 			.sli-textbox-style-darkShade {
+				outline: none;
 				color: gainsboro;
 				background-color: #333;
 				border: 1px solid #fff6;
