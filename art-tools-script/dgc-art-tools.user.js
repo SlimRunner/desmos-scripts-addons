@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.3.2
+// @version  	1.3.3
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -1916,15 +1916,153 @@
 			CPicker.hide();
 		});
 		
-		// 
+		// tidies up format of the hex color
 		ctrPicker.hexInput.addEventListener('change', (e) => {
-			// alter input to look standard when valid
-			// return to current color when input is NOT valid
+			updateHexInput();
+		});
+		
+		// tidies up format of the hex color
+		ctrPicker.hueInput.addEventListener('change', (e) => {
+			const RGX_5_DIGITS = /^\d{1,5}$/i;
+			let hueText = ctrPicker.hueInput.value.trim();
+			let h;
+			
+			if (RGX_5_DIGITS.test(hueText)) {
+				h = parseInt(hueText);
+			} else {
+				h = CPicker.marker.hue[0].angle;
+			}
+			
+			ctrPicker.hueInput.value = getCoterminalAngle(h).toFixed();
+		});
+		
+		// tidies up format of the hex color
+		bindListenerToNodes([
+			ctrPicker.satInput,
+			ctrPicker.valInput,
+			ctrPicker.alphaInput
+		], 'change', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let thisText = e.target.value.trim();
+			let thisVal;
+			
+			if (RGX_3_DIGITS.test(thisText)) {
+				thisVal = minmax(parseInt(thisText), 0, 100);
+			} else {
+				switch (true) {
+					case e.target.isSameNode(ctrPicker.satInput):
+						thisVal = CPicker.markers.satv[0].sat * 100;
+						break;
+					case e.target.isSameNode(ctrPicker.valInput):
+						thisVal = CPicker.markers.satv[0].val * 100;
+						break;
+					case e.target.isSameNode(ctrPicker.alphaInput):
+						thisVal = ctrPicker.alphaSlider.value * 100;
+						break;
+					default:
+						thisVal = 0;
+				}
+			}
+			
+			e.target.value = (thisVal).toFixed();
+		});
+		
+		// updates all color values with the hex color code
+		ctrPicker.hexInput.addEventListener('input', (e) => {
+			const RGX_HEX_STRING = /^#?(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+			let hexText = ctrPicker.hexInput.value.trim();
+			
+			if (RGX_HEX_STRING.test(hexText)) {
+				hexText = (hexText.indexOf('#') !== -1? '' : '#' ) + hexText;
+				
+				let [r, g, b, a = 1] = parseCSSHex(hexText, true);
+				let [h, s, v] = getHSVfromRGB(r, g, b);
+				
+				ctrPicker.alphaSlider.value = a;
+				setHueMarkerByAngle(0, h);
+				CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+				setSatValMarkerByNumber(0, s, v, CPicker.triangle);
+				drawMarkers();
+				
+				ctrPicker.hueInput.value = getCoterminalAngle(h, 360).toFixed();
+				ctrPicker.satInput.value = (s * 100).toFixed();
+				ctrPicker.valInput.value = (v * 100).toFixed();
+				ctrPicker.alphaInput.value = (a * 100).toFixed();
+			} else {
+				// this is not a valid color
+			}
 		});
 		
 		//
-		ctrPicker.hexInput.addEventListener('input', (e) => {
-			// validate current value and update color wheel if valid
+		ctrPicker.hueInput.addEventListener('input', (e) => {
+			const RGX_5_DIGITS = /^\d{1,5}$/i;
+			let hueText = ctrPicker.hueInput.value.trim();
+			
+			if (RGX_5_DIGITS.test(hueText)) {
+				let h = parseInt(hueText);
+				
+				setHueMarkerByAngle(0, h);
+				CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+				setSatValMarkerByNumber(
+					0,
+					CPicker.markers.satv[0].sat,
+					CPicker.markers.satv[0].val,
+					CPicker.triangle
+				);
+				drawMarkers();
+				
+				updateHexInput();
+			} else {
+				// not a valid color
+			}
+		});
+		
+		//
+		bindListenerToNodes([
+			ctrPicker.satInput,
+			ctrPicker.valInput
+		], 'input', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let satvalText = e.target.value.trim();
+			
+			if (
+				RGX_3_DIGITS.test(satvalText)
+			) {
+				let s = minmax(parseFloat(
+					ctrPicker.satInput.value.trim()
+				), 0, 100) / 100;
+				let v = minmax(parseFloat(
+					ctrPicker.valInput.value.trim()
+				), 0, 100) / 100;
+				
+				setHueMarkerByAngle(0, CPicker.markers.hue[0].angle);
+				CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+				setSatValMarkerByNumber(0, s, v, CPicker.triangle);
+				drawMarkers();
+				
+				updateHexInput();
+			} else {
+				// not a valid color
+			}
+		});
+		
+		//
+		ctrPicker.alphaInput.addEventListener('input', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let alphaText = ctrPicker.alphaInput.value.trim();
+			
+			if (
+				RGX_3_DIGITS.test(alphaText)
+			) {
+				let a = minmax(parseFloat(
+					ctrPicker.alphaInput.value.trim()
+				), 0, 100) / 100;
+				
+				ctrPicker.alphaSlider.value = a;
+				updateHexInput();
+			} else {
+				// not a valid color
+			}
 		});
 		
 		// filter alphanumeric input for hex values
@@ -1941,19 +2079,47 @@
 			}
 		});
 		
-		//
+		// prevents pasting invalid values in hex color
 		ctrPicker.hexInput.addEventListener('paste', (e) => {
+			const RGX_HEX_STRING = /^#?(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 			let inText = e.clipboardData.getData('text/plain');
 			
-			/*
-			If inText is not valid cancel copying (return false)
-			Colors without # are permitted (will be fixed on change event)
-			Otherwise let it continue but clear the text field.
-			*/
+			if (RGX_HEX_STRING.test(inText)) {
+				ctrPicker.hexInput.value = "";
+			} else {
+				e.preventDefault();
+				return false;
+			}
+		});
+		
+		// prevent pasting invalid values in hue
+		ctrPicker.hueInput.addEventListener('paste', (e) => {
+			const RGX_5_DIGITS = /^\d{1,5}$/i;
+			let inText = e.clipboardData.getData('text/plain');
 			
-			//inText.
-			// TODO: CONTINUE HERE
+			if (RGX_5_DIGITS.test(inText)) {
+				ctrPicker.hueInput.value = "";
+			} else {
+				e.preventDefault();
+				return false;
+			}
+		});
+		
+		// prevent pasting invalid values in 3-digit fields
+		bindListenerToNodes([
+			ctrPicker.satInput,
+			ctrPicker.valInput,
+			ctrPicker.alphaInput
+		], 'paste', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let inText = e.clipboardData.getData('text/plain');
 			
+			if (RGX_3_DIGITS.test(inText)) {
+				e.target.value = "";
+			} else {
+				e.preventDefault();
+				return false;
+			}
 		});
 		
 		// filter numeric input for fields for color values
@@ -1973,7 +2139,17 @@
 				e.preventDefault();
 				return false;
 			}
-		})
+		});
+		
+		bindListenerToNodes([
+			ctrPicker.hexInput,
+			ctrPicker.hueInput,
+			ctrPicker.satInput,
+			ctrPicker.valInput,
+			ctrPicker.alphaInput
+		], 'focus', (e) => {
+			e.target.select();
+		});
 		
 		// mouse button event of color picker
 		ctrPicker.colorWheel.addEventListener('mousedown', (e) => {
@@ -2205,6 +2381,11 @@
 		if (src >= 0 && src < max) return src;
 		const mod = (n, m) => (n * m >= 0 ? n % m : n % m + m);
 		return mod(src, max);
+	}
+	
+	// returns a number confined by min and max (inclusive)
+	function minmax(num, min, max) {
+		return Math.min(Math.max(num, min), max);
 	}
 	
 	// returns the distance between the points a and b
