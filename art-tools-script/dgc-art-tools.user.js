@@ -1168,7 +1168,8 @@
 						id: 'hexInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '4'}
+							{name: 'tabindex', value: '4'},
+							{name: 'maxlength', value: '9'}
 						],
 						classes: [
 							'sli-text-box-hex-appearance',
@@ -1181,7 +1182,8 @@
 						id: 'hueInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '5'}
+							{name: 'tabindex', value: '5'},
+							{name: 'maxlength', value: '5'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1194,7 +1196,8 @@
 						id: 'satInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '6'}
+							{name: 'tabindex', value: '6'},
+							{name: 'maxlength', value: '3'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1207,7 +1210,8 @@
 						id: 'valInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '7'}
+							{name: 'tabindex', value: '7'},
+							{name: 'maxlength', value: '3'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1220,7 +1224,8 @@
 						id: 'alphaInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '8'}
+							{name: 'tabindex', value: '8'},
+							{name: 'maxlength', value: '3'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
