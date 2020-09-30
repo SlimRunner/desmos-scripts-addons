@@ -83,6 +83,24 @@
 			return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${this.alpha})`;
 		}
 		
+		getHexRGBA() {
+			let hexCodes = getRGBfromHSV(
+				this.hue, this.saturation, this.value
+			).map((n) => {
+				let strOut = Math.round(n * 255).toString(16);
+				if (strOut.length === 1) strOut = '0' + strOut;
+				return strOut;
+			});
+			
+			if (this.alpha < 1) {
+				let strOut = Math.round(ctrPicker.alphaSlider.value * 255).toString(16);
+				if (strOut.length === 1) strOut = '0' + strOut;
+				hexCodes.push(strOut);
+			}
+			
+			return '#' + hexCodes.join('');
+		}
+		
 		setHSV(hue, sat, value, alpha = 1) {
 			this.hue = hue;
 			this.saturation = sat;
@@ -1328,54 +1346,49 @@
 		CPicker.dispatcher.dispatchEvent(CPicker.onChange);
 	}
 	
+	// updates the color text inputs
 	function updateTextInputs() {
-		let hsvCol = [
+		let hsvCol = new HSVColor (
 			CPicker.markers.hue[0].angle,
 			CPicker.markers.satv[0].sat,
 			CPicker.markers.satv[0].val,
 			ctrPicker.alphaSlider.value
-		];
+		);
 		
-		let hexCodes = getRGBfromHSV(...hsvCol).map((n, i) => {
-			let st = Math.round(n * 255).toString(16);
-			if (st.length === 1) st = '0' + st;
-			return st;
-		});
-		
-		if (ctrPicker.alphaSlider.value < 1) {
-			let st = Math.round(ctrPicker.alphaSlider.value * 255).toString(16);
-			if (st.length === 1) st = '0' + st;
-			hexCodes.push(st);
-		}
-		
-		ctrPicker.hexInput.value = '#' + hexCodes.join('');
-		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol[0]).toFixed();
-		ctrPicker.satInput.value = (hsvCol[1] * 100).toFixed();
-		ctrPicker.valInput.value = (hsvCol[2] * 100).toFixed();
+		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
+		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol.hue).toFixed();
+		ctrPicker.satInput.value = (hsvCol.saturation * 100).toFixed();
+		ctrPicker.valInput.value = (hsvCol.value * 100).toFixed();
 	}
 	
 	// updates the alpha text input
 	function updateAlphaInput() {
-		let hsvCol = [
+		let hsvCol = new HSVColor (
 			CPicker.markers.hue[0].angle,
 			CPicker.markers.satv[0].sat,
 			CPicker.markers.satv[0].val,
 			ctrPicker.alphaSlider.value
-		];
+		);
 		
-		let hexCodes = getRGBfromHSV(...hsvCol).map((n, i) => {
-			let st = Math.round(n * 255).toString(16);
-			if (st.length === 1) st = '0' + st;
-			return st;
-		});
+		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
+		ctrPicker.alphaInput.value = (
+			ctrPicker.alphaSlider.value * 100
+		).toFixed();
+	}
+	
+	// updates color and alpha inputs
+	function updateAllInputs() {
+		let hsvCol = new HSVColor (
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
+		);
 		
-		if (ctrPicker.alphaSlider.value < 1) {
-			let st = Math.round(ctrPicker.alphaSlider.value * 255).toString(16);
-			if (st.length === 1) st = '0' + st;
-			hexCodes.push(st);
-		}
-		
-		ctrPicker.hexInput.value = '#' + hexCodes.join('');
+		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
+		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol.hue).toFixed();
+		ctrPicker.satInput.value = (hsvCol.saturation * 100).toFixed();
+		ctrPicker.valInput.value = (hsvCol.value * 100).toFixed();
 		ctrPicker.alphaInput.value = (
 			ctrPicker.alphaSlider.value * 100
 		).toFixed();
