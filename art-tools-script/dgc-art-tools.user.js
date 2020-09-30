@@ -1860,6 +1860,10 @@
 	
 	// adds events listeners of the color picker
 	function loadColorPickerListeners() {
+		const RGX_HEX = /^[0-9a-f]$|^#$/i;
+		const RGX_NUM = /^\d$/;
+		const NAMED_KEY = /.{2,}/i;
+		
 		// prevent keyboard shortcuts from reaching Desmos GUI
 		ctrPicker.background.addEventListener('keydown', (e) => {
 			e.stopPropagation();
@@ -1904,6 +1908,64 @@
 			CPicker.result.action = DialogResult.Cancel;
 			CPicker.hide();
 		});
+		
+		// 
+		ctrPicker.hexInput.addEventListener('change', (e) => {
+			// alter input to look standard when valid
+			// return to current color when input is NOT valid
+		});
+		
+		//
+		ctrPicker.hexInput.addEventListener('input', (e) => {
+			// validate current value and update color wheel if valid
+		});
+		
+		// filter alphanumeric input for hex values
+		ctrPicker.hexInput.addEventListener('keydown', (e) => {
+			if (
+				!NAMED_KEY.test(e.key) &&
+				!e.altKey && !e.ctrlKey &&
+				!RGX_HEX.test(e.key)
+			) {
+				// cancels the input of non-valid characters
+				// but allows keyboard shortcuts and named special keys
+				e.preventDefault();
+				return false;
+			}
+		});
+		
+		//
+		ctrPicker.hexInput.addEventListener('paste', (e) => {
+			let inText = e.clipboardData.getData('text/plain');
+			
+			/*
+			If inText is not valid cancel copying (return false)
+			Colors without # are permitted (will be fixed on change event)
+			Otherwise let it continue but clear the text field.
+			*/
+			
+			//inText.
+			// TODO: CONTINUE HERE
+			
+		});
+		
+		// filter numeric input for fields for color values
+		bindListenerToNodes([
+			ctrPicker.hueInput,
+			ctrPicker.satInput,
+			ctrPicker.valInput
+		], 'keydown', (e) => {
+			if (
+				!NAMED_KEY.test(e.key) &&
+				!e.altKey && !e.ctrlKey &&
+				!RGX_NUM.test(e.key)
+			) {
+				// cancels the input of non-valid characters
+				// but allows keyboard shortcuts and named special keys
+				e.preventDefault();
+				return false;
+			}
+		})
 		
 		// mouse button event of color picker
 		ctrPicker.colorWheel.addEventListener('mousedown', (e) => {
