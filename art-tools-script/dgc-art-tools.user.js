@@ -776,7 +776,7 @@
 			
 			.sli-item-slider {
 				grid-column: 1;
-				grid-row: 9;
+				grid-row: 8 / 10;
 			}
 			
 			.sli-item-hexInput-label {
@@ -1127,7 +1127,7 @@
 							{name: 'title', value: 'transparency'},
 							{name: 'min', value: '0'},
 							{name: 'max', value: '1'},
-							{name: 'step', value: '0.01'},
+							{name: 'step', value: '0.001'},
 							{name: 'value', value: '1'},
 							{name: 'tabindex', value: '3'}
 						],
@@ -1377,7 +1377,7 @@
 	}
 	
 	// updates color and alpha inputs
-	function updateAllInputs() {
+	function updateHexInput() {
 		let hsvCol = new HSVColor (
 			CPicker.markers.hue[0].angle,
 			CPicker.markers.satv[0].sat,
@@ -1386,12 +1386,6 @@
 		);
 		
 		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
-		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol.hue).toFixed();
-		ctrPicker.satInput.value = (hsvCol.saturation * 100).toFixed();
-		ctrPicker.valInput.value = (hsvCol.value * 100).toFixed();
-		ctrPicker.alphaInput.value = (
-			ctrPicker.alphaSlider.value * 100
-		).toFixed();
 	}
 	
 	// renders the color wheel onto the canvas
@@ -1873,9 +1867,9 @@
 	
 	// adds events listeners of the color picker
 	function loadColorPickerListeners() {
-		const RGX_HEX = /^[0-9a-f]$|^#$/i;
-		const RGX_NUM = /^\d$/;
-		const NAMED_KEY = /.{2,}/i;
+		const RGX_HEX_KEY = /^[0-9a-f]$|^#$/i;
+		const RGX_NUM_KEY = /^\d$/;
+		const RGX_NAMED_KEY = /.{2,}/i;
 		
 		// prevent keyboard shortcuts from reaching Desmos GUI
 		ctrPicker.background.addEventListener('keydown', (e) => {
@@ -1936,9 +1930,9 @@
 		// filter alphanumeric input for hex values
 		ctrPicker.hexInput.addEventListener('keydown', (e) => {
 			if (
-				!NAMED_KEY.test(e.key) &&
+				!RGX_NAMED_KEY.test(e.key) &&
 				!e.altKey && !e.ctrlKey &&
-				!RGX_HEX.test(e.key)
+				!RGX_HEX_KEY.test(e.key)
 			) {
 				// cancels the input of non-valid characters
 				// but allows keyboard shortcuts and named special keys
@@ -1966,12 +1960,13 @@
 		bindListenerToNodes([
 			ctrPicker.hueInput,
 			ctrPicker.satInput,
-			ctrPicker.valInput
+			ctrPicker.valInput,
+			ctrPicker.alphaInput
 		], 'keydown', (e) => {
 			if (
-				!NAMED_KEY.test(e.key) &&
+				!RGX_NAMED_KEY.test(e.key) &&
 				!e.altKey && !e.ctrlKey &&
-				!RGX_NUM.test(e.key)
+				!RGX_NUM_KEY.test(e.key)
 			) {
 				// cancels the input of non-valid characters
 				// but allows keyboard shortcuts and named special keys
