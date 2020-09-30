@@ -1342,6 +1342,12 @@
 			return st;
 		});
 		
+		if (ctrPicker.alphaSlider.value < 1) {
+			let st = Math.round(ctrPicker.alphaSlider.value * 255).toString(16);
+			if (st.length === 1) st = '0' + st;
+			hexCodes.push(st);
+		}
+		
 		ctrPicker.hexInput.value = '#' + hexCodes.join('');
 		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol[0]).toFixed();
 		ctrPicker.satInput.value = (hsvCol[1] * 100).toFixed();
@@ -1350,6 +1356,26 @@
 	
 	// updates the alpha text input
 	function updateAlphaInput() {
+		let hsvCol = [
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
+		];
+		
+		let hexCodes = getRGBfromHSV(...hsvCol).map((n, i) => {
+			let st = Math.round(n * 255).toString(16);
+			if (st.length === 1) st = '0' + st;
+			return st;
+		});
+		
+		if (ctrPicker.alphaSlider.value < 1) {
+			let st = Math.round(ctrPicker.alphaSlider.value * 255).toString(16);
+			if (st.length === 1) st = '0' + st;
+			hexCodes.push(st);
+		}
+		
+		ctrPicker.hexInput.value = '#' + hexCodes.join('');
 		ctrPicker.alphaInput.value = (
 			ctrPicker.alphaSlider.value * 100
 		).toFixed();
