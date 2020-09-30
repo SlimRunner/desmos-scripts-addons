@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.3.2
+// @version  	1.3.3
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -81,6 +81,24 @@
 			}
 			
 			return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${this.alpha})`;
+		}
+		
+		getHexRGBA() {
+			let hexCodes = getRGBfromHSV(
+				this.hue, this.saturation, this.value
+			).map((n) => {
+				let strOut = Math.round(n * 255).toString(16);
+				if (strOut.length === 1) strOut = '0' + strOut;
+				return strOut;
+			});
+			
+			if (this.alpha < 1) {
+				let strOut = Math.round(ctrPicker.alphaSlider.value * 255).toString(16);
+				if (strOut.length === 1) strOut = '0' + strOut;
+				hexCodes.push(strOut);
+			}
+			
+			return '#' + hexCodes.join('');
 		}
 		
 		setHSV(hue, sat, value, alpha = 1) {
@@ -758,7 +776,7 @@
 			
 			.sli-item-slider {
 				grid-column: 1;
-				grid-row: 9;
+				grid-row: 8 / 10;
 			}
 			
 			.sli-item-hexInput-label {
@@ -1109,7 +1127,7 @@
 							{name: 'title', value: 'transparency'},
 							{name: 'min', value: '0'},
 							{name: 'max', value: '1'},
-							{name: 'step', value: '0.01'},
+							{name: 'step', value: '0.001'},
 							{name: 'value', value: '1'},
 							{name: 'tabindex', value: '3'}
 						],
@@ -1168,7 +1186,8 @@
 						id: 'hexInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '4'}
+							{name: 'tabindex', value: '4'},
+							{name: 'maxlength', value: '9'}
 						],
 						classes: [
 							'sli-text-box-hex-appearance',
@@ -1181,7 +1200,8 @@
 						id: 'hueInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '5'}
+							{name: 'tabindex', value: '5'},
+							{name: 'maxlength', value: '5'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1194,7 +1214,8 @@
 						id: 'satInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '6'}
+							{name: 'tabindex', value: '6'},
+							{name: 'maxlength', value: '3'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1207,7 +1228,8 @@
 						id: 'valInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '7'}
+							{name: 'tabindex', value: '7'},
+							{name: 'maxlength', value: '3'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1220,7 +1242,8 @@
 						id: 'alphaInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '8'}
+							{name: 'tabindex', value: '8'},
+							{name: 'maxlength', value: '3'}
 						],
 						classes: [
 							'sli-text-box-color-appearance',
@@ -1323,31 +1346,46 @@
 		CPicker.dispatcher.dispatchEvent(CPicker.onChange);
 	}
 	
+	// updates the color text inputs
 	function updateTextInputs() {
-		let hsvCol = [
+		let hsvCol = new HSVColor (
 			CPicker.markers.hue[0].angle,
 			CPicker.markers.satv[0].sat,
 			CPicker.markers.satv[0].val,
 			ctrPicker.alphaSlider.value
-		];
+		);
 		
-		let hexCodes = getRGBfromHSV(...hsvCol).map((n, i) => {
-			let st = Math.round(n * 255).toString(16);
-			if (st.length === 1) st = '0' + st;
-			return st;
-		});
-		
-		ctrPicker.hexInput.value = '#' + hexCodes.join('');
-		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol[0]).toFixed();
-		ctrPicker.satInput.value = (hsvCol[1] * 100).toFixed();
-		ctrPicker.valInput.value = (hsvCol[2] * 100).toFixed();
+		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
+		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol.hue).toFixed();
+		ctrPicker.satInput.value = (hsvCol.saturation * 100).toFixed();
+		ctrPicker.valInput.value = (hsvCol.value * 100).toFixed();
 	}
 	
 	// updates the alpha text input
 	function updateAlphaInput() {
+		let hsvCol = new HSVColor (
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
+		);
+		
+		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
 		ctrPicker.alphaInput.value = (
 			ctrPicker.alphaSlider.value * 100
 		).toFixed();
+	}
+	
+	// updates color and alpha inputs
+	function updateHexInput() {
+		let hsvCol = new HSVColor (
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
+		);
+		
+		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
 	}
 	
 	// renders the color wheel onto the canvas
@@ -1829,6 +1867,10 @@
 	
 	// adds events listeners of the color picker
 	function loadColorPickerListeners() {
+		const RGX_HEX_KEY = /^[0-9a-f]$|^#$/i;
+		const RGX_NUM_KEY = /^\d$/;
+		const RGX_NAMED_KEY = /.{2,}/i;
+		
 		// prevent keyboard shortcuts from reaching Desmos GUI
 		ctrPicker.background.addEventListener('keydown', (e) => {
 			e.stopPropagation();
@@ -1872,6 +1914,241 @@
 		ctrPicker.dialCancel.addEventListener('click', () => {
 			CPicker.result.action = DialogResult.Cancel;
 			CPicker.hide();
+		});
+		
+		// tidies up format of the hex color
+		ctrPicker.hexInput.addEventListener('change', (e) => {
+			updateHexInput();
+		});
+		
+		// tidies up format of the hex color
+		ctrPicker.hueInput.addEventListener('change', (e) => {
+			const RGX_5_DIGITS = /^\d{1,5}$/i;
+			let hueText = ctrPicker.hueInput.value.trim();
+			let h;
+			
+			if (RGX_5_DIGITS.test(hueText)) {
+				h = parseInt(hueText);
+			} else {
+				h = CPicker.marker.hue[0].angle;
+			}
+			
+			ctrPicker.hueInput.value = getCoterminalAngle(h).toFixed();
+		});
+		
+		// tidies up format of the hex color
+		bindListenerToNodes([
+			ctrPicker.satInput,
+			ctrPicker.valInput,
+			ctrPicker.alphaInput
+		], 'change', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let thisText = e.target.value.trim();
+			let thisVal;
+			
+			if (RGX_3_DIGITS.test(thisText)) {
+				thisVal = minmax(parseInt(thisText), 0, 100);
+			} else {
+				switch (true) {
+					case e.target.isSameNode(ctrPicker.satInput):
+						thisVal = CPicker.markers.satv[0].sat * 100;
+						break;
+					case e.target.isSameNode(ctrPicker.valInput):
+						thisVal = CPicker.markers.satv[0].val * 100;
+						break;
+					case e.target.isSameNode(ctrPicker.alphaInput):
+						thisVal = ctrPicker.alphaSlider.value * 100;
+						break;
+					default:
+						thisVal = 0;
+				}
+			}
+			
+			e.target.value = (thisVal).toFixed();
+		});
+		
+		// updates all color values with the hex color code
+		ctrPicker.hexInput.addEventListener('input', (e) => {
+			const RGX_HEX_STRING = /^#?(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+			let hexText = ctrPicker.hexInput.value.trim();
+			
+			if (RGX_HEX_STRING.test(hexText)) {
+				hexText = (hexText.indexOf('#') !== -1? '' : '#' ) + hexText;
+				
+				let [r, g, b, a = 1] = parseCSSHex(hexText, true);
+				let [h, s, v] = getHSVfromRGB(r, g, b);
+				
+				ctrPicker.alphaSlider.value = a;
+				setHueMarkerByAngle(0, h);
+				CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+				setSatValMarkerByNumber(0, s, v, CPicker.triangle);
+				drawMarkers();
+				
+				ctrPicker.hueInput.value = getCoterminalAngle(h, 360).toFixed();
+				ctrPicker.satInput.value = (s * 100).toFixed();
+				ctrPicker.valInput.value = (v * 100).toFixed();
+				ctrPicker.alphaInput.value = (a * 100).toFixed();
+			} else {
+				// this is not a valid color
+			}
+		});
+		
+		//
+		ctrPicker.hueInput.addEventListener('input', (e) => {
+			const RGX_5_DIGITS = /^\d{1,5}$/i;
+			let hueText = ctrPicker.hueInput.value.trim();
+			
+			if (RGX_5_DIGITS.test(hueText)) {
+				let h = parseInt(hueText);
+				
+				setHueMarkerByAngle(0, h);
+				CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+				setSatValMarkerByNumber(
+					0,
+					CPicker.markers.satv[0].sat,
+					CPicker.markers.satv[0].val,
+					CPicker.triangle
+				);
+				drawMarkers();
+				
+				updateHexInput();
+			} else {
+				// not a valid color
+			}
+		});
+		
+		//
+		bindListenerToNodes([
+			ctrPicker.satInput,
+			ctrPicker.valInput
+		], 'input', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let satvalText = e.target.value.trim();
+			
+			if (
+				RGX_3_DIGITS.test(satvalText)
+			) {
+				let s = minmax(parseFloat(
+					ctrPicker.satInput.value.trim()
+				), 0, 100) / 100;
+				let v = minmax(parseFloat(
+					ctrPicker.valInput.value.trim()
+				), 0, 100) / 100;
+				
+				setHueMarkerByAngle(0, CPicker.markers.hue[0].angle);
+				CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+				setSatValMarkerByNumber(0, s, v, CPicker.triangle);
+				drawMarkers();
+				
+				updateHexInput();
+			} else {
+				// not a valid color
+			}
+		});
+		
+		//
+		ctrPicker.alphaInput.addEventListener('input', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let alphaText = ctrPicker.alphaInput.value.trim();
+			
+			if (
+				RGX_3_DIGITS.test(alphaText)
+			) {
+				let a = minmax(parseFloat(
+					ctrPicker.alphaInput.value.trim()
+				), 0, 100) / 100;
+				
+				ctrPicker.alphaSlider.value = a;
+				updateHexInput();
+			} else {
+				// not a valid color
+			}
+		});
+		
+		// filter alphanumeric input for hex values
+		ctrPicker.hexInput.addEventListener('keydown', (e) => {
+			if (
+				!RGX_NAMED_KEY.test(e.key) &&
+				!e.altKey && !e.ctrlKey &&
+				!RGX_HEX_KEY.test(e.key)
+			) {
+				// cancels the input of non-valid characters
+				// but allows keyboard shortcuts and named special keys
+				e.preventDefault();
+				return false;
+			}
+		});
+		
+		// prevents pasting invalid values in hex color
+		ctrPicker.hexInput.addEventListener('paste', (e) => {
+			const RGX_HEX_STRING = /^#?(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+			let inText = e.clipboardData.getData('text/plain');
+			
+			if (RGX_HEX_STRING.test(inText)) {
+				ctrPicker.hexInput.value = "";
+			} else {
+				e.preventDefault();
+				return false;
+			}
+		});
+		
+		// prevent pasting invalid values in hue
+		ctrPicker.hueInput.addEventListener('paste', (e) => {
+			const RGX_5_DIGITS = /^\d{1,5}$/i;
+			let inText = e.clipboardData.getData('text/plain');
+			
+			if (RGX_5_DIGITS.test(inText)) {
+				ctrPicker.hueInput.value = "";
+			} else {
+				e.preventDefault();
+				return false;
+			}
+		});
+		
+		// prevent pasting invalid values in 3-digit fields
+		bindListenerToNodes([
+			ctrPicker.satInput,
+			ctrPicker.valInput,
+			ctrPicker.alphaInput
+		], 'paste', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let inText = e.clipboardData.getData('text/plain');
+			
+			if (RGX_3_DIGITS.test(inText)) {
+				e.target.value = "";
+			} else {
+				e.preventDefault();
+				return false;
+			}
+		});
+		
+		// filter numeric input for fields for color values
+		bindListenerToNodes([
+			ctrPicker.hueInput,
+			ctrPicker.satInput,
+			ctrPicker.valInput,
+			ctrPicker.alphaInput
+		], 'keydown', (e) => {
+			if (
+				!RGX_NAMED_KEY.test(e.key) &&
+				!e.altKey && !e.ctrlKey &&
+				!RGX_NUM_KEY.test(e.key)
+			) {
+				// cancels the input of non-valid characters
+				// but allows keyboard shortcuts and named special keys
+				e.preventDefault();
+				return false;
+			}
+		});
+		
+		bindListenerToNodes([
+			ctrPicker.hexInput,
+			ctrPicker.hueInput,
+			ctrPicker.satInput,
+			ctrPicker.valInput,
+			ctrPicker.alphaInput
+		], 'focus', (e) => {
+			e.target.select();
 		});
 		
 		// mouse button event of color picker
@@ -2104,6 +2381,11 @@
 		if (src >= 0 && src < max) return src;
 		const mod = (n, m) => (n * m >= 0 ? n % m : n % m + m);
 		return mod(src, max);
+	}
+	
+	// returns a number confined by min and max (inclusive)
+	function minmax(num, min, max) {
+		return Math.min(Math.max(num, min), max);
 	}
 	
 	// returns the distance between the points a and b
