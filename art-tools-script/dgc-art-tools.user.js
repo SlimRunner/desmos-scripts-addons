@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.3.3
+// @version  	1.3.4
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -612,8 +612,15 @@
 				background: rgba(0,0,0,0.4);
 				visibility: hidden;
 				opacity: 0;
-				transition: opacity 0.4s cubic-bezier(.22,.61,.36,1);
-			}`
+				transition: visibility 0s linear 0.4s, opacity 0.4s cubic-bezier(.22,.61,.36,1);
+			}
+			
+			.sli-mq-page-shade-show {
+				visibility: visible;
+				opacity: 1;
+				transition: visibility 0s, opacity 0.4s cubic-bezier(.22,.61,.36,1);
+			}
+			`
 		);
 		
 		// adds elements for the latex dialog into the body
@@ -626,7 +633,8 @@
 					{name: 'tabindex', value: '0'}
 				],
 				classes: [
-					'sli-mq-page-shade'
+					'sli-mq-page-shade',
+					'dcg-no-touchtracking'
 				],
 				group : [{
 					tag : 'div',
@@ -656,7 +664,7 @@
 			ctrLatex.mqTextArea = ctrLatex.mqField.getElementsByTagName('textarea')[0];
 			ctrLatex.mqTextArea.setAttribute('tabindex', '3');
 			ctrLatex.mqTextArea.addEventListener('blur', () => {
-				ctrLatex.mqTextArea.focus();
+				ctrLatex.mqField.focus();
 			});
 			catchMQArea.disconnect();
 		});
@@ -675,9 +683,7 @@
 		// adds custom event (to the global object?)
 		DialLtx.onChange = new CustomEvent('latexChange', {detail: DialLtx.result});
 		
-		// hide element DO NOT USE hide()
-		ctrLatex.mqDialBack.style.visibility = 'hidden';
-		ctrLatex.mqDialBack.style.opacity = '0';
+		// safe-guard for the latex field
 		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
 	}
 	
@@ -692,16 +698,14 @@
 		ctrLatex.mqContainer.style.top = `${coords.y}px`;
 		ctrLatex.mqContainer.style.width = `${coords.width}px`;
 		
-		ctrLatex.mqDialBack.style.visibility = 'visible';
-		ctrLatex.mqDialBack.style.opacity = '1';
+		ctrLatex.mqDialBack.classList.add('sli-mq-page-shade-show');
 		
 		ctrLatex.mqTextArea.focus();
 	}
 	
 	// DialLtx method definition that hides the latex dialog
 	function hideLatexDialog(result = DialogResult.None) {
-		ctrLatex.mqDialBack.style.visibility = 'hidden';
-		ctrLatex.mqDialBack.style.opacity = '0';
+		ctrLatex.mqDialBack.classList.remove('sli-mq-page-shade-show');
 		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
 		DialLtx.result.action = result;
 		DialLtx.dispatcher.dispatchEvent(DialLtx.onChange);
@@ -731,7 +735,13 @@
 				background: rgba(0,0,0,0.4);
 				visibility: hidden;
 				opacity: 0;
-				transition: 0.4s cubic-bezier(.22,.61,.36,1);
+				transition: visibility 0s linear 0.4s, opacity 0.4s cubic-bezier(.22,.61,.36,1);
+			}
+			
+			.sli-page-shade-show {
+				visibility: visible;
+				opacity: 1;
+				transition: visibility 0s, opacity 0.4s cubic-bezier(.22,.61,.36,1);
 			}
 			
 			/***********************************************************************/
@@ -847,6 +857,7 @@
 			/***********************************************************************/
 			/* Styles of canvas */
 			.sli-picker-canvas {
+				outline: none;
 				background: #222;
 				border-radius: 50%;
 				margin: auto;
@@ -854,7 +865,8 @@
 				transition: 0.2s;
 			}
 			
-			.sli-picker-canvas:hover {
+			.sli-picker-canvas:hover,
+			.sli-picker-canvas:focus {
 				border: 4px dashed #666;
 				background: #333;
 			}
@@ -1094,7 +1106,8 @@
 					{name: 'tabindex', value: '0'}
 				],
 				classes: [
-					'sli-page-shade'
+					'sli-page-shade',
+					'dcg-no-touchtracking'
 				],
 				group: [{
 					tag: 'div',
@@ -1104,7 +1117,8 @@
 					],
 					classes: [
 						'sli-dialog-style',
-						'sli-dialog-grid'
+						'sli-dialog-grid',
+						'dcg-no-touchtracking'
 					],
 					group: [{
 						tag: 'canvas',
@@ -1117,7 +1131,8 @@
 						],
 						classes: [
 							'sli-picker-canvas',
-							'sli-item-picker'
+							'sli-item-picker',
+							'dcg-no-touchtracking'
 						]
 					}, {
 						tag: 'input',
@@ -1319,10 +1334,6 @@
 		CPicker.result.value = new HSVColor(...hsvPack);
 		CPicker.result.initValue = new HSVColor(...hsvPack);
 		
-		ctrPicker.background.style.visibility = 'visible';
-		ctrPicker.background.style.opacity = '1';
-		ctrPicker.hexInput.focus();
-		
 		ctrPicker.alphaSlider.value = CPicker.result.value.alpha;
 		updateAlphaInput();
 		setHueMarkerByAngle(0, CPicker.result.value.hue);
@@ -1330,12 +1341,18 @@
 		setSatValMarkerByNumber(0, CPicker.result.value.saturation, CPicker.result.value.value, CPicker.triangle);
 		drawMarkers();
 		updateTextInputs();
+		
+		ctrPicker.background.classList.add('sli-page-shade-show');
+		
+		// focus the color wheel when loading in
+		setTimeout(()=>ctrPicker.colorWheel.focus(), 50);
+		// for some reason it cannot be:
+		// ctrPicker.colorWheel.focus();
 	}
 	
 	// CPicker method definition that hides the color picker
 	function hideColorWheel() {
-		ctrPicker.background.style.visibility = 'hidden';
-		ctrPicker.background.style.opacity = '0';
+		ctrPicker.background.classList.remove('sli-page-shade-show');
 		
 		CPicker.result.value.setHSV(
 			CPicker.markers.hue[0].angle,
@@ -1834,6 +1851,10 @@
 			e.stopPropagation();
 		});
 		
+		ctrLatex.mqContainer.addEventListener('focus', (e) => {
+			ctrLatex.mqTextArea.focus();
+		});
+		
 		// Release key on latex field
 		ctrLatex.mqField.addEventListener('keyup', (e) => {
 			switch (true) {
@@ -1886,16 +1907,7 @@
 		// prevent the focus from going rogue
 		ctrPicker.background.addEventListener('focus', (e) => {
 			ctrPicker.hexInput.focus();
-		});
-		
-		// prevent the focus from going rogue
-		ctrPicker.dialFrame.addEventListener('focus', (e) => {
-			ctrPicker.hexInput.focus();
-		});
-		
-		// prevent the focus from going rogue
-		ctrPicker.colorWheel.addEventListener('mouseup', (e) => {
-			ctrPicker.hexInput.focus();
+			// TODO: cause the dialog to close
 		});
 		
 		// triggers when the alpha slider has been changed
