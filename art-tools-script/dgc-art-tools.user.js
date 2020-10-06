@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.3.4
+// @version  	1.3.5
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -902,7 +902,7 @@
 				width: 8px;
 				height: 20px;
 				border-radius: 5px;
-				background: black;
+				background: #888;
 				cursor: pointer;
 				border: 1px solid #fffc;
 				transition: 0.2s;
@@ -922,7 +922,7 @@
 				width: 8px;
 				height: 20px;
 				border-radius: 5px;
-				background: black;
+				background: #888;
 				cursor: pointer;
 				border: 1px solid #fffc;
 				transition: 0.2s;
