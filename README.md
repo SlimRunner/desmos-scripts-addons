@@ -6,7 +6,7 @@ The scripts in this collection are the following:
 
 #### [Desmos Graphing Calculator](https://www.desmos.com/calculator)
 1. **[Art Tools](https://github.com/SlimRunner/desmos-scripts-addons/tree/master/art-tools-script)** — adds a tray of options next to the default color tray that allows you to select a custom color, change opacity, and/or change the line width of an expression.
-1. **[Table Tools](https://github.com/SlimRunner/desmos-scripts-addons/tree/master/table-tools-script)** — Allows to add points interactively using `alt` + `left mouse button`. Points are aggregated into a table of your choice that can be selected through a button that appears next to valid table expressions.
+1. **[Table Tools](https://github.com/SlimRunner/desmos-scripts-addons/tree/master/table-tools-script)** — Allows to add points interactively using `ctrl` + `left mouse button`. Points are aggregated into a table of your choice that can be selected through a button that appears next to valid table expressions.
 1. **[Right Click Patch](https://github.com/SlimRunner/desmos-scripts-addons/tree/master/right-click-patch)** — A small quality of life patch that allows you to right click the color bubble to open the color tray instead of a long-hold.
 
 *There is a readme in each script folder with more in-depth details about the script itself.*
