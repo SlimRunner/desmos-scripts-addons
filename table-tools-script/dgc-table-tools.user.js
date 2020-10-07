@@ -19,6 +19,8 @@
 	var Calc;
 	var Desmos;
 	
+	const POLY_CLOSURE = '\\frac{0}{0}';
+	
 	/***************************************************************************/
 	// VERTEX ADDER OBJECT
 	
@@ -76,7 +78,7 @@
 					if (e.ctrlKey) {
 						[x, y] = getClosingVertex(expr);
 						addVertex(expr, x, y);
-						addVertex(expr, '\\infty', '\\infty');
+						addVertex(expr, POLY_CLOSURE, POLY_CLOSURE);
 					} else {
 						[x, y] = getGraphMse(e);
 						addVertex(expr, x, y);
@@ -145,7 +147,7 @@
 			
 			
 			let getClosingVertex = (expr) => {
-				let prevLoc = expr.columns[0].values.lastIndexOf('\\infty') + 1;
+				let prevLoc = expr.columns[0].values.lastIndexOf(POLY_CLOSURE) + 1;
 				let xCol = expr.columns[0];
 				let yCol = expr.columns[1];
 				
