@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.3.5
+// @version  	1.3.6
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -1826,19 +1826,25 @@
 	
 	// adds event listeners of the latex dialog
 	function loadDialogListeners() {
-		// DialLtx.onChange
-		ctrLatex.mqDialBack.addEventListener('mousedown', () => {
-			if (DialLtx.mseState === MseDial.NORMAL_STATE) {
+		// Press click on gray area
+		ctrLatex.mqDialBack.addEventListener('mousedown', (e) => {
+			if (e.currentTarget.isSameNode(e.target)) {
 				DialLtx.mseState = MseDial.EXIT_STATE;
+			} else {
+				DialLtx.mseState = MseDial.NORMAL_STATE;
 			}
 		});
 		
 		// Release click on gray area
-		ctrLatex.mqDialBack.addEventListener('mouseup', () => {
-			if (DialLtx.mseState === MseDial.EXIT_STATE) {
+		ctrLatex.mqDialBack.addEventListener('mouseup', (e) => {
+			if (
+				e.currentTarget.isSameNode(e.target) &&
+				DialLtx.mseState === MseDial.EXIT_STATE
+			) {
 				DialLtx.hide(DialogResult.OK);
+			} else {
+				ctrLatex.mqTextArea.focus();
 			}
-			DialLtx.mseState = MseDial.NORMAL_STATE;
 		});
 		
 		// prevent keyboard shortcuts from reaching Desmos GUI
@@ -1851,6 +1857,7 @@
 			e.stopPropagation();
 		});
 		
+		// focus text area
 		ctrLatex.mqContainer.addEventListener('focus', (e) => {
 			ctrLatex.mqTextArea.focus();
 		});
@@ -1868,22 +1875,6 @@
 					
 			}
 		});
-		
-		// Press click on latex field
-		bindListenerToNodes([
-			ctrLatex.mqField,
-			ctrLatex.mqContainer
-		], 'mousedown', (e) => {
-			DialLtx.mseState = MseDial.SELECT_STATE;
-		});
-		
-		// Release key on latex field
-		bindListenerToNodes([
-			ctrLatex.mqField,
-			ctrLatex.mqContainer
-		], 'mouseup', (e) => {
-			DialLtx.mseState = MseDial.NORMAL_STATE;
-		});
 	}
 	
 	// adds events listeners of the color picker
@@ -1892,8 +1883,45 @@
 		const RGX_NUM_KEY = /^\d$/;
 		const RGX_NAMED_KEY = /.{2,}/i;
 		
+		// when true prevents the dialog from closing
+		let exitClick = false;
+		
+		// Release click on gray area
+		ctrPicker.background.addEventListener('mousedown', (e) => {
+			if (e.currentTarget.isSameNode(e.target)) {
+				exitClick = true;
+			} else {
+				exitClick = false;
+			}
+		});
+		
+		// Release click on gray area
+		ctrPicker.background.addEventListener('mouseup', (e) => {
+			if (e.currentTarget.isSameNode(e.target) && exitClick) {
+				CPicker.result.action = DialogResult.OK;
+				CPicker.hide();
+			} else {
+				// nothing to do (DO NOT FOCUS)
+			}
+		});
+		
 		// prevent keyboard shortcuts from reaching Desmos GUI
 		ctrPicker.background.addEventListener('keydown', (e) => {
+			let keyIn = e.key.toLowerCase();
+			
+			switch (true) {
+				case keyIn === 'enter':
+					CPicker.result.action = DialogResult.OK;
+					CPicker.hide();
+					break;
+				case keyIn === 'escape':
+					CPicker.result.action = DialogResult.Cancel;
+					CPicker.hide();
+					break;
+				default:
+					// Nothing to do
+			}
+			
 			e.stopPropagation();
 			return false;
 		});
@@ -1906,8 +1934,7 @@
 		
 		// prevent the focus from going rogue
 		ctrPicker.background.addEventListener('focus', (e) => {
-			ctrPicker.hexInput.focus();
-			// TODO: cause the dialog to close
+			ctrPicker.colorWheel.focus();
 		});
 		
 		// triggers when the alpha slider has been changed
@@ -2001,7 +2028,7 @@
 				ctrPicker.valInput.value = (v * 100).toFixed();
 				ctrPicker.alphaInput.value = (a * 100).toFixed();
 			} else {
-				// this is not a valid color
+				// not a valid color
 			}
 		});
 		
