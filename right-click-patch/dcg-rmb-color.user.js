@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosColorRightClick
 // @namespace	slidav.Desmos
-// @version  	1.1.1
+// @version  	1.1.2
 // @author		SlimRunner (David Flores)
 // @description	Overrides context menu for color bubble
 // @grant    	none
@@ -49,13 +49,11 @@
 				
 				// determines if container is part of an expression or image
 				let hasLongHoldButton = (lvl) => {
-					let wrapper = seekParent(e.target, lvl);
+					let wrapper = seekParent(e.target, lvl + 1);
 					if (wrapper === null) return false;
-					let ariaLabel = wrapper.getAttribute("aria-label");
-					if (ariaLabel === null) return false;
+					if (typeof wrapper.classList === 'undefined') return false;
 					return (
-						ariaLabel.search('Expression') !== -1 ||
-						ariaLabel.search('Image') !== -1
+						wrapper.classList.contains('dcg-expression-icon-container') !== -1
 					);
 				};
 				
