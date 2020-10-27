@@ -708,6 +708,7 @@
 		ctrLatex.mqDialBack.classList.remove('sli-mq-page-shade-show');
 		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
 		DialLtx.result.action = result;
+		DialLtx.result.value = DialLtx.MQ.mathField.latex();
 		DialLtx.dispatcher.dispatchEvent(DialLtx.onChange);
 	}
 	
