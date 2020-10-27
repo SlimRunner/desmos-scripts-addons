@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.3.6
+// @version  	1.3.7
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -477,7 +477,7 @@
 	
 	// returns true if the expression fill opacity can be changed
 	function isFillable(stExpr) {
-		return stExpr.type === 'expression' && (stExpr.fill === true ||
+		return stExpr.type === 'expression' && (stExpr.fill ||
 			stExpr.latex.indexOf('\\operatorname{polygon}') !== -1);
 	}
 	
