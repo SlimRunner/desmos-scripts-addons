@@ -6,8 +6,8 @@
 // @description	Enables simulation and advanced styling automatically
 // @grant    	none
 // @match			https://*.desmos.com/calculator*
-// @downloadURL	
-// @updateURL	
+// @downloadURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/alpha-feature-enabler/dgc-alpha-enabler.user.js
+// @updateURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/alpha-feature-enabler/dgc-alpha-enabler.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
@@ -44,8 +44,7 @@
 				// This methods were discovered by u/ElFisho
 				Calc.updateSettings({
 					clickableObjects: true,
-					advancedStyling: true,
-					administerSecretFolders: true
+					advancedStyling: true
 				});
 				console.log('Alpha features were enabled');
 			} catch (ex) {
