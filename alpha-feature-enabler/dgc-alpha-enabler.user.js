@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosAlphaEnabler
 // @namespace	slidav.Desmos
-// @version  	1.0.0
+// @version  	1.0.1
 // @author		SlimRunner (David Flores)
 // @description	Enables simulation and advanced styling automatically
 // @grant    	none
