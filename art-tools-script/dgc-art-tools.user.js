@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.3.7
+// @version  	1.4.0
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -35,16 +35,6 @@
 			}
 				
 			this.name = name;
-		}
-	}
-	
-	// MathQuill wrapper
-	class MQField {
-		constructor(node, callback) {
-			this.target = node;
-			this.mathField = Desmos.MathQuill.MathField(node, {
-				handlers: { edit: callback }
-			});
 		}
 	}
 	
@@ -134,32 +124,6 @@
 		Cancel : constProperty(2)
 	});
 	
-	// mouse state values of the latex dialog
-	const MseDial = Object.defineProperties({}, {
-		NORMAL_STATE : constProperty(0),
-		SELECT_STATE : constProperty(1),
-		EXIT_STATE : constProperty(2)
-	});
-	
-	// stores the state of the latex dialog
-	const DialLtx = Object.assign({}, {
-		show: showLatexDialog,
-		hide: hideLatexDialog,
-		onChange: null,
-		dispatcher: null,
-		mseState: 0,
-		MQ: null,
-		
-		result: {
-			value: '',
-			initValue: '',
-			action: DialogResult.None,
-			changed: function () {
-				return (this.value !== this.initValue);
-			}
-		}
-	});
-	
 	// type of result from color picker
 	const ColorResType = Object.defineProperties({}, {
 		SINGLE_COLOR : constProperty(0),
@@ -228,7 +192,6 @@
 	
 	// stores all controls used in the script
 	var ctrColor;
-	var ctrLatex;
 	var ctrPicker;
 	// stores all buttons of the context menu
 	var buttonList;
@@ -335,49 +298,13 @@
 							]
 						}]
 					}]
-				}, {
-					tag : 'div',
-					varName : 'opacityButton',
-					attributes: [
-						{name: 'title', value: 'Opacity'}
-					],
-					classes : [
-						'sli-menu-button',
-						'dcg-btn-flat-gray',
-						'sli-dcg-icon-align'
-					],
-					group : [{
-						tag : 'i',
-						classes : [
-							'dcg-icon-shaded-inequality-shade2'
-						]
-					}]
-				}, {
-					tag : 'div',
-					varName : 'widthButton',
-					attributes: [
-						{name: 'title', value: 'Line Width'}
-					],
-					classes : [
-						'sli-menu-button',
-						'dcg-btn-flat-gray',
-						'sli-dcg-icon-align'
-					],
-					group : [{
-						tag : 'i',
-						classes : [
-							'dcg-icon-pencil'
-						]
-					}]
 				}]
 			}]
 		});
 		
 		// groups all buttons from context menu in a list
 		buttonList = [
-			ctrColor.colorButton,
-			ctrColor.opacityButton,
-			ctrColor.widthButton
+			ctrColor.colorButton
 		];
 		
 		// executes a function when the color menu is triggered
@@ -485,16 +412,10 @@
 	function prepareMenu() {
 		let stExpr = getStateExpr(ActiveItem.expression.index);
 		
-		if (isFillable(stExpr)) {
-			ctrColor.opacityButton.style.display = 'block';
+		if (stExpr.hasOwnProperty('colorLatex')) {
+			ctrColor.colorButton.style.display = 'none';
 		} else {
-			ctrColor.opacityButton.style.display = 'none';
-		}
-		
-		if (stExpr.type === 'table') {
-			ctrColor.widthButton.style.display = 'none';
-		} else {
-			ctrColor.widthButton.style.display = 'block';
+			ctrColor.colorButton.style.display = 'block';
 		}
 		
 		// get number of displayed childs
@@ -569,147 +490,6 @@
 			
 		}
 		
-	}
-	
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	// GUI Management - Dialog
-	
-	// initializes the latex dialog interface
-	function initLatexDialog() {
-		// insert css styles into existing stylesheet
-		appendTextToNode(
-			'sli-script-stylesheet', 
-			`
-			/* LATEX DIALOG */
-			
-			.sli-mq-container {
-				position: fixed;
-				left: 0;
-				top: 0;
-				/* z-index:99; */
-				/* visibility: hidden; */
-				/* opacity: 0; */
-				/* transition: opacity 0.1s ease-out; */
-				
-				font-size: 13pt;
-			}
-			
-			.sli-mq-field {
-				display: none;
-				background: white;
-				width: 100%;
-				padding: 8px;
-			}
-			
-			.sli-mq-page-shade {
-				position: fixed;
-				left: 0;
-				top: 0;
-				width: 100%;
-				height: 100%;
-				z-index: 99;
-				padding: 10px;
-				background: rgba(0,0,0,0.4);
-				visibility: hidden;
-				opacity: 0;
-				transition: visibility 0s linear 0.4s, opacity 0.4s cubic-bezier(.22,.61,.36,1);
-			}
-			
-			.sli-mq-page-shade-show {
-				visibility: visible;
-				opacity: 1;
-				transition: visibility 0s, opacity 0.4s cubic-bezier(.22,.61,.36,1);
-			}
-			`
-		);
-		
-		// adds elements for the latex dialog into the body
-		ctrLatex = insertNodes(document.body, {
-			group: [{
-				tag: 'div',
-				varName: 'mqDialBack',
-				id: 'latex-dialog-background',
-				attributes: [
-					{name: 'tabindex', value: '0'}
-				],
-				classes: [
-					'sli-mq-page-shade',
-					'dcg-no-touchtracking'
-				],
-				group : [{
-					tag : 'div',
-					varName : 'mqContainer',
-					attributes: [
-						{name: 'tabindex', value: '1'}
-					],
-					classes : [
-						'sli-mq-container'
-					],
-					group : [{
-						tag : 'span',
-						varName : 'mqField',
-						attributes: [
-							{name: 'tabindex', value: '2'}
-						],
-						classes : [
-							'sli-mq-field'
-						]
-					}]
-				}]
-			}]
-		});
-		
-		// captures the span element created by MathQuill
-		let catchMQArea = new MutationObserver( obsRec => {
-			ctrLatex.mqTextArea = ctrLatex.mqField.getElementsByTagName('textarea')[0];
-			ctrLatex.mqTextArea.setAttribute('tabindex', '3');
-			ctrLatex.mqTextArea.addEventListener('blur', () => {
-				ctrLatex.mqField.focus();
-			});
-			catchMQArea.disconnect();
-		});
-		// initialize observer
-		catchMQArea.observe(ctrLatex.mqField, {
-			childList: true
-		});
-		
-		// initializes the MathQuill field
-		DialLtx.MQ = new MQField(ctrLatex.mqField, () => {
-			if (DialLtx.MQ) {
-				DialLtx.result.value = DialLtx.MQ.mathField.latex();
-			}
-		});
-		
-		// adds custom event (to the global object?)
-		DialLtx.onChange = new CustomEvent('latexChange', {detail: DialLtx.result});
-		
-		// safe-guard for the latex field
-		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
-	}
-	
-	// DialLtx method definition that shows the latex dialog
-	function showLatexDialog(value, coords, dispatcher) {
-		DialLtx.dispatcher = dispatcher;
-		DialLtx.result.initValue = value || '';
-		DialLtx.MQ.mathField.latex(value || '');
-		
-		ctrLatex.mqDialBack.appendChild(ctrLatex.mqContainer);
-		ctrLatex.mqContainer.style.left = `${coords.x}px`;
-		ctrLatex.mqContainer.style.top = `${coords.y}px`;
-		ctrLatex.mqContainer.style.width = `${coords.width}px`;
-		
-		ctrLatex.mqDialBack.classList.add('sli-mq-page-shade-show');
-		
-		ctrLatex.mqTextArea.focus();
-	}
-	
-	// DialLtx method definition that hides the latex dialog
-	function hideLatexDialog(result = DialogResult.None) {
-		ctrLatex.mqDialBack.classList.remove('sli-mq-page-shade-show');
-		ctrLatex.mqDialBack.removeChild(ctrLatex.mqContainer);
-		DialLtx.result.action = result;
-		DialLtx.result.value = DialLtx.MQ.mathField.latex();
-		DialLtx.dispatcher.dispatchEvent(DialLtx.onChange);
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1773,109 +1553,6 @@
 			}
 		});
 		
-		// event that triggers when user clicks opacity button
-		ctrColor.opacityButton.addEventListener('click', (e) => {
-			let expr = getStateExpr(ActiveItem.expression.index);
-			let elemBound = ActiveItem.expression.elem.getBoundingClientRect();
-			DialLtx.show(
-				expr.fillOpacity,
-				{x: elemBound.right, y: elemBound.top, width: 400},
-				ctrColor.opacityButton
-			);
-		});
-		
-		// event that triggers when the opacity dialog is closed
-		ctrColor.opacityButton.addEventListener('latexChange', (e) => {
-			// change opacity
-			if (
-				e.detail.action === DialogResult.OK &&
-				e.detail.changed()
-			) {
-				setExprProp(ActiveItem.expression.id, {
-					key: 'fillOpacity',
-					value: e.detail.value
-				});
-			}
-		});
-		
-		// event that triggers when user clicks line width button
-		ctrColor.widthButton.addEventListener('click', (e) => {
-			let elemBound = ActiveItem.expression.elem.getBoundingClientRect();
-			let expr = getStateExpr(ActiveItem.expression.index);
-			DialLtx.show(
-				expr.lineWidth,
-				{x: elemBound.right, y: elemBound.top, width: 400},
-				ctrColor.widthButton
-			);
-		});
-		
-		// event that triggers when the line width dialog is closed
-		ctrColor.widthButton.addEventListener('latexChange', (e) => {
-			// change line width
-			if (
-				e.detail.action === DialogResult.OK &&
-				e.detail.changed()
-			) {
-				setStateProp(ActiveItem.expression.index, {
-					key: 'lineWidth',
-					value: e.detail.value
-				});
-			}
-		});
-		
-	}
-	
-	// adds event listeners of the latex dialog
-	function loadDialogListeners() {
-		// Press click on gray area
-		ctrLatex.mqDialBack.addEventListener('mousedown', (e) => {
-			if (e.currentTarget.isSameNode(e.target)) {
-				DialLtx.mseState = MseDial.EXIT_STATE;
-			} else {
-				DialLtx.mseState = MseDial.NORMAL_STATE;
-			}
-		});
-		
-		// Release click on gray area
-		ctrLatex.mqDialBack.addEventListener('mouseup', (e) => {
-			if (
-				e.currentTarget.isSameNode(e.target) &&
-				DialLtx.mseState === MseDial.EXIT_STATE
-			) {
-				DialLtx.hide(DialogResult.OK);
-			} else {
-				ctrLatex.mqTextArea.focus();
-			}
-		});
-		
-		// prevent keyboard shortcuts from reaching Desmos GUI
-		ctrLatex.mqDialBack.addEventListener('keydown', (e) => {
-			e.stopPropagation();
-		});
-		
-		// prevent keyboard shortcuts from reaching Desmos GUI
-		ctrLatex.mqDialBack.addEventListener('keyup', (e) => {
-			e.stopPropagation();
-		});
-		
-		// focus text area
-		ctrLatex.mqContainer.addEventListener('focus', (e) => {
-			ctrLatex.mqTextArea.focus();
-		});
-		
-		// Release key on latex field
-		ctrLatex.mqField.addEventListener('keyup', (e) => {
-			switch (true) {
-				case e.key === 'Escape':
-					DialLtx.hide(DialogResult.Cancel);
-					break;
-				case e.key === 'Enter':
-					DialLtx.hide(DialogResult.OK);
-					break;
-				default:
-					
-			}
-		});
 	}
 	
 	// adds events listeners of the color picker
@@ -3049,10 +2726,8 @@
 			
 			try {
 				initGUI();
-				initLatexDialog();
 				initColorPicker();
 				loadEvents();
-				loadDialogListeners();
 				loadColorPickerListeners();
 				printSplash();
 			} catch (ex) {
