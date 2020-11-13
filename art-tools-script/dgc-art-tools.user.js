@@ -2551,7 +2551,7 @@
 		if (alpha === 1) {
 			return `hsl(${hue},${sat * 100}%,${light * 100}%)`;
 		} else {
-			return `hsla(${hue},${sat * 100}%,${light * 100}%, ${alpha})`;
+			return `hsla(${hue},${sat * 100}%,${light * 100}%,${alpha})`;
 		}
 	}
 	
