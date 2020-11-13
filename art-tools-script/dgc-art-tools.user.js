@@ -412,6 +412,12 @@
 	function prepareMenu() {
 		let stExpr = getStateExpr(ActiveItem.expression.index);
 		
+		if (stExpr.hasOwnProperty('colorLatex')) {
+			ctrColor.colorButton.style.display = 'none';
+		} else {
+			ctrColor.colorButton.style.display = 'block';
+		}
+		
 		// get number of displayed childs
 		let elemSize = Math.min(3, Array.from (
 			ctrColor.propMenu.childNodes
