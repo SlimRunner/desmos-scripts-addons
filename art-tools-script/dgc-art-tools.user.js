@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.4.0
+// @version  	1.4.1
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -480,7 +480,7 @@
 	
 	// returns color of expression with the menu active
 	function getCurrentColor() {
-		let expr = getPureExpr(ActiveItem.expression.index);
+		let expr = getStateExpr(ActiveItem.expression.index);
 		
 		if (expr.type === 'expression') {
 			return expr.color;
@@ -2033,7 +2033,7 @@
 	
 	// returns the corresponding index for a given id of an expression
 	function getExprIndex(id) {
-		let exprs = Calc.getExpressions();
+		let exprs = Calc.getState().expressions.list;
 		return exprs.findIndex((elem) => {
 			return elem.id === id;
 		});
