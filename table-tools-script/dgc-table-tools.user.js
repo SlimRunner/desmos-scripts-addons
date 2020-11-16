@@ -11,6 +11,9 @@
 // ==/UserScript==
 
 /*jshint esversion: 6 */
+// TODO: button does not disappear some times
+// https://www.desmos.com/calculator/jifrwenoww	secret expression
+// https://www.desmos.com/calculator/nhyta2fb68	Bezier Night
 
 (function() {
 	'use strict';
@@ -20,6 +23,9 @@
 	var Desmos;
 	
 	const POLY_CLOSURE = '\\frac{0}{0}';
+	const EXPR_PANEL_CLASS = 'dcg-template-expressioneach';
+	const EXPR_ITEM_CLASS = 'dcg-expressionitem';
+	const EXPR_TABLE_CLASS = 'dcg-expressiontable';
 	
 	/***************************************************************************/
 	// VERTEX ADDER OBJECT
@@ -409,28 +415,35 @@
 			if (!this.onHold) {
 				this.onHold = true;
 				setTimeout(() => {
-					let expid = seekAttribute(panelElem, '.dcg-hovered', 'expr-id');
-					if (expid.length >= 1) {
-						// check if expression with expid ID is a valid table
-						hoverExprIdx = getExprIndex(expid[0]);
-						let exprs = Calc.getExpressions()[getExprIndex(expid[0])];
+					let exprNode = seekParentByClass(
+						e.target,
+						EXPR_ITEM_CLASS,
+						EXPR_PANEL_CLASS
+					);
+					
+					if (
+						exprNode != null &&
+						exprNode.classList &&
+						isExprNodeTable(exprNode)
+					) {
+						let expid = exprNode.getAttribute('expr-id');
+						hoverExprIdx = getExprIndex(expid);
+						let exprs = Calc.getExpressions()[hoverExprIdx];
+						
 						if (
 							VtxAdder.validateExpression(exprs) !==
 							VtxAdder.TableState.INVALID
 						) {
-							let elemExpr = getElementsByAttribute(panelElem, '.dcg-hovered', 'expr-id')[0];
-							
-							showTableButton(true, elemExpr);
+							showTableButton(true, exprNode);
 						} else {
 							showTableButton(false, null);
 						}
-						
 					} else {
 						showTableButton(false, null);
 					}
 					
 					this.onHold = false;
-				}, 200);
+				}, 50);
 			}
 		}); // !panelElem_mousemove
 		
@@ -575,8 +588,8 @@
 		// finds element that contains the expressions in Desmos
 		function findExpressionPanel() {
 			return document.getElementsByClassName(
-				"dcg-expressionitem"
-			)[0].parentNode;
+				EXPR_PANEL_CLASS
+			)[0];
 		}
 		// !findExpressionPanel ()
 		
@@ -586,7 +599,7 @@
 	
 	/***************************************************************************/
 	// HELPER FUNCTIONS
-
+	
 	// Gets the expression index of a given ID within the Calc object
 	function getExprIndex (id) {
 		let exprs = Calc.getState().expressions.list;
@@ -595,6 +608,14 @@
 		});
 	}
 	// !getExprIndex ()
+	
+	
+	
+	//
+	function isExprNodeTable(node) {
+		return node.classList.contains(EXPR_TABLE_CLASS);
+	}
+	
 	
 	
 	// creates a tree of elements and appends them into parentNode. Returns an object containing all named nodes
@@ -636,6 +657,26 @@
 		return recurseTree(parentNode, nodeTree, []);
 	}
 	// !insertNodes ()
+	
+	
+	
+	//
+	function seekParentByClass(child, query, shcquery = null) {
+		if (child == null) return null;
+		let node = child.parentNode;
+		if (node == null) return null;
+		while (!node.isSameNode(document.body)) {
+			if (node.classList.contains(query)) {
+				return node;
+			} else if (shcquery && node.classList.contains(shcquery)) {
+				// short-circuit search with class
+				return null;
+			} else {
+				node = node.parentNode;
+			}
+		}
+		return document.body;
+	}
 	
 	
 	
