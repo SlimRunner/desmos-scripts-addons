@@ -24,6 +24,24 @@
 	/***************************************************************************/
 	// VERTEX ADDER OBJECT
 	
+	// creates an error with custom name
+	class CustomError extends Error {
+		/* Source
+		* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+		*/
+		constructor(name, ...params) {
+			// Pass remaining arguments (including vendor specific ones) to parent constructor
+			super(...params);
+
+			// Maintains proper stack trace for where our error was thrown (only available on V8)
+			if (Error.captureStackTrace) {
+				Error.captureStackTrace(this, CustomError);
+			}
+				
+			this.name = name;
+		}
+	}
+	
 	let VtxAdder = {};
 	
 	VtxAdder.Scaling = true;
@@ -254,14 +272,15 @@
 	function mousePen() {
 		const GUI_GAP = 4;
 		
-		const guiCSS = {
-			controls : [{
-				name : 'style',
-				id : 'penStyleSheet',
+		// adds a stylesheet to the head element
+		insertNodes(document.head, {
+			group : [{
+				tag : 'style',
+				id : 'sli-table-stylesheet',
 				attributes : [
 					{name: 'type', value: 'text/css'}
 				],
-				textContent : `
+				nodeContent : `
 				.sli-dtt-draw-menu {
 					display: grid;
 					grid-template-columns: repeat(3, 1fr);
@@ -311,28 +330,27 @@
 				}
 				`
 			}]
-		};
+		});
 		
-		// dcg-btn-flat-gray
-		const guiElements = {
-			controls : [{
-				name : 'div',
-				id : 'drawerToggle',
+		// furnishes the control list and also adds the elements to the DOM
+		let ctNodes = insertNodes(document.body, {
+			group : [{
+				tag : 'div',
+				varName : 'drawerToggle',
 				classes : [
 					'sli-dtt-expr-button',
 					'dcg-btn-flat-gray',
 					'sli-dtt-table-dcg-icon-align'
 				],
-				controls : [{
-					name : 'i',
-					id : 'drawerToggleIcon',
+				group : [{
+					tag : 'i',
 					classes : [
 						'dcg-icon-chevron-right'
 					]
 				}]
 			}, {
-				name : 'div',
-				id : 'drawerTableMenu',
+				tag : 'div',
+				varName : 'drawerTableMenu',
 				classes : [
 					'sli-dtt-draw-menu',
 					'dcg-options-menu'
@@ -340,9 +358,9 @@
 				attributes : [
 					{name : 'tabindex', value : '-1'}
 				],
-				controls : [{
-					name : 'div',
-					id : 'bindToggle',
+				group : [{
+					tag : 'div',
+					varName : 'bindToggle',
 					attributes: [
 						{name: 'title', value: 'bind/unbind table'}
 					],
@@ -351,16 +369,15 @@
 						'dcg-btn-flat-gray',
 						'sli-dtt-table-dcg-icon-align'
 					],
-					controls : [{
-						name : 'i',
-						id : 'bindToggleIcon',
+					group : [{
+						tag : 'i',
 						classes : [
 							'dcg-icon-cursor'
 						]
 					}]
 				}, {
-					name : 'div',
-					id : 'addPolyButton',
+					tag : 'div',
+					varName : 'addPolyButton',
 					attributes: [
 						{name: 'title', value: 'add polygon'}
 					],
@@ -369,25 +386,15 @@
 						'dcg-btn-flat-gray',
 						'sli-dtt-table-dcg-icon-align'
 					],
-					controls : [{
-						name : 'i',
-						id : 'addPolyButtonIcon',
+					group : [{
+						tag : 'i',
 						classes : [
 							'dcg-icon-lines-solid'
 						]
 					}]
 				}]
 			}]
-		};
-		
-		// initializes arrays to hold the DOM objects (controls and stylesheet)
-		let styleNode = [];
-		let ctNodes = [];
-		
-		// adds a stylesheet to the head element
-		insertNodes(guiCSS, document.head, styleNode);
-		// furnishes the control list and also adds the elements to the DOM
-		insertNodes(guiElements, document.body, ctNodes);
+		});
 		
 		let panelElem = findExpressionPanel();
 		let activeButton = false;
@@ -582,7 +589,7 @@
 
 	// Gets the expression index of a given ID within the Calc object
 	function getExprIndex (id) {
-		let exprs = Calc.getExpressions();
+		let exprs = Calc.getState().expressions.list;
 		return exprs.findIndex((elem) => {
 			return elem.id === id;
 		});
@@ -590,35 +597,43 @@
 	// !getExprIndex ()
 	
 	
-	//parses a custom made JSON object into DOM objects with their properties set up
-	function insertNodes(jsonTree, parentNode, outControls) {
-		for (let item of jsonTree.controls) {
-			outControls[item.id] = document.createElement(item.name);
-			outControls[item.id].setAttribute('id', item.id);
-			parentNode.appendChild(outControls[item.id]);
-			
-			if (item.hasOwnProperty('classes')) {
-				item.classes.forEach(elem => outControls[item.id].classList.add(elem));
+	// creates a tree of elements and appends them into parentNode. Returns an object containing all named nodes
+	function insertNodes(parentNode, nodeTree) {
+		function recurseTree (parent, nextTree, nodeAdder) {
+			for (let branch of nextTree.group) {
+				if (!branch.hasOwnProperty('tag')) {
+					throw new CustomError('Parameter Error', 'Tag type is not defined');
+				}
+				let child = document.createElement(branch.tag);
+				parent.appendChild(child);
+				
+				if (branch.hasOwnProperty('varName')) {
+					nodeAdder[branch.varName] = child;
+				}
+				if (branch.hasOwnProperty('id')) {
+					child.setAttribute('id', branch.id);
+				}
+				if (branch.hasOwnProperty('classes')) {
+					child.classList.add(...branch.classes);
+				}
+				if (branch.hasOwnProperty('styles')) {
+					Object.assign(child.style, branch.styles);
+				}
+				if (branch.hasOwnProperty('attributes')) {
+					branch.attributes.forEach(elem => {
+						child.setAttribute(elem.name, elem.value);
+					});
+				}
+				if (branch.hasOwnProperty('nodeContent')) {
+					child.innerHTML = branch.nodeContent;
+				}
+				if (branch.hasOwnProperty('group')) {
+					recurseTree(child, branch, nodeAdder); // they grow so fast :')
+				}
 			}
-			
-			if (item.hasOwnProperty('styles')) {
-				Object.assign(outControls[item.id].style, item.styles);
-			}
-			
-			if (item.hasOwnProperty('attributes')) {
-				item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
-			}
-			
-			if (item.hasOwnProperty('textContent')) {
-				outControls[item.id].innerHTML = item.textContent;
-			}
-			
-			if (item.hasOwnProperty('controls')) {
-				insertNodes(item, outControls[item.id], outControls);
-			}
-			
-		} // !for
-		
+			return nodeAdder;
+		}
+		return recurseTree(parentNode, nodeTree, []);
 	}
 	// !insertNodes ()
 	
