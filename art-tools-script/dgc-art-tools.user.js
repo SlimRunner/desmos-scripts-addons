@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.4.1
+// @version  	1.4.2
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -308,7 +308,7 @@
 		];
 		
 		// executes a function when the color menu is triggered
-		hookMenu('.dcg-options-menu-column-left', seekColorContext,
+		hookMenu('.dcg-expressions-options-menu,.dcg-table-column-menu', seekColorContext,
 		(menuElem, expItem, menuFound) => {
 			// desmos context menu showed up or hid
 			ActiveItem.menuVisible = menuFound;
@@ -339,7 +339,7 @@
 			obsRec.forEach((record) => {
 				record.addedNodes.forEach((node) => {
 					if ( typeof node.querySelector === 'function' && !isFound) {
-						menuElem = getParentByQuery(node, mainQuery);
+						menuElem = node.querySelector(mainQuery);
 						if (menuElem !== null) isFound = true;
 					}
 				});
