@@ -90,6 +90,7 @@
 		
 	}
 	
+	// adds css classes tray palette and its outermost parent
 	function changeTraySize(elem) {
 		if (elem.offsetHeight > 169) {
 			elem.classList.add('sli-cts-scroll-flex');
@@ -179,17 +180,6 @@
 		let targetChild = node.querySelector(selectors);
 		if (targetChild === null) return null;
 		return targetChild.parentNode;
-	}
-	
-	// returns attribute of first instance of query
-	function seekAttribute(parent, selectors, attName) {
-		let node = parent.querySelector(selectors);
-		
-		if (!(node === null && typeof node.getAttributeNames !== 'function')) {
-			return node.getAttribute(attName);
-		}
-		
-		return null;
 	}
 	
 	// traverse the DOM tree to find parentElements iteratively
