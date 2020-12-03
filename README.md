@@ -9,6 +9,7 @@ The scripts in this collection are the following:
 1. **[Table Tools][tabletoolsfolder]** — Allows to add points interactively using `ctrl` + `left mouse button`. Points are aggregated into a table of your choice that can be selected through a button that appears next to valid table expressions.
 1. **[Right Click Patch][rmbpatchfolder]** — A small quality of life patch that allows you to right click the color bubble to open the color tray instead of a long-hold.
 1. **[Alpha Features Enabler][alphaenablerfolder]** — Enables the advanced styling features that are in alpha as of November 2020. First discovered by the discord user ElFisho_2. Desmos developers warn to use these with care for the time being because they are highly experimental features.
+1. **[Color Tray Patch][traypatchfolder]** — Overrides the behavior of the color tray so that when you have more than 5 rows of colors you get a scrollbar to keep things neat. This script might need be removed in the future when this is fixed officially by Desmos. I'll update this script to show a message when that happens.
 
 *There is a readme in each script folder with more in-depth details about the script itself.*
 
@@ -30,6 +31,7 @@ Once the extension is installed you can either navigate towards the respective s
 * [Table Tools][tabletoolsraw]
 * [Right Click Patch][rmbpatchraw]
 * [Alpha Features Enabler][alphaenablerraw]
+* [Color Tray Patch][traypatchraw]
 
 Either way you will be prompted automatically by TamperMonkey to install the scripts. Click `install` or `reinstall` if you are updating. Once installed, you can periodically check for updates in TamperMonkey, and you will be served the latest changes from the master branch of this repository.
 
@@ -37,7 +39,9 @@ Either way you will be prompted automatically by TamperMonkey to install the scr
 [tabletoolsfolder]: /table-tools-script
 [rmbpatchfolder]: /right-click-patch
 [alphaenablerfolder]: /alpha-feature-enabler
+[traypatchfolder]: /tray-scroll-patch
 [arttoolsraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/art-tools-script/dgc-art-tools.user.js
 [tabletoolsraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
 [rmbpatchraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
 [alphaenablerraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/alpha-feature-enabler/dgc-alpha-enabler.user.js
+[traypatchraw]: https://github.com/SlimRunner/desmos-scripts-addons/blob/master/tray-scroll-patch/dgc-scroll-patch.user.js
