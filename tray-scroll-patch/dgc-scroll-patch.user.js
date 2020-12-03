@@ -6,8 +6,8 @@
 // @description	Adds a color picker to Desmos
 // @grant    	none
 // @match			https://*.desmos.com/calculator*
-// @downloadURL	https://github.com/SlimRunner/desmos-scripts-addons/blob/master/tray-scroll-patch/dgc-scroll-patch.user.js
-// @updateURL	https://github.com/SlimRunner/desmos-scripts-addons/blob/master/tray-scroll-patch/dgc-scroll-patch.user.js
+// @downloadURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/tray-scroll-patch/dgc-scroll-patch.user.js
+// @updateURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/tray-scroll-patch/dgc-scroll-patch.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
