@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	ColorTrayPatch
 // @namespace	slidav.Desmos
-// @version  	1.0.1
+// @version  	1.0.2
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
