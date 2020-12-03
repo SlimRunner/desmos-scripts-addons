@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	ColorTrayPatch
 // @namespace	slidav.Desmos
-// @version  	1.0.2
+// @version  	1.0.3
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -14,6 +14,8 @@
 
 (function() {
 	'use strict';
+	const TRAY_QUERY = '.dcg-options-menu-section .dcg-options-menu-content .dcg-color-picker-container';
+	
 	var Calc;
 	var Desmos;
 	
@@ -37,6 +39,8 @@
 	
 	// initializes the script
 	function initMain() {
+		let observingCalc = false;
+		
 		insertNodes(document.head, {
 			group: [{
 				tag : 'style',
@@ -59,23 +63,39 @@
 		});
 		
 		hookMenu(
-			'.dcg-options-menu-section .dcg-options-menu-content .dcg-color-picker-container',
+			TRAY_QUERY,
 			
 			(elem, found) => {
+				let parent = seekParent(elem, 4);
 				if (found) {
-					if (elem.offsetHeight > 169) {
-						elem.classList.add('sli-cts-scroll-flex');
-						seekParent(elem, 4).classList.add('sli-cts-size-adjustment');
-					} else {
-						elem.classList.remove('sli-cts-scroll-flex');
-						seekParent(elem, 4).classList.remove('sli-cts-size-adjustment');
-					}
+					changeTraySize(elem);
 					
+					// update tray dynamically
+					Calc.observeEvent('change.colortray', () => {
+						let elem = parent.querySelector(TRAY_QUERY);
+						if (elem !== null) {
+							changeTraySize(parent.querySelector(TRAY_QUERY));
+						}
+					});
+					
+				} else if (observingCalc) {
+					// stop observing changes on desmos color menu (was closed)
+					Calc.unobserveEvent('change.colortray');
 				}
 			}
 			
 		);
 		
+	}
+	
+	function changeTraySize(elem) {
+		if (elem.offsetHeight > 169) {
+			elem.classList.add('sli-cts-scroll-flex');
+			seekParent(elem, 4).classList.add('sli-cts-size-adjustment');
+		} else {
+			elem.classList.remove('sli-cts-scroll-flex');
+			seekParent(elem, 4).classList.remove('sli-cts-size-adjustment');
+		}
 	}
 	
 	// creates a tree of elements and appends them into parentNode. Returns an object containing all named nodes
