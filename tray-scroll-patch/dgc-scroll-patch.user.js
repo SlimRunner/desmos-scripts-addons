@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	ColorTrayPatch
 // @namespace	slidav.Desmos
-// @version  	1.0.3
+// @version  	1.0.4
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -75,7 +75,7 @@
 					Calc.observeEvent('change.colortray', () => {
 						let elem = parent.querySelector(TRAY_QUERY);
 						if (elem !== null) {
-							changeTraySize(parent.querySelector(TRAY_QUERY));
+							changeTraySize(elem);
 						}
 					});
 					
