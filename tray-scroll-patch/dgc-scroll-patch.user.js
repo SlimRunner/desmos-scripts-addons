@@ -211,6 +211,7 @@
 			
 			try {
 				initMain();
+				console.log('Color Tray Patch loaded properly');
 			} catch (ex) {
 				console.error(`${ex.name}: ${ex.message}`);
 				console.log('An error was encountered while loading');
