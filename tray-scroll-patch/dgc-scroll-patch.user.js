@@ -70,6 +70,7 @@
 				if (found) {
 					changeTraySize(elem);
 					
+					observingCalc = true;
 					// update tray dynamically
 					Calc.observeEvent('change.colortray', () => {
 						let elem = parent.querySelector(TRAY_QUERY);
@@ -79,6 +80,7 @@
 					});
 					
 				} else if (observingCalc) {
+					observingCalc = false;
 					// stop observing changes on desmos color menu (was closed)
 					Calc.unobserveEvent('change.colortray');
 				}
