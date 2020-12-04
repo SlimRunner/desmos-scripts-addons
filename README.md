@@ -5,7 +5,7 @@ This repository is a collection of user-scripts that automate certain tasks or a
 The scripts in this collection are the following:
 
 #### [Desmos Graphing Calculator](https://www.desmos.com/calculator)
-1. **[Art Tools][arttoolsfolder]** — adds a tray of options next to the default color tray that allows you to select a custom color, change opacity, and/or change the line width of an expression.
+1. **[Art Tools][arttoolsfolder]** — adds a tray of options next to the default color panel. Currently it only has a color picker to select a classic custom color using an HSV wheel.
 1. **[Table Tools][tabletoolsfolder]** — Allows to add points interactively using `ctrl` + `left mouse button`. Points are aggregated into a table of your choice that can be selected through a button that appears next to valid table expressions.
 1. **[Right Click Patch][rmbpatchfolder]** — A small quality of life patch that allows you to right click the color bubble to open the color tray instead of a long-hold.
 1. **[Alpha Features Enabler][alphaenablerfolder]** — Enables the advanced styling features that are in alpha as of November 2020. First discovered by the discord user ElFisho_2. Desmos developers warn to use these with care for the time being because they are highly experimental features.
