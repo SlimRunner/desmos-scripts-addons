@@ -44,4 +44,4 @@ Either way you will be prompted automatically by TamperMonkey to install the scr
 [tabletoolsraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
 [rmbpatchraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
 [alphaenablerraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/alpha-feature-enabler/dgc-alpha-enabler.user.js
-[traypatchraw]: https://github.com/SlimRunner/desmos-scripts-addons/blob/master/tray-scroll-patch/dgc-scroll-patch.user.js
+[traypatchraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/tray-scroll-patch/dgc-scroll-patch.user.js
