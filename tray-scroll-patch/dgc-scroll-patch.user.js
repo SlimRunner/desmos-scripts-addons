@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	ColorTrayPatch
 // @namespace	slidav.Desmos
-// @version  	1.0.4
+// @version  	1.0.5
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -93,8 +93,25 @@
 	// adds css classes tray palette and its outermost parent
 	function changeTraySize(elem) {
 		if (elem.offsetHeight > 169) {
+			let parent = seekParent(elem, 4);
+			let sibling = parent.querySelector('.dcg-triangle');
 			elem.classList.add('sli-cts-scroll-flex');
-			seekParent(elem, 4).classList.add('sli-cts-size-adjustment');
+			parent.classList.add('sli-cts-size-adjustment');
+			
+			let bodyRect = document.body.getBoundingClientRect();
+			let parRect = parent.getBoundingClientRect();
+			let sibRect = sibling.getBoundingClientRect();
+			
+			//bd.h - (mid - 22 + panel.h + 7)
+			let targetMid = bodyRect.height - parRect.height + 15 - ((sibRect.bottom + sibRect.top) / 2);
+			
+			if (targetMid < 0) {
+				parent.style.marginTop = `${targetMid}px`;
+				sibling.style.marginTop = `${-targetMid}px`;
+			} else {
+				parent.style.marginTop = `${0}px`;
+				sibling.style.marginTop = `${0}px`;
+			}
 		} else {
 			elem.classList.remove('sli-cts-scroll-flex');
 			seekParent(elem, 4).classList.remove('sli-cts-size-adjustment');
@@ -157,7 +174,7 @@
 				});
 			});
 			
-			// calls predicate to process the output
+			// executes callback with data found
 			callback(menuElem, isFound);
 			
 		}); // !MutationObserver
