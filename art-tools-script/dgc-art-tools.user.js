@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.4.2
+// @version  	1.4.3
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -16,6 +16,8 @@
 	'use strict';
 	var Calc;
 	var Desmos;
+	
+	defineScript();
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// Global data structures & objects
@@ -2684,60 +2686,124 @@
 		}
 	}
 	
-	// prints something cool into the console :)
-	function printSplash() {
-		console.log('Custom art tools were loaded properly');
-		console.log(`written by
- _____ _ _          ______                            
-/  ___| (_)         | ___ \\                           
-\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ 
- \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|
-/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   
-\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   `);
-	}
-	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// User-Script Initialization
 	
+	// defines an object that is shared among my scripts 
+	function defineScript() {
+		if (window.SLM === undefined) {
+			console.log(
+				'scripts by\n' +
+				' _____ _ _          ______                            \n' + 
+				'/  ___| (_)         | ___ \\                           \n' + 
+				'\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n' + 
+				' \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n' + 
+				'/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n' + 
+				'\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n'
+			);
+			
+			window.SLM = Object.assign({}, {
+				messages: [],
+				scripts: [GM_info.script.name],
+				
+				printMsgQueue: function() {
+					while (this.printMessage()) { }
+				},
+				
+				printMessage: function() {
+					if (this.messages.length === 0) return false;
+					let msg = this.messages.shift();
+					console[msg.type](...msg.args);
+					return this.messages.length !== 0;
+				},
+				
+				pushMessage: function(type, ...msgArgs) {
+					this.messages.push({
+						type: type,
+						args: msgArgs
+					});
+				}
+			});
+			
+			Object.defineProperties(window.SLM, {
+				MESSAGE_DELAY : {
+					value: 500,
+					writable: false,
+					enumerable: true,
+					configurable: true
+				},
+				ATTEMPTS_LIMIT : {
+					value: 50,
+					writable: false,
+					enumerable: true,
+					configurable: true
+				},
+				ATTEMPTS_DELAY : {
+					value: 200,
+					writable: false,
+					enumerable: true,
+					configurable: true
+				}
+			});
+		} else {
+			window.SLM.scripts.push(GM_info.script.name);
+		}
+	}
+	
+	// checks if calc and desmos are defined
+	function isCalcReady() {
+		if (
+			window.wrappedJSObject.Desmos !== undefined &&
+			window.wrappedJSObject.Calc !== undefined
+		) {
+			Desmos = window.wrappedJSObject.Desmos;
+			Calc = window.wrappedJSObject.Calc;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	// iife that checks if Desmos has finished loading (10 attempts)
 	(function loadCheck () {
-		if (typeof loadCheck.attempts === 'undefined') {
+		const SLM = window.SLM;
+		
+		if (loadCheck.attempts === undefined) {
 			loadCheck.attempts = 0;
 		} else {
 			loadCheck.attempts++;
 		}
 		
-		if (
-			typeof window.wrappedJSObject.Calc === 'undefined' ||
-			typeof window.wrappedJSObject.Desmos === 'undefined'
-		) {
-			
-			if (loadCheck.attempts < 10) {
-				console.log('Desmos is loading...');
-				window.setTimeout(loadCheck, 1000);
+		if (!isCalcReady()) {
+			if (loadCheck.attempts < SLM.ATTEMPTS_LIMIT) {
+				window.setTimeout(loadCheck, SLM.ATTEMPTS_DELAY);
 			} else {
-				console.warn("Abort: Art tools script could not load :(");
+				SLM.pushMessage('warn', '%s aborted loading', GM_info.script.name);
+				setTimeout(() => {
+					SLM.printMsgQueue();
+				}, SLM.MESSAGE_DELAY);
 			}
 			
 		} else {
-			Calc = window.wrappedJSObject.Calc;
-			Desmos = window.wrappedJSObject.Desmos;
-			console.log('Desmos is ready ✔️');
 			
 			try {
+				
 				initGUI();
 				initColorPicker();
 				loadEvents();
 				loadColorPickerListeners();
-				printSplash();
+				
+				SLM.pushMessage('log', '%s loaded properly ✔️', GM_info.script.name);
 			} catch (ex) {
-				console.error(`${ex.name}: ${ex.message}`);
-				console.log('An error was encountered while loading');
+				SLM.pushMessage('error', `${ex.name}: ${ex.message}`);
+				SLM.pushMessage('warn', 'An error was encountered while loading');
 			} finally {
-				// Nothing to do here yet...
+				setTimeout(() => {
+					SLM.printMsgQueue();
+				}, SLM.MESSAGE_DELAY);
 			}
 			
 		}
-	} ());
+	}());
 	
 } ());
