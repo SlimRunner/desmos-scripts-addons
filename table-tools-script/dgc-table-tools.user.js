@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosTableTools
 // @namespace	slidav.Desmos
-// @version  	1.0.6
+// @version  	1.1.0
 // @author		SlimRunner (David Flores)
 // @description	Adds tools to manipulate tables
 // @grant    	none
@@ -20,9 +20,30 @@
 	var Desmos;
 	
 	const POLY_CLOSURE = '\\frac{0}{0}';
+	const EXPR_PANEL_CLASS = 'dcg-template-expressioneach';
+	const EXPR_ITEM_CLASS = 'dcg-expressionitem';
+	const EXPR_TABLE_CLASS = 'dcg-expressiontable';
 	
 	/***************************************************************************/
 	// VERTEX ADDER OBJECT
+	
+	// creates an error with custom name
+	class CustomError extends Error {
+		/* Source
+		* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+		*/
+		constructor(name, ...params) {
+			// Pass remaining arguments (including vendor specific ones) to parent constructor
+			super(...params);
+
+			// Maintains proper stack trace for where our error was thrown (only available on V8)
+			if (Error.captureStackTrace) {
+				Error.captureStackTrace(this, CustomError);
+			}
+				
+			this.name = name;
+		}
+	}
 	
 	let VtxAdder = {};
 	
@@ -185,6 +206,10 @@
 		
 		
 		validateExpression : function (expr) {
+			if (expr == undefined){
+				return VtxAdder.TableState.INVALID;
+			} // !if
+			
 			if (expr.type !== 'table'){
 				return VtxAdder.TableState.INVALID;
 			} // !if
@@ -254,14 +279,15 @@
 	function mousePen() {
 		const GUI_GAP = 4;
 		
-		const guiCSS = {
-			controls : [{
-				name : 'style',
-				id : 'penStyleSheet',
+		// adds a stylesheet to the head element
+		insertNodes(document.head, {
+			group : [{
+				tag : 'style',
+				id : 'sli-table-stylesheet',
 				attributes : [
 					{name: 'type', value: 'text/css'}
 				],
-				textContent : `
+				nodeContent : `
 				.sli-dtt-draw-menu {
 					display: grid;
 					grid-template-columns: repeat(3, 1fr);
@@ -311,28 +337,28 @@
 				}
 				`
 			}]
-		};
+		});
 		
-		// dcg-btn-flat-gray
-		const guiElements = {
-			controls : [{
-				name : 'div',
-				id : 'drawerToggle',
+		// furnishes the control list and also adds the elements to the DOM
+		let ctNodes = insertNodes(document.body, {
+			group : [{
+				tag : 'div',
+				varName : 'drawerToggle',
 				classes : [
 					'sli-dtt-expr-button',
 					'dcg-btn-flat-gray',
-					'sli-dtt-table-dcg-icon-align'
+					'sli-dtt-table-dcg-icon-align',
+					'dcg-no-touchtracking'
 				],
-				controls : [{
-					name : 'i',
-					id : 'drawerToggleIcon',
+				group : [{
+					tag : 'i',
 					classes : [
 						'dcg-icon-chevron-right'
 					]
 				}]
 			}, {
-				name : 'div',
-				id : 'drawerTableMenu',
+				tag : 'div',
+				varName : 'drawerTableMenu',
 				classes : [
 					'sli-dtt-draw-menu',
 					'dcg-options-menu'
@@ -340,9 +366,9 @@
 				attributes : [
 					{name : 'tabindex', value : '-1'}
 				],
-				controls : [{
-					name : 'div',
-					id : 'bindToggle',
+				group : [{
+					tag : 'div',
+					varName : 'bindToggle',
 					attributes: [
 						{name: 'title', value: 'bind/unbind table'}
 					],
@@ -351,16 +377,15 @@
 						'dcg-btn-flat-gray',
 						'sli-dtt-table-dcg-icon-align'
 					],
-					controls : [{
-						name : 'i',
-						id : 'bindToggleIcon',
+					group : [{
+						tag : 'i',
 						classes : [
 							'dcg-icon-cursor'
 						]
 					}]
 				}, {
-					name : 'div',
-					id : 'addPolyButton',
+					tag : 'div',
+					varName : 'addPolyButton',
 					attributes: [
 						{name: 'title', value: 'add polygon'}
 					],
@@ -369,70 +394,85 @@
 						'dcg-btn-flat-gray',
 						'sli-dtt-table-dcg-icon-align'
 					],
-					controls : [{
-						name : 'i',
-						id : 'addPolyButtonIcon',
+					group : [{
+						tag : 'i',
 						classes : [
 							'dcg-icon-lines-solid'
 						]
 					}]
 				}]
 			}]
-		};
-		
-		// initializes arrays to hold the DOM objects (controls and stylesheet)
-		let styleNode = [];
-		let ctNodes = [];
-		
-		// adds a stylesheet to the head element
-		insertNodes(guiCSS, document.head, styleNode);
-		// furnishes the control list and also adds the elements to the DOM
-		insertNodes(guiElements, document.body, ctNodes);
+		});
 		
 		let panelElem = findExpressionPanel();
-		let activeButton = false;
+		let panelEnabled = true;
 		let activeExprIdx = -1;
 		let hoverExprIdx = -1;
 		
 		panelElem.addEventListener('mousemove', function (e) {
-			if (typeof this.onHold === 'undefined') {
+			if (this.onHold == undefined) {
 				this.onHold = false;
 			}
 			
 			if (!this.onHold) {
 				this.onHold = true;
 				setTimeout(() => {
-					let expid = seekAttribute(panelElem, '.dcg-hovered', 'expr-id');
-					if (expid.length >= 1) {
-						// check if expression with expid ID is a valid table
-						hoverExprIdx = getExprIndex(expid[0]);
-						let exprs = Calc.getExpressions()[getExprIndex(expid[0])];
+					if (panelEnabled) {
+						let exprNode = seekParentByClass(
+							e.target,
+							EXPR_ITEM_CLASS,
+							EXPR_PANEL_CLASS
+						);
+						
 						if (
-							VtxAdder.validateExpression(exprs) !==
-							VtxAdder.TableState.INVALID
+							exprNode != null &&
+							exprNode.classList &&
+							isExprNodeTable(exprNode)
 						) {
-							let elemExpr = getElementsByAttribute(panelElem, '.dcg-hovered', 'expr-id')[0];
+							let expid = exprNode.getAttribute('expr-id');
+							hoverExprIdx = getExprIndex(expid);
+							let exprs = Calc.getExpressions()[hoverExprIdx];
 							
-							showTableButton(true, elemExpr);
+							if (
+								VtxAdder.validateExpression(exprs) !==
+								VtxAdder.TableState.INVALID
+							) {
+								showTableButton(true, exprNode);
+							} else {
+								showTableButton(false, null);
+							}
 						} else {
 							showTableButton(false, null);
 						}
-						
-					} else {
-						showTableButton(false, null);
 					}
-					
 					this.onHold = false;
-				}, 200);
+				}, 100);
 			}
 		}); // !panelElem_mousemove
 		
-		ctNodes.drawerToggle.addEventListener('mouseenter', () => {
-			activeButton = true;
+		// hides button and drawer menu when leaving the exp-panel
+		panelElem.addEventListener('mouseleave', (e) => {
+			if (
+				e.relatedTarget == null ||
+				!(e.relatedTarget.isSameNode(ctNodes.drawerToggle) ||
+				ctNodes.drawerToggle.contains(e.relatedTarget) ||
+				(e.relatedTarget.isSameNode(ctNodes.drawerTableMenu) ||
+				ctNodes.drawerTableMenu.contains(e.relatedTarget)))
+			) {
+				panelEnabled = false;
+				showTableButton(false, null);
+				showDrawer(false);
+			}
 		});
 		
-		ctNodes.drawerToggle.addEventListener('mouseleave', () => {
-			activeButton = false;
+		// enables mouse move when entering exp-panel
+		panelElem.addEventListener('mouseenter', (e) => {
+			panelEnabled = true;
+		});
+		
+		// hides drawer menu when drawer loses focus
+		ctNodes.drawerToggle.addEventListener('blur', (e) => {
+			showTableButton(false, null);
 		});
 		
 		ctNodes.drawerToggle.addEventListener('click', () => {
@@ -444,7 +484,11 @@
 			setBindButtonStyle(pressed);
 			
 			setDrawerLocation(ctNodes.drawerToggle);
-			showDrawer(true);
+			if (ctNodes.drawerTableMenu.style.visibility === 'visible') {
+				showDrawer(false);
+			} else {
+				showDrawer(true);
+			}
 		});
 		
 		ctNodes.drawerTableMenu.addEventListener('blur', () => {
@@ -485,7 +529,6 @@
 				refreshDrawerMenu();
 				ctNodes.drawerTableMenu.style.visibility = 'visible';
 				ctNodes.drawerTableMenu.style.opacity = '1';
-				ctNodes.drawerTableMenu.focus();
 			} else {
 				ctNodes.drawerTableMenu.style.visibility = 'hidden';
 				ctNodes.drawerTableMenu.style.opacity = '0';
@@ -543,7 +586,7 @@
 				setButtonLocation(elem);
 				ctNodes.drawerToggle.style.display = 'block';
 			} else {
-				if (activeButton) return 0;
+				// if (activeButton) return 0;
 				ctNodes.drawerToggle.style.display = 'none';
 			}
 		}
@@ -568,8 +611,8 @@
 		// finds element that contains the expressions in Desmos
 		function findExpressionPanel() {
 			return document.getElementsByClassName(
-				"dcg-expressionitem"
-			)[0].parentNode;
+				EXPR_PANEL_CLASS
+			)[0];
 		}
 		// !findExpressionPanel ()
 		
@@ -579,10 +622,10 @@
 	
 	/***************************************************************************/
 	// HELPER FUNCTIONS
-
+	
 	// Gets the expression index of a given ID within the Calc object
 	function getExprIndex (id) {
-		let exprs = Calc.getExpressions();
+		let exprs = Calc.getState().expressions.list;
 		return exprs.findIndex((elem) => {
 			return elem.id === id;
 		});
@@ -590,37 +633,73 @@
 	// !getExprIndex ()
 	
 	
-	//parses a custom made JSON object into DOM objects with their properties set up
-	function insertNodes(jsonTree, parentNode, outControls) {
-		for (let item of jsonTree.controls) {
-			outControls[item.id] = document.createElement(item.name);
-			outControls[item.id].setAttribute('id', item.id);
-			parentNode.appendChild(outControls[item.id]);
-			
-			if (item.hasOwnProperty('classes')) {
-				item.classes.forEach(elem => outControls[item.id].classList.add(elem));
+	
+	//
+	function isExprNodeTable(node) {
+		return node.classList.contains(EXPR_TABLE_CLASS);
+	}
+	
+	
+	
+	// creates a tree of elements and appends them into parentNode. Returns an object containing all named nodes
+	function insertNodes(parentNode, nodeTree) {
+		function recurseTree (parent, nextTree, nodeAdder) {
+			for (let branch of nextTree.group) {
+				if (!branch.hasOwnProperty('tag')) {
+					throw new CustomError('Parameter Error', 'Tag type is not defined');
+				}
+				let child = document.createElement(branch.tag);
+				parent.appendChild(child);
+				
+				if (branch.hasOwnProperty('varName')) {
+					nodeAdder[branch.varName] = child;
+				}
+				if (branch.hasOwnProperty('id')) {
+					child.setAttribute('id', branch.id);
+				}
+				if (branch.hasOwnProperty('classes')) {
+					child.classList.add(...branch.classes);
+				}
+				if (branch.hasOwnProperty('styles')) {
+					Object.assign(child.style, branch.styles);
+				}
+				if (branch.hasOwnProperty('attributes')) {
+					branch.attributes.forEach(elem => {
+						child.setAttribute(elem.name, elem.value);
+					});
+				}
+				if (branch.hasOwnProperty('nodeContent')) {
+					child.innerHTML = branch.nodeContent;
+				}
+				if (branch.hasOwnProperty('group')) {
+					recurseTree(child, branch, nodeAdder); // they grow so fast :')
+				}
 			}
-			
-			if (item.hasOwnProperty('styles')) {
-				Object.assign(outControls[item.id].style, item.styles);
-			}
-			
-			if (item.hasOwnProperty('attributes')) {
-				item.attributes.forEach(elem => outControls[item.id].setAttribute(elem.name, elem.value));
-			}
-			
-			if (item.hasOwnProperty('textContent')) {
-				outControls[item.id].innerHTML = item.textContent;
-			}
-			
-			if (item.hasOwnProperty('controls')) {
-				insertNodes(item, outControls[item.id], outControls);
-			}
-			
-		} // !for
-		
+			return nodeAdder;
+		}
+		return recurseTree(parentNode, nodeTree, []);
 	}
 	// !insertNodes ()
+	
+	
+	
+	//
+	function seekParentByClass(child, query, shcquery = null) {
+		if (child == null) return null;
+		let node = child.parentNode;
+		if (node == null) return null;
+		while (!node.isSameNode(document.body)) {
+			if (node.classList.contains(query)) {
+				return node;
+			} else if (shcquery && node.classList.contains(shcquery)) {
+				// short-circuit search with class
+				return null;
+			} else {
+				node = node.parentNode;
+			}
+		}
+		return document.body;
+	}
 	
 	
 	
