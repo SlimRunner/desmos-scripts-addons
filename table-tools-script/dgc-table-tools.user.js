@@ -11,9 +11,6 @@
 // ==/UserScript==
 
 /*jshint esversion: 6 */
-// TODO: button does not disappear some times
-// https://www.desmos.com/calculator/jifrwenoww	secret expression
-// https://www.desmos.com/calculator/nhyta2fb68	Bezier Night
 
 (function() {
 	'use strict';
@@ -209,6 +206,10 @@
 		
 		
 		validateExpression : function (expr) {
+			if (expr == undefined){
+				return VtxAdder.TableState.INVALID;
+			} // !if
+			
 			if (expr.type !== 'table'){
 				return VtxAdder.TableState.INVALID;
 			} // !if
@@ -346,7 +347,8 @@
 				classes : [
 					'sli-dtt-expr-button',
 					'dcg-btn-flat-gray',
-					'sli-dtt-table-dcg-icon-align'
+					'sli-dtt-table-dcg-icon-align',
+					'dcg-no-touchtracking'
 				],
 				group : [{
 					tag : 'i',
@@ -403,56 +405,74 @@
 		});
 		
 		let panelElem = findExpressionPanel();
-		let activeButton = false;
+		let panelEnabled = true;
 		let activeExprIdx = -1;
 		let hoverExprIdx = -1;
 		
 		panelElem.addEventListener('mousemove', function (e) {
-			if (typeof this.onHold === 'undefined') {
+			if (this.onHold == undefined) {
 				this.onHold = false;
 			}
 			
 			if (!this.onHold) {
 				this.onHold = true;
 				setTimeout(() => {
-					let exprNode = seekParentByClass(
-						e.target,
-						EXPR_ITEM_CLASS,
-						EXPR_PANEL_CLASS
-					);
-					
-					if (
-						exprNode != null &&
-						exprNode.classList &&
-						isExprNodeTable(exprNode)
-					) {
-						let expid = exprNode.getAttribute('expr-id');
-						hoverExprIdx = getExprIndex(expid);
-						let exprs = Calc.getExpressions()[hoverExprIdx];
+					if (panelEnabled) {
+						let exprNode = seekParentByClass(
+							e.target,
+							EXPR_ITEM_CLASS,
+							EXPR_PANEL_CLASS
+						);
 						
 						if (
-							VtxAdder.validateExpression(exprs) !==
-							VtxAdder.TableState.INVALID
+							exprNode != null &&
+							exprNode.classList &&
+							isExprNodeTable(exprNode)
 						) {
-							showTableButton(true, exprNode);
+							let expid = exprNode.getAttribute('expr-id');
+							hoverExprIdx = getExprIndex(expid);
+							let exprs = Calc.getExpressions()[hoverExprIdx];
+							
+							if (
+								VtxAdder.validateExpression(exprs) !==
+								VtxAdder.TableState.INVALID
+							) {
+								showTableButton(true, exprNode);
+							} else {
+								showTableButton(false, null);
+							}
 						} else {
 							showTableButton(false, null);
 						}
-					} else {
-						showTableButton(false, null);
 					}
-					
 					this.onHold = false;
-				}, 50);
+				}, 100);
 			}
 		}); // !panelElem_mousemove
 		
-		ctNodes.drawerToggle.addEventListener('mouseenter', () => {
-			activeButton = true;
+		// hides button and drawer menu when leaving the exp-panel
+		panelElem.addEventListener('mouseleave', (e) => {
+			if (
+				e.relatedTarget == null ||
+				!(e.relatedTarget.isSameNode(ctNodes.drawerToggle) ||
+				ctNodes.drawerToggle.contains(e.relatedTarget) ||
+				(e.relatedTarget.isSameNode(ctNodes.drawerTableMenu) ||
+				ctNodes.drawerTableMenu.contains(e.relatedTarget)))
+			) {
+				panelEnabled = false;
+				showTableButton(false, null);
+				showDrawer(false);
+			}
 		});
 		
-		ctNodes.drawerToggle.addEventListener('mouseleave', () => {
-			activeButton = false;
+		// enables mouse move when entering exp-panel
+		panelElem.addEventListener('mouseenter', (e) => {
+			panelEnabled = true;
+		});
+		
+		// hides drawer menu when drawer loses focus
+		ctNodes.drawerToggle.addEventListener('blur', (e) => {
+			showTableButton(false, null);
 		});
 		
 		ctNodes.drawerToggle.addEventListener('click', () => {
@@ -464,7 +484,11 @@
 			setBindButtonStyle(pressed);
 			
 			setDrawerLocation(ctNodes.drawerToggle);
-			showDrawer(true);
+			if (ctNodes.drawerTableMenu.style.visibility === 'visible') {
+				showDrawer(false);
+			} else {
+				showDrawer(true);
+			}
 		});
 		
 		ctNodes.drawerTableMenu.addEventListener('blur', () => {
@@ -505,7 +529,6 @@
 				refreshDrawerMenu();
 				ctNodes.drawerTableMenu.style.visibility = 'visible';
 				ctNodes.drawerTableMenu.style.opacity = '1';
-				ctNodes.drawerTableMenu.focus();
 			} else {
 				ctNodes.drawerTableMenu.style.visibility = 'hidden';
 				ctNodes.drawerTableMenu.style.opacity = '0';
@@ -563,7 +586,7 @@
 				setButtonLocation(elem);
 				ctNodes.drawerToggle.style.display = 'block';
 			} else {
-				if (activeButton) return 0;
+				// if (activeButton) return 0;
 				ctNodes.drawerToggle.style.display = 'none';
 			}
 		}
