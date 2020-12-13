@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosArtTools
 // @namespace	slidav.Desmos
-// @version  	1.4.3
+// @version  	1.4.4
 // @author		SlimRunner (David Flores)
 // @description	Adds a color picker to Desmos
 // @grant    	none
@@ -2753,11 +2753,11 @@
 	// checks if calc and desmos are defined
 	function isCalcReady() {
 		if (
-			window.wrappedJSObject.Desmos !== undefined &&
-			window.wrappedJSObject.Calc !== undefined
+			window.Desmos !== undefined &&
+			window.Calc !== undefined
 		) {
-			Desmos = window.wrappedJSObject.Desmos;
-			Calc = window.wrappedJSObject.Calc;
+			Desmos = window.Desmos;
+			Calc = window.Calc;
 			return true;
 		} else {
 			return false;

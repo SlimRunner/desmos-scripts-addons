@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosTableTools
 // @namespace	slidav.Desmos
-// @version  	1.1.0
+// @version  	1.1.1
 // @author		SlimRunner (David Flores)
 // @description	Adds tools to manipulate tables
 // @grant    	none
@@ -14,18 +14,19 @@
 
 (function() {
 	'use strict';
-	
-	// Global variables imported from host (initialized in loadCheck)
-	var Calc;
-	var Desmos;
-	
 	const POLY_CLOSURE = '\\frac{0}{0}';
 	const EXPR_PANEL_CLASS = 'dcg-template-expressioneach';
 	const EXPR_ITEM_CLASS = 'dcg-expressionitem';
 	const EXPR_TABLE_CLASS = 'dcg-expressiontable';
 	
-	/***************************************************************************/
-	// VERTEX ADDER OBJECT
+	// Global variables imported from host (initialized in loadCheck)
+	var Calc;
+	var Desmos;
+	
+	defineScript();
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// Data Objects
 	
 	// creates an error with custom name
 	class CustomError extends Error {
@@ -274,8 +275,9 @@
 	}); // !VtxAdder assign
 	
 	
-	/***************************************************************************/
-	// MOUSE PEN
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// Main Script
+	
 	function mousePen() {
 		const GUI_GAP = 4;
 		
@@ -620,8 +622,8 @@
 	// !mousePen ()
 	
 	
-	/***************************************************************************/
-	// HELPER FUNCTIONS
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// Helper Functions
 	
 	// Gets the expression index of a given ID within the Calc object
 	function getExprIndex (id) {
@@ -634,7 +636,7 @@
 	
 	
 	
-	//
+	// Returns true if node is a table expression element
 	function isExprNodeTable(node) {
 		return node.classList.contains(EXPR_TABLE_CLASS);
 	}
@@ -683,7 +685,7 @@
 	
 	
 	
-	//
+	// Finds a parent of a child by class
 	function seekParentByClass(child, query, shcquery = null) {
 		if (child == null) return null;
 		let node = child.parentNode;
@@ -720,7 +722,6 @@
 		
 		return output;
 	}
-	// !seekAttribute ()
 	
 	
 	
@@ -744,36 +745,122 @@
 	// !getElementsByAttribute ()
 	
 	
-	/***************************************************************************/
-	// SCRIPT INITIALIZATION
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// User-Script Initialization
 	
+	// defines an object that is shared among my scripts 
+	function defineScript() {
+		if (window.SLM === undefined) {
+			console.log(
+				'scripts by\n' +
+				' _____ _ _          ______                            \n' + 
+				'/  ___| (_)         | ___ \\                           \n' + 
+				'\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n' + 
+				' \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n' + 
+				'/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n' + 
+				'\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n'
+			);
+			
+			window.SLM = Object.assign({}, {
+				messages: [],
+				scripts: [GM_info.script.name],
+				
+				printMsgQueue: function() {
+					while (this.printMessage()) { }
+				},
+				
+				printMessage: function() {
+					if (this.messages.length === 0) return false;
+					let msg = this.messages.shift();
+					console[msg.type](...msg.args);
+					return this.messages.length !== 0;
+				},
+				
+				pushMessage: function(type, ...msgArgs) {
+					this.messages.push({
+						type: type,
+						args: msgArgs
+					});
+				}
+			});
+			
+			Object.defineProperties(window.SLM, {
+				MESSAGE_DELAY : {
+					value: 500,
+					writable: false,
+					enumerable: true,
+					configurable: true
+				},
+				ATTEMPTS_LIMIT : {
+					value: 50,
+					writable: false,
+					enumerable: true,
+					configurable: true
+				},
+				ATTEMPTS_DELAY : {
+					value: 200,
+					writable: false,
+					enumerable: true,
+					configurable: true
+				}
+			});
+		} else {
+			window.SLM.scripts.push(GM_info.script.name);
+		}
+	}
+	
+	// checks if calc and desmos are defined
+	function isCalcReady() {
+		if (
+			window.Desmos !== undefined &&
+			window.Calc !== undefined
+		) {
+			Desmos = window.Desmos;
+			Calc = window.Calc;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	// iife that checks if Desmos has finished loading (10 attempts)
 	(function loadCheck () {
+		const SLM = window.SLM;
 		
-		if (typeof loadCheck.attempts === 'undefined') {
+		if (loadCheck.attempts === undefined) {
 			loadCheck.attempts = 0;
 		} else {
 			loadCheck.attempts++;
 		}
 		
-		if (
-			typeof window.wrappedJSObject.Calc === 'undefined' ||
-			typeof window.wrappedJSObject.Desmos === 'undefined'
-		) {
-			
-			if (loadCheck.attempts < 10) {
-				window.setTimeout(loadCheck, 1000);
+		if (!isCalcReady()) {
+			if (loadCheck.attempts < SLM.ATTEMPTS_LIMIT) {
+				window.setTimeout(loadCheck, SLM.ATTEMPTS_DELAY);
 			} else {
-				console.log("Abort: The script couldn't load properly :/");
+				SLM.pushMessage('warn', '%s aborted loading', GM_info.script.name);
+				setTimeout(() => {
+					SLM.printMsgQueue();
+				}, SLM.MESSAGE_DELAY);
 			}
 			
 		} else {
-			Calc = window.wrappedJSObject.Calc;
-			Desmos = window.wrappedJSObject.Desmos;
-			// INITIALIZE STUFF HERE
-			VtxAdder.initialize();
-			mousePen();
-			console.log('Desmos Table Tools were loaded properly');
+			
+			try {
+				
+				VtxAdder.initialize();
+				mousePen();
+				
+				SLM.pushMessage('log', '%s loaded properly ✔️', GM_info.script.name);
+			} catch (ex) {
+				SLM.pushMessage('error', `${ex.name}: ${ex.message}`);
+				SLM.pushMessage('warn', 'An error was encountered while loading');
+			} finally {
+				setTimeout(() => {
+					SLM.printMsgQueue();
+				}, SLM.MESSAGE_DELAY);
+			}
+			
 		}
-	})();
+	}());
 	
 }());

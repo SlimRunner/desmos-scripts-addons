@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosColorRightClick
 // @namespace	slidav.Desmos
-// @version  	1.1.2
+// @version  	1.1.3
 // @author		SlimRunner (David Flores)
 // @description	Overrides context menu for color bubble
 // @grant    	none
@@ -16,15 +16,19 @@
 	'use strict';
 	
 	var Desmos;
-	var tm_win;
-	var tm_doc;
+	var Calc;
+	
+	defineScript();
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// Main Script
 	
 	// initializes the event listeners
 	function initListeners () {
 		let showContextMenu = true;
 		
 		// cancels standard context menu
-		tm_doc.addEventListener("contextmenu", (e) => {
+		document.addEventListener("contextmenu", (e) => {
 			if (!showContextMenu) {
 				showContextMenu = true;
 				e.preventDefault();
@@ -32,7 +36,7 @@
 		});
 		
 		// triggers the color menu and sets flag to cancel standard context menu
-		tm_win.addEventListener('mousedown', (e) => {
+		window.addEventListener('mousedown', (e) => {
 			if (e.button === 2) {
 				let tag = e.target.tagName.toLowerCase();
 				
@@ -104,32 +108,120 @@
 		return src;
 	}
 	
-	// initializes the script
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	// User-Script Initialization
+	
+	// defines an object that is shared among my scripts 
+	function defineScript() {
+		if (window.SLM === undefined) {
+			console.log(
+				'scripts by\n' +
+				' _____ _ _          ______                            \n' + 
+				'/  ___| (_)         | ___ \\                           \n' + 
+				'\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n' + 
+				' \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n' + 
+				'/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n' + 
+				'\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n'
+			);
+			
+			window.SLM = Object.assign({}, {
+				messages: [],
+				scripts: [GM_info.script.name],
+				
+				printMsgQueue: function() {
+					while (this.printMessage()) { }
+				},
+				
+				printMessage: function() {
+					if (this.messages.length === 0) return false;
+					let msg = this.messages.shift();
+					console[msg.type](...msg.args);
+					return this.messages.length !== 0;
+				},
+				
+				pushMessage: function(type, ...msgArgs) {
+					this.messages.push({
+						type: type,
+						args: msgArgs
+					});
+				}
+			});
+			
+			Object.defineProperties(window.SLM, {
+				MESSAGE_DELAY : {
+					value: 500,
+					writable: false,
+					enumerable: true,
+					configurable: true
+				},
+				ATTEMPTS_LIMIT : {
+					value: 50,
+					writable: false,
+					enumerable: true,
+					configurable: true
+				},
+				ATTEMPTS_DELAY : {
+					value: 200,
+					writable: false,
+					enumerable: true,
+					configurable: true
+				}
+			});
+		} else {
+			window.SLM.scripts.push(GM_info.script.name);
+		}
+	}
+	
+	// checks if calc and desmos are defined
+	function isCalcReady() {
+		if (
+			window.Desmos !== undefined &&
+			window.Calc !== undefined
+		) {
+			Desmos = window.Desmos;
+			Calc = window.Calc;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	// iife that checks if Desmos has finished loading (10 attempts)
 	(function loadCheck () {
+		const SLM = window.SLM;
 		
-		if (typeof loadCheck.attempts === 'undefined') {
+		if (loadCheck.attempts === undefined) {
 			loadCheck.attempts = 0;
 		} else {
 			loadCheck.attempts++;
 		}
 		
-		if (
-			typeof window.wrappedJSObject.Calc === 'undefined' ||
-			typeof window.wrappedJSObject.Desmos === 'undefined'
-		) {
-			
-			if (loadCheck.attempts < 10) {
-				window.setTimeout(loadCheck, 1000);
+		if (!isCalcReady()) {
+			if (loadCheck.attempts < SLM.ATTEMPTS_LIMIT) {
+				window.setTimeout(loadCheck, SLM.ATTEMPTS_DELAY);
 			} else {
-				console.log("Abort: The script couldn't load properly :/");
+				SLM.pushMessage('warn', '%s aborted loading', GM_info.script.name);
+				setTimeout(() => {
+					SLM.printMsgQueue();
+				}, SLM.MESSAGE_DELAY);
 			}
 			
 		} else {
-			Desmos = window.wrappedJSObject.Desmos;
-			tm_win = window.wrappedJSObject;
-			tm_doc = window.wrappedJSObject.document;
-			initListeners();
-			console.log('Right click override for color loaded properly');
+			
+			try {
+				
+				initListeners();
+				
+				SLM.pushMessage('log', '%s loaded properly ✔️', GM_info.script.name);
+			} catch (ex) {
+				SLM.pushMessage('error', `${ex.name}: ${ex.message}`);
+				SLM.pushMessage('warn', 'An error was encountered while loading');
+			} finally {
+				setTimeout(() => {
+					SLM.printMsgQueue();
+				}, SLM.MESSAGE_DELAY);
+			}
+			
 		}
 	}());
 	
