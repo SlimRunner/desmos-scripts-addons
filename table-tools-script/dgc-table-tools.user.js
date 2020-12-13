@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name     	DesmosTableTools
 // @namespace	slidav.Desmos
-// @version  	1.1.1
+// @version  	1.1.2
 // @author		SlimRunner (David Flores)
 // @description	Adds tools to manipulate tables
 // @grant    	none
@@ -50,6 +50,7 @@
 	
 	VtxAdder.Scaling = true;
 	
+	
 	// List of constants for table states
 	VtxAdder.TableState = Object.defineProperties({}, {
 		INVALID : {
@@ -72,10 +73,10 @@
 			enumerable: true,
 			configurable: true
 		}
-	}); // !TableState defineProperties
+	});
 	
 	
-	
+	// Object that manages the addition of points to a table
 	Object.assign(VtxAdder, {
 		
 		initialize : function () {
@@ -176,7 +177,7 @@
 				return [xCol.values[prevLoc], yCol.values[prevLoc]];
 			}; // !getClosingVertex ()
 			
-		}, // !initialize ()
+		},
 		
 		
 		
@@ -196,7 +197,7 @@
 			
 			VtxAdder.ExprID = expList[idx].id;
 			return true;
-		}, // !bindExpression ()
+		},
 		
 		
 		
@@ -235,7 +236,7 @@
 			} // !if
 			
 			return VtxAdder.TableState.HAS_TRAIL;
-		}, // !validateExpression ()
+		},
 		
 		
 		
@@ -244,7 +245,7 @@
 			return calcExpressions.findIndex((elem) => {
 				return elem.id === VtxAdder.ExprID;
 			});
-		}, // !getIndex ()
+		},
 		
 		
 		
@@ -272,12 +273,13 @@
 			return true;
 		},
 		
-	}); // !VtxAdder assign
+	});
 	
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// Main Script
 	
+	// Initializes the GUI of the script
 	function mousePen() {
 		const GUI_GAP = 4;
 		
@@ -442,9 +444,11 @@
 								showTableButton(true, exprNode);
 							} else {
 								showTableButton(false, null);
+								showDrawer(false);
 							}
 						} else {
 							showTableButton(false, null);
+							showDrawer(false);
 						}
 					}
 					this.onHold = false;
@@ -619,7 +623,6 @@
 		// !findExpressionPanel ()
 		
 	}
-	// !mousePen ()
 	
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -632,15 +635,12 @@
 			return elem.id === id;
 		});
 	}
-	// !getExprIndex ()
-	
 	
 	
 	// Returns true if node is a table expression element
 	function isExprNodeTable(node) {
 		return node.classList.contains(EXPR_TABLE_CLASS);
 	}
-	
 	
 	
 	// creates a tree of elements and appends them into parentNode. Returns an object containing all named nodes
@@ -681,8 +681,6 @@
 		}
 		return recurseTree(parentNode, nodeTree, []);
 	}
-	// !insertNodes ()
-	
 	
 	
 	// Finds a parent of a child by class
@@ -704,7 +702,6 @@
 	}
 	
 	
-	
 	// performs a query on parent and aggregates all found values of a specified attribute
 	function seekAttribute(parent, query, attName) {
 		let output = [];
@@ -724,7 +721,6 @@
 	}
 	
 	
-	
 	// performs a query on parent and aggregates all found nodes that have the specified attribute (attName)
 	function getElementsByAttribute(parent, query, attName) {
 		let output = [];
@@ -742,7 +738,6 @@
 		
 		return output;
 	}
-	// !getElementsByAttribute ()
 	
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
