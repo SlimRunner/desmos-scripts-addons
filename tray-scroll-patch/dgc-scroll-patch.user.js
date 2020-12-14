@@ -1,13 +1,13 @@
 // ==UserScript==
-// @name     	ColorTrayPatch
-// @namespace	slidav.Desmos
-// @version  	1.0.6
-// @author		SlimRunner (David Flores)
-// @description	Adds a color picker to Desmos
-// @grant    	none
-// @match			https://*.desmos.com/calculator*
-// @downloadURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/tray-scroll-patch/dgc-scroll-patch.user.js
-// @updateURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/tray-scroll-patch/dgc-scroll-patch.user.js
+// @name        ColorTrayPatch
+// @namespace   slidav.Desmos
+// @version     1.0.6
+// @author      SlimRunner (David Flores)
+// @description Adds a color picker to Desmos
+// @grant       none
+// @match       https://*.desmos.com/calculator*
+// @downloadURL https://github.com/SlimRunner/desmos-scripts-addons/raw/master/tray-scroll-patch/dgc-scroll-patch.user.js
+// @updateURL   https://github.com/SlimRunner/desmos-scripts-addons/raw/master/tray-scroll-patch/dgc-scroll-patch.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
@@ -17,7 +17,6 @@
 	const TRAY_QUERY = '.dcg-options-menu-section .dcg-options-menu-content .dcg-color-picker-container';
 	
 	var Calc;
-	var Desmos;
 	
 	defineScript();
 	
@@ -289,7 +288,6 @@
 			window.Desmos !== undefined &&
 			window.Calc !== undefined
 		) {
-			Desmos = window.Desmos;
 			Calc = window.Calc;
 			return true;
 		} else {
