@@ -1,13 +1,13 @@
 // ==UserScript==
-// @name     	DesmosTableTools
-// @namespace	slidav.Desmos
-// @version  	1.1.2
-// @author		SlimRunner (David Flores)
-// @description	Adds tools to manipulate tables
-// @grant    	none
-// @match			https://*.desmos.com/calculator*
-// @downloadURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
-// @updateURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
+// @name        DesmosTableTools
+// @namespace   slidav.Desmos
+// @version     1.1.2
+// @author      SlimRunner (David Flores)
+// @description Adds tools to manipulate tables
+// @grant       none
+// @match       https://*.desmos.com/calculator*
+// @downloadURL https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
+// @updateURL   https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
@@ -21,7 +21,6 @@
 	
 	// Global variables imported from host (initialized in loadCheck)
 	var Calc;
-	var Desmos;
 	
 	defineScript();
 	
@@ -810,7 +809,6 @@
 			window.Desmos !== undefined &&
 			window.Calc !== undefined
 		) {
-			Desmos = window.Desmos;
 			Calc = window.Calc;
 			return true;
 		} else {
