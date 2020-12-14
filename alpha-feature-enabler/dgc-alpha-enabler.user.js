@@ -1,20 +1,19 @@
 // ==UserScript==
-// @name     	DesmosAlphaEnabler
-// @namespace	slidav.Desmos
-// @version  	1.0.2
-// @author		SlimRunner (David Flores)
-// @description	Enables simulation and advanced styling automatically
-// @grant    	none
-// @match			https://*.desmos.com/calculator*
-// @downloadURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/alpha-feature-enabler/dgc-alpha-enabler.user.js
-// @updateURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/alpha-feature-enabler/dgc-alpha-enabler.user.js
+// @name        DesmosAlphaEnabler
+// @namespace   slidav.Desmos
+// @version     1.0.2
+// @author      SlimRunner (David Flores)
+// @description Enables simulation and advanced styling automatically
+// @grant       none
+// @match       https://*.desmos.com/calculator*
+// @downloadURL https://github.com/SlimRunner/desmos-scripts-addons/raw/master/alpha-feature-enabler/dgc-alpha-enabler.user.js
+// @updateURL   https://github.com/SlimRunner/desmos-scripts-addons/raw/master/alpha-feature-enabler/dgc-alpha-enabler.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
 
 (function() {
 	'use strict';
-	var Desmos;
 	var Calc;
 	
 	defineScript();
@@ -89,7 +88,6 @@
 			window.Desmos !== undefined &&
 			window.Calc !== undefined
 		) {
-			Desmos = window.Desmos;
 			Calc = window.Calc;
 			return true;
 		} else {
