@@ -1,22 +1,24 @@
 // ==UserScript==
-// @name     	DesmosColorRightClick
-// @namespace	slidav.Desmos
-// @version  	1.1.3
-// @author		SlimRunner (David Flores)
-// @description	Overrides context menu for color bubble
-// @grant    	none
-// @match			https://*.desmos.com/calculator*
-// @downloadURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
-// @updateURL	https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
+// @name        DesmosColorRightClick
+// @namespace   slidav.Desmos
+// @version     1.1.4
+// @author      SlimRunner (David Flores)
+// @description Overrides context menu for color bubble
+// @grant       none
+// @match       https://*.desmos.com/calculator*
+// @match       https://*.desmos.com/activitybuilder/custom/*/edit*
+// @downloadURL https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
+// @updateURL   https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
 
 (function() {
 	'use strict';
+	const QRY_EDITOR_MAIN = '.editor-main .editor-main-container';
+	const IS_BUILDER = isActivityBuilder();
 	
 	var Desmos;
-	var Calc;
 	
 	defineScript();
 	
@@ -172,14 +174,25 @@
 		}
 	}
 	
+	// determines if the context is that of an activitybuilder app
+	function isActivityBuilder() {
+		return /https:\/\/.*\.desmos\.com\/activitybuilder\/custom\/\w*\/edit.*/.test(document.URL);
+	}
+	
 	// checks if calc and desmos are defined
 	function isCalcReady() {
 		if (
+			IS_BUILDER &&
+			window.Desmos !== undefined &&
+			document.querySelector(QRY_EDITOR_MAIN) !== null
+		) {
+			Desmos = window.Desmos;
+			return true;
+		} else if (
 			window.Desmos !== undefined &&
 			window.Calc !== undefined
 		) {
 			Desmos = window.Desmos;
-			Calc = window.Calc;
 			return true;
 		} else {
 			return false;
