@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        ColorTrayPatch
 // @namespace   slidav.Desmos
-// @version     1.0.6
+// @version     1.0.7
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -15,6 +15,7 @@
 (function() {
 	'use strict';
 	const TRAY_QUERY = '.dcg-options-menu-section .dcg-options-menu-content .dcg-color-picker-container';
+	const MENU_QUERY = '.dcg-expressions-options-menu.dcg-options-menu';
 	
 	var Calc;
 	
@@ -68,8 +69,9 @@
 		
 		hookMenu(
 			TRAY_QUERY,
+			MENU_QUERY,
 			
-			(elem, found) => {
+			(elem, found, isFback) => {
 				let parent = seekParent(elem, 4);
 				if (found) {
 					changeTraySize(elem);
@@ -87,6 +89,15 @@
 					observingCalc = false;
 					// stop observing changes on desmos color menu (was closed)
 					Calc.unobserveEvent('change.colortray');
+				} else if (isFback) {
+					observingCalc = true;
+					// update tray dynamically when color tray is hidden
+					Calc.observeEvent('change.colortray', () => {
+						let elem = document.querySelector(TRAY_QUERY);
+						if (elem !== null) {
+							changeTraySize(elem);
+						}
+					});
 				}
 			}
 			
@@ -162,24 +173,15 @@
 	}
 	
 	// triggers a callback whenever an expression menu in Desmos is deployed
-	function hookMenu(mainQuery, callback) {
+	function hookMenu(mainQuery, fallbackQuery, callback) {
 		// initializes observer
 		let menuObserver = new MutationObserver( obsRec => {
-			let menuElem;
-			let isFound = false;
-			
-			// seek for color context menu, sets isFound to true when found
-			obsRec.forEach((record) => {
-				record.addedNodes.forEach((node) => {
-					if ( typeof node.querySelector === 'function' && !isFound) {
-						menuElem = node.querySelector(mainQuery);
-						if (menuElem !== null) isFound = true;
-					}
-				});
-			});
+			let menuElem = document.querySelector(mainQuery);
+			let isFound = menuElem !== null;
+			let isFallback = document.querySelector(fallbackQuery) !== null;
 			
 			// executes callback with data found
-			callback(menuElem, isFound);
+			callback(menuElem, isFound, isFallback);
 			
 		}); // !MutationObserver
 		
