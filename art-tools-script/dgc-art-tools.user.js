@@ -299,33 +299,55 @@
 							]
 						}]
 					}]
+				}, {
+					tag: 'div',
+					varName: 'urlButton',
+					attributes: [
+						{name: 'title', value: 'Paste image url'}
+					],
+					classes: [
+						'sli-menu-button',
+						'dcg-btn-flat-gray',
+						'sli-dcg-icon-align'
+					],
+					group : [{
+						tag : 'i',
+						classes : [
+							'dcg-icon-clipboard'
+						]
+					}]
 				}]
 			}]
 		});
 		
 		// groups all buttons from context menu in a list
 		buttonList = [
-			ctrColor.colorButton
+			ctrColor.colorButton,
+			ctrColor.urlButton
 		];
 		
 		// executes a function when the color menu is triggered
-		hookMenu('.dcg-expressions-options-menu,.dcg-table-column-menu', seekColorContext,
-		(menuElem, expItem, menuFound) => {
-			// desmos context menu showed up or hid
-			ActiveItem.menuVisible = menuFound;
-			
-			if (menuFound) {
-				// capture expression and node when menu is visible
-				ActiveItem.expression = expItem;
-				ActiveItem.element = menuElem;
-				setMenuLocation();
+		hookMenu(
+			'.dcg-expressions-options-menu,.dcg-table-column-menu,.dcg-image-options-menu',
+			seekColorContext,
+			(menuElem, expItem, menuFound) => {
+				console.log(menuFound);
+				// desmos context menu showed up or hid
+				ActiveItem.menuVisible = menuFound;
+				
+				if (menuFound) {
+					// capture expression and node when menu is visible
+					ActiveItem.expression = expItem;
+					ActiveItem.element = menuElem;
+					setMenuLocation();
+				}
+				
+				if (!ActiveItem.menuActive) {
+					// hides custom menu if desmos menu is gone, but my menu is not active (e.g. being hovered or being clicked)
+					showPropMenu(menuFound);
+				}
 			}
-			
-			if (!ActiveItem.menuActive) {
-				// hides custom menu if desmos menu is gone, but my menu is not active (e.g. being hovered or being clicked)
-				showPropMenu(menuFound);
-			}
-		});
+		);
 		
 	}
 	
@@ -333,18 +355,8 @@
 	function hookMenu(mainQuery, scrapePredicate, callback) {
 		// initializes observer
 		let menuObserver = new MutationObserver( obsRec => {
-			let menuElem;
-			let isFound = false;
-			
-			// seek for color context menu, sets isFound to true when found
-			obsRec.forEach((record) => {
-				record.addedNodes.forEach((node) => {
-					if ( typeof node.querySelector === 'function' && !isFound) {
-						menuElem = node.querySelector(mainQuery);
-						if (menuElem !== null) isFound = true;
-					}
-				});
-			});
+			let menuElem = document.querySelector(mainQuery);
+			let isFound = menuElem !== null;
 			
 			let expItem = {};
 			
@@ -375,8 +387,8 @@
 	function seekColorContext() {
 		const expressionQuery = '.dcg-expressionitem.dcg-depressed,.dcg-expressionitem.dcg-hovered';
 		const tableQuery = '.dcg-expressionitem.dcg-expressiontable.dcg-depressed,.dcg-expressionitem.dcg-expressiontable.dcg-hovered';
+		const imageQuery = '.dcg-expressionitem.dcg-expressionimage.dcg-depressed,.dcg-expressionitem.dcg-expressionimage.dcg-hovered'
 		const cellQuery = '.dcg-cell.dcg-depressed,.dcg-cell.dcg-hovered';
-		
 		let expElem;
 		
 		if (expElem = document.querySelector(tableQuery)) {
@@ -387,6 +399,15 @@
 				type: 'table',
 				id: eID,
 				colIndex: seekAttribute(expElem, cellQuery, 'index'),
+				index: getExprIndex(eID)
+			};
+		} else if (expElem = document.querySelector(imageQuery)) {
+			let eID = expElem.getAttribute('expr-id');
+			// this is an image
+			return {
+				elem: expElem,
+				type: 'image',
+				id: eID,
 				index: getExprIndex(eID)
 			};
 		} else if (expElem = document.querySelector(expressionQuery)) {
@@ -412,11 +433,20 @@
 	// dynamically show of hide buttons
 	function prepareMenu() {
 		let stExpr = getStateExpr(ActiveItem.expression.index);
-		
-		if (stExpr.hasOwnProperty('colorLatex')) {
+		console.log(ActiveItem.expression);
+		if (
+			stExpr.hasOwnProperty('colorLatex') ||
+			ActiveItem.expression.type === 'image'
+		) {
 			ctrColor.colorButton.style.display = 'none';
 		} else {
 			ctrColor.colorButton.style.display = 'block';
+		}
+		
+		if (ActiveItem.expression.type === 'image') {
+			ctrColor.urlButton.style.display = 'block';
+		} else {
+			ctrColor.urlButton.style.display = 'none';
 		}
 		
 		// get number of displayed childs
@@ -468,6 +498,7 @@
 	
 	// sets the color preview on contex menu button
 	function updateColorPreview() {
+		if (ctrColor.colorButton.style.display === 'none') return;
 		let [r, g, b, al = 1] = getRGBpack(
 			getCurrentColor()
 		).map((n, i) => {
@@ -1533,6 +1564,14 @@
 		bindListenerToNodes(buttonList, 'click', () => {
 			ActiveItem.menuActive = false;
 			showPropMenu(false);
+		});
+		
+		//
+		ctrColor.urlButton.addEventListener('click', (e) => {
+			let urltext = window.prompt();
+			let st = Calc.getState();
+			st.expressions.list[ActiveItem.expression.index].image_url = urltext;
+			Calc.setState(st);
 		});
 		
 		// event that triggers when user clicks color button
