@@ -1569,7 +1569,7 @@
 			let urltext = window.prompt();
 			let st = Calc.getState();
 			st.expressions.list[ActiveItem.expression.index].image_url = urltext;
-			if (urltext !== '') {
+			if (urltext !== '' && urltext != null) {
 				Calc.setState(st, {allowUndo: true});
 			}
 		});
