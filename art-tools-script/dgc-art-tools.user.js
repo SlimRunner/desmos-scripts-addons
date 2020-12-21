@@ -1571,7 +1571,7 @@
 			let urltext = window.prompt();
 			let st = Calc.getState();
 			st.expressions.list[ActiveItem.expression.index].image_url = urltext;
-			Calc.setState(st);
+			Calc.setState(st, {allowUndo: true});
 		});
 		
 		// event that triggers when user clicks color button
