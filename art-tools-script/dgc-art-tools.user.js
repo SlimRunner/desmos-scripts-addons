@@ -331,7 +331,6 @@
 			'.dcg-expressions-options-menu,.dcg-table-column-menu,.dcg-image-options-menu',
 			seekColorContext,
 			(menuElem, expItem, menuFound) => {
-				console.log(menuFound);
 				// desmos context menu showed up or hid
 				ActiveItem.menuVisible = menuFound;
 				
@@ -433,7 +432,6 @@
 	// dynamically show of hide buttons
 	function prepareMenu() {
 		let stExpr = getStateExpr(ActiveItem.expression.index);
-		console.log(ActiveItem.expression);
 		if (
 			stExpr.hasOwnProperty('colorLatex') ||
 			ActiveItem.expression.type === 'image'
