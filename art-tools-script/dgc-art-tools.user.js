@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.5.0
+// @version     1.5.1
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
