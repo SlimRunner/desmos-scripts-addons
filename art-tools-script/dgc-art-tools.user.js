@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.4.4
+// @version     1.5.0
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -1564,13 +1564,24 @@
 			showPropMenu(false);
 		});
 		
-		//
+		// event that triggers when user clicks url button
 		ctrColor.urlButton.addEventListener('click', (e) => {
 			let urltext = window.prompt();
-			let st = Calc.getState();
-			st.expressions.list[ActiveItem.expression.index].image_url = urltext;
+			let state = Calc.getState();
+			let aliasList = state.expressions.list;
+			let idx = ActiveItem.expression.index;
 			if (urltext !== '' && urltext != null) {
-				Calc.setState(st, {allowUndo: true});
+				getMeta(urltext, (e) => {
+					const MAX_SIZE = 10;
+					let w = e.target.width, h = e.target.height;
+					let iw = MAX_SIZE, ih = MAX_SIZE;
+					if (w > h) { ih = iw * h / w; }
+					else { iw = ih * w / h; }
+					aliasList[idx].image_url = urltext;
+					aliasList[idx].width = iw.toString();
+					aliasList[idx].height = ih.toString();
+					Calc.setState(state, {allowUndo: true});
+				});
 			}
 		});
 		
@@ -2066,6 +2077,15 @@
 		for (let elem of elemList) {
 			elem.addEventListener(eventName, callback);
 		}
+	}
+	
+	// stackoverflow: q:11442712, a:11442850
+	// get image metadata
+	function getMeta(url, callback) {
+		if (!callback instanceof Function) return;
+		var img = new Image();
+		img.onload = callback;
+		img.src = url;
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
