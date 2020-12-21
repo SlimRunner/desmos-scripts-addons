@@ -1566,7 +1566,7 @@
 		
 		// event that triggers when user clicks url button
 		ctrColor.urlButton.addEventListener('click', (e) => {
-			let urltext = window.prompt();
+			let urltext = window.prompt('Enter an image URL:');
 			let state = Calc.getState();
 			let aliasList = state.expressions.list;
 			let idx = ActiveItem.expression.index;
