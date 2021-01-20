@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArchiver
 // @namespace   slidav.Desmos
-// @version     1.0.0
+// @version     1.0.1
 // @author      SlimRunner (David Flores)
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
@@ -108,7 +108,7 @@
 						varName: 'loadButton',
 						attributes: [
 							{name: 'type', value: 'file'},
-							{name: 'accept', value: 'image/png'}
+							{name: 'accept', value: 'text/plain'}
 						]
 					},{
 						tag : 'i',
