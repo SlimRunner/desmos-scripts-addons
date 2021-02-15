@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArchiver
 // @namespace   slidav.Desmos
-// @version     1.0.1
+// @version     1.0.2
 // @author      SlimRunner (David Flores)
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
@@ -22,6 +22,7 @@
 	// Global data structures & objects
 	
 	const FILE_SIGNATURE = 'PCKL';
+	const QRY_MAIN_CONT = '#graph-container .dcg-container';
 	var ctrs;
 	
 	// creates an error with custom name
@@ -47,6 +48,14 @@
 	
 	// Initializes the script GUI
 	function initGUI() {
+		let graphContainer = document.querySelector(QRY_MAIN_CONT);
+		if (graphContainer == null) {
+			throw new CustomError(
+				'Page Error',
+				'Graph containter was not found'
+			);
+		}
+		
 		insertNodes(document.head, {
 			group : [{
 				tag : 'style',
@@ -60,7 +69,6 @@
 					gap: 8px;
 					
 					position: fixed !important;
-					z-index: 99;
 					transition: opacity 0.1s ease-out;
 					
 					padding: 0px;
@@ -85,7 +93,7 @@
 		})
 		
 		// https://stackoverflow.com/a/25825731
-		ctrs = insertNodes(document.body, {
+		ctrs = insertNodes(graphContainer, {
 			group: [{
 				tag: 'div',
 				varName: 'drawerMenu',
