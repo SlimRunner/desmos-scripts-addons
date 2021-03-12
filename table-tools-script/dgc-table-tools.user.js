@@ -627,6 +627,17 @@
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// Helper Functions
 	
+	// copies text to clipboard
+	function copyToClipboard(str) {
+		// https://www.30secondsofcode.org/blog/s/copy-text-to-clipboard-with-javascript
+		const el = document.createElement('textarea');
+		el.value = str;
+		document.body.appendChild(el);
+		el.select();
+		document.execCommand('copy');
+		document.body.removeChild(el);
+	}
+	
 	// Gets the expression index of a given ID within the Calc object
 	function getExprIndex (id) {
 		let exprs = Calc.getState().expressions.list;
