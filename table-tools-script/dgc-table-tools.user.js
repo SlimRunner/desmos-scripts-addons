@@ -627,6 +627,23 @@
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// Helper Functions
 	
+	// returns csv formated evaluation of a table
+	function tableToString(idx, sep = '\t') {
+		let table = Calc
+			.controller
+			.getListModel()
+			.__itemModelArray[idx]
+			.columnModels
+			.map((item, i) => {
+				return [item.latex, ...item.computedValues];
+			}
+		).filter((item, i) => {
+			return item.length > 1;
+		});
+		
+		return arrayToCSV(table, sep);
+	}
+	
 	// converts column array to csv
 	function arrayToCSV(arr, sep = ',') {
 		if (arr == null || arr.length === 0) return '';
