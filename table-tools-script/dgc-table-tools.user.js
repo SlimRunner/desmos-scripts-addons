@@ -403,6 +403,23 @@
 							'dcg-icon-lines-solid'
 						]
 					}]
+				}, {
+					tag : 'div',
+					varName : 'copyTableButton',
+					attributes: [
+						{name: 'title', value: 'copy table'}
+					],
+					classes : [
+						'sli-dtt-drawer-button',
+						'dcg-btn-flat-gray',
+						'sli-dtt-table-dcg-icon-align'
+					],
+					group : [{
+						tag : 'i',
+						classes : [
+							'dcg-icon-duplicate'
+						]
+					}]
 				}]
 			}]
 		});
@@ -434,17 +451,7 @@
 						) {
 							let expid = exprNode.getAttribute('expr-id');
 							hoverExprIdx = getExprIndex(expid);
-							let exprs = Calc.getExpressions()[hoverExprIdx];
-							
-							if (
-								VtxAdder.validateExpression(exprs) !==
-								VtxAdder.TableState.INVALID
-							) {
-								showTableButton(true, exprNode);
-							} else {
-								showTableButton(false, null);
-								showDrawer(false);
-							}
+							showTableButton(true, exprNode);
 						} else {
 							showTableButton(false, null);
 							showDrawer(false);
@@ -525,6 +532,10 @@
 			VtxAdder.addPolygon(); // returns false when it can't add polygon
 		});
 		
+		ctNodes.copyTableButton.addEventListener('click', () => {
+			copyToClipboard(tableToString(activeExprIdx));
+		});
+		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		// GUI MANAGEMENT
 		
@@ -558,9 +569,19 @@
 		
 		// shows or hides dynamic options within drawer menu
 		function refreshDrawerMenu() {
-			if (VtxAdder.getIndex() === activeExprIdx) {
-				ctNodes.addPolyButton.style.display = 'block';
+			let exprs = Calc.getExpressions()[hoverExprIdx];
+			if (
+				VtxAdder.validateExpression(exprs) !==
+				VtxAdder.TableState.INVALID
+			) {
+				ctNodes.bindToggle.style.display = 'block';
+				if (VtxAdder.getIndex() === activeExprIdx) {
+					ctNodes.addPolyButton.style.display = 'block';
+				} else {
+					ctNodes.addPolyButton.style.display = 'none';
+				}
 			} else {
+				ctNodes.bindToggle.style.display = 'none';
 				ctNodes.addPolyButton.style.display = 'none';
 			}
 			
