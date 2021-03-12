@@ -525,7 +525,7 @@
 			VtxAdder.addPolygon(); // returns false when it can't add polygon
 		});
 		
-		/***************************************************************************/
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		// GUI MANAGEMENT
 		
 		// shows or hides div element with table options
@@ -610,7 +610,7 @@
 		}
 		
 		
-		/***************************************************************************/
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		// DOM MANAGEMENT
 		
 		// finds element that contains the expressions in Desmos
