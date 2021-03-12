@@ -627,6 +627,24 @@
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// Helper Functions
 	
+	// converts column array to csv
+	function arrayToCSV(arr, sep = ',') {
+		if (arr == null || arr.length === 0) return '';
+		const getLargestArray = (a,e) => (e.length>a.length?e:a);
+		let maxsize = arr.reduce(getLargestArray).length;
+		let output = [];
+		
+		for (var col = 0; col < maxsize; ++col) {
+			output.push(
+				arr.map(e => (col < e.length? e[col].toString(): ''))
+			);
+		}
+		
+		return output.map((item) => {
+			return item.join(sep);
+		}).join('\n');
+	}
+	
 	// copies text to clipboard
 	function copyToClipboard(str) {
 		// https://www.30secondsofcode.org/blog/s/copy-text-to-clipboard-with-javascript
