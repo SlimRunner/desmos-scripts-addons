@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosTableTools
 // @namespace   slidav.Desmos
-// @version     1.1.3
+// @version     1.1.4
 // @author      SlimRunner (David Flores)
 // @description Adds tools to manipulate tables
 // @grant       none
@@ -403,6 +403,23 @@
 							'dcg-icon-lines-solid'
 						]
 					}]
+				}, {
+					tag : 'div',
+					varName : 'copyTableButton',
+					attributes: [
+						{name: 'title', value: 'copy table'}
+					],
+					classes : [
+						'sli-dtt-drawer-button',
+						'dcg-btn-flat-gray',
+						'sli-dtt-table-dcg-icon-align'
+					],
+					group : [{
+						tag : 'i',
+						classes : [
+							'dcg-icon-duplicate'
+						]
+					}]
 				}]
 			}]
 		});
@@ -434,17 +451,7 @@
 						) {
 							let expid = exprNode.getAttribute('expr-id');
 							hoverExprIdx = getExprIndex(expid);
-							let exprs = Calc.getExpressions()[hoverExprIdx];
-							
-							if (
-								VtxAdder.validateExpression(exprs) !==
-								VtxAdder.TableState.INVALID
-							) {
-								showTableButton(true, exprNode);
-							} else {
-								showTableButton(false, null);
-								showDrawer(false);
-							}
+							showTableButton(true, exprNode);
 						} else {
 							showTableButton(false, null);
 							showDrawer(false);
@@ -525,7 +532,11 @@
 			VtxAdder.addPolygon(); // returns false when it can't add polygon
 		});
 		
-		/***************************************************************************/
+		ctNodes.copyTableButton.addEventListener('click', () => {
+			copyToClipboard(tableToString(activeExprIdx));
+		});
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		// GUI MANAGEMENT
 		
 		// shows or hides div element with table options
@@ -558,9 +569,19 @@
 		
 		// shows or hides dynamic options within drawer menu
 		function refreshDrawerMenu() {
-			if (VtxAdder.getIndex() === activeExprIdx) {
-				ctNodes.addPolyButton.style.display = 'block';
+			let exprs = Calc.getExpressions()[hoverExprIdx];
+			if (
+				VtxAdder.validateExpression(exprs) !==
+				VtxAdder.TableState.INVALID
+			) {
+				ctNodes.bindToggle.style.display = 'block';
+				if (VtxAdder.getIndex() === activeExprIdx) {
+					ctNodes.addPolyButton.style.display = 'block';
+				} else {
+					ctNodes.addPolyButton.style.display = 'none';
+				}
 			} else {
+				ctNodes.bindToggle.style.display = 'none';
 				ctNodes.addPolyButton.style.display = 'none';
 			}
 			
@@ -610,7 +631,7 @@
 		}
 		
 		
-		/***************************************************************************/
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		// DOM MANAGEMENT
 		
 		// finds element that contains the expressions in Desmos
@@ -626,6 +647,52 @@
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// Helper Functions
+	
+	// returns csv formated evaluation of a table
+	function tableToString(idx, sep = '\t') {
+		let table = Calc
+			.controller
+			.getListModel()
+			.__itemModelArray[idx]
+			.columnModels
+			.map((item, i) => {
+				return [item.latex, ...item.computedValues];
+			}
+		).filter((item, i) => {
+			return item.length > 1;
+		});
+		
+		return arrayToCSV(table, sep);
+	}
+	
+	// converts column array to csv
+	function arrayToCSV(arr, sep = ',') {
+		if (arr == null || arr.length === 0) return '';
+		const getLargestArray = (a,e) => (e.length>a.length?e:a);
+		let maxsize = arr.reduce(getLargestArray).length;
+		let output = [];
+		
+		for (var col = 0; col < maxsize; ++col) {
+			output.push(
+				arr.map(e => (col < e.length? e[col].toString(): ''))
+			);
+		}
+		
+		return output.map((item) => {
+			return item.join(sep);
+		}).join('\n');
+	}
+	
+	// copies text to clipboard
+	function copyToClipboard(str) {
+		// https://www.30secondsofcode.org/blog/s/copy-text-to-clipboard-with-javascript
+		const el = document.createElement('textarea');
+		el.value = str;
+		document.body.appendChild(el);
+		el.select();
+		document.execCommand('copy');
+		document.body.removeChild(el);
+	}
 	
 	// Gets the expression index of a given ID within the Calc object
 	function getExprIndex (id) {
