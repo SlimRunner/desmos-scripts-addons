@@ -6,6 +6,8 @@
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
 // @match       https://*.desmos.com/calculator*
+// @downloadURL https://github.com/SlimRunner/desmos-scripts-addons/raw/master/graph-archival-script/dgc-graph-archive.user.js
+// @updateURL   https://github.com/SlimRunner/desmos-scripts-addons/raw/master/graph-archival-script/dgc-graph-archive.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
