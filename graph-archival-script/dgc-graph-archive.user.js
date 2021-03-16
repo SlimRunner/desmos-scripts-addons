@@ -1,13 +1,11 @@
 // ==UserScript==
 // @name        DesmosArchiver
 // @namespace   slidav.Desmos
-// @version     1.0.2
+// @version     1.0.3
 // @author      SlimRunner (David Flores)
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
 // @match       https://*.desmos.com/calculator*
-// @downloadURL https://github.com/SlimRunner/desmos-scripts-addons/raw/master/graph-archival-script/dgc-graph-archive.user.js
-// @updateURL   https://github.com/SlimRunner/desmos-scripts-addons/raw/master/graph-archival-script/dgc-graph-archive.user.js
 // ==/UserScript==
 
 /*jshint esversion: 6 */
