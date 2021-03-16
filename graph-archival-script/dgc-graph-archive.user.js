@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArchiver
 // @namespace   slidav.Desmos
-// @version     1.0.3
+// @version     1.0.4
 // @author      SlimRunner (David Flores)
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
@@ -19,7 +19,6 @@
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// Global data structures & objects
 	
-	const FILE_SIGNATURE = 'PCKL';
 	const QRY_MAIN_CONT = '#graph-container .dcg-container';
 	var ctrs;
 	
