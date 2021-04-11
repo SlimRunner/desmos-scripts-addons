@@ -465,10 +465,7 @@
 			}
 			
 			let codex = Desmovie.fetchFormatFlag(
-				this._format, (
-					this._format === Desmovie.Formats.GIF?
-					`-loop ${this.loop ? 0 : -1} -lavfi palettegen=stats_mode=single[pal],[0:v][pal]paletteuse=new=1` : ''
-				)
+				this._format, {loop: this.loop}
 			);
 			let command = flagSpread(
 				`-r ${this.framerate} -pattern_type glob -i *.png ${codex} ${outfile}`
@@ -491,14 +488,17 @@
 			this._shortcircuit = true;
 		}
 		
-		static fetchFormatFlag(format, addFlags) {
+		static fetchFormatFlag(format, flags) {
+			let looped = flags.hasOwnProperty('loop') ? flags.loop : true;
 			switch (format) {
 				case Desmovie.Formats.MP4:
 					return '-c:v libx264 -pix_fmt yuv420p';
 				case Desmovie.Formats.WEBM:
 					return '-c:v libvpx-vp9 -b:v 2M';
 				case Desmovie.Formats.GIF:
-					return addFlags;
+					return `-loop ${looped ? 0 : -1} -lavfi ` +
+						'palettegen=stats_mode=single[pal],' +
+						'[0:v][pal]paletteuse=new=1';
 				default:
 					throw new Error('This format is not supported.');
 			}
