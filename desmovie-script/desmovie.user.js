@@ -68,8 +68,8 @@
 	class SSOptions {
 		constructor(
 			{
-				width = 640,
-				height = 480,
+				width,
+				height,
 				targetPixelRatio,
 				preserveAxisNumbers,
 				format,
@@ -78,12 +78,21 @@
 				mode
 			} = {}
 		) {
-			this._width = width;
-			this._height = height;
+			let bounds = Calc.graphpaperBounds;
+			let pixC = bounds.pixelCoordinates;
+			let mathC = bounds.mathCoordinates;
+			
+			this._width = Math.round(pixC.width);
+			this._height = Math.round(pixC.height);
 			this._targetPixelRatio = targetPixelRatio || null;
 			this._preserveAxisNumbers = preserveAxisNumbers || null;
 			this._format = format || null;
-			this._mathBounds = mathBounds || null;
+			this._mathBounds = mathBounds || {
+				left: mathC.left,
+				right: mathC.right,
+				bottom: mathC.bottom,
+				top: mathC.top
+			};
 			this._showLabels = showLabels || null;
 			this._mode = mode || null;
 		}
