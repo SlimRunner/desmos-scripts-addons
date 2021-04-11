@@ -411,7 +411,7 @@
 			const digitName = num => `0000${num}`.slice(-5);
 			const expModel = Calc.controller.getItemModel(this.ID);
 			
-			const stepThrough = () => {
+			const stepThrough = (idx) => {
 				if (this._type === 'sim') {
 					Calc.controller.dispatch({
 						id: this.ID,
@@ -421,7 +421,7 @@
 					const sliderName = expModel.latex.match(/(.+=).+/)[1];
 					Calc.setExpression({
 						id: this.ID,
-						latex: `${sliderName}${i}`
+						latex: `${sliderName}${idx}`
 					});
 				}
 			}
@@ -453,7 +453,7 @@
 			
 			let idx = (this._type === 'slider'? this.options.start : 0);
 			while (isFinished(idx)) {
-				stepThrough();
+				stepThrough(idx);
 				
 				let filename = `desmos.${digitName(counter)}.png`;
 				frameNames.push(filename);
