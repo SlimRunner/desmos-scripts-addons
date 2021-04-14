@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Desmovie
 // @namespace   slidav.Desmos
-// @version     1.0.1
+// @version     1.0.2
 // @author      SlimRunner (David Flores)
 // @description CLI style library to capture video in Desmos
 // @grant       none
@@ -82,8 +82,8 @@
 			let pixC = bounds.pixelCoordinates;
 			let mathC = bounds.mathCoordinates;
 			
-			this._width = Math.round(pixC.width);
-			this._height = Math.round(pixC.height);
+			this._width = width || Math.round(pixC.width);
+			this._height = height || Math.round(pixC.height);
 			this._targetPixelRatio = targetPixelRatio || null;
 			this._preserveAxisNumbers = preserveAxisNumbers || null;
 			this._format = format || null;
@@ -454,7 +454,7 @@
 			}
 			
 			console.log('Loading ffmpeg-core.js');
-			await ffmpeg.load();
+			if (!ffmpeg.isLoaded()) await ffmpeg.load();
 			console.log('Loading data');
 			
 			let start = this.options.start;
@@ -502,6 +502,7 @@
 			switch (format) {
 				case Desmovie.Formats.MP4:
 					return '-c:v libx264 -pix_fmt yuv420p';
+					// return '-c:v libx264 -preset slow';
 				case Desmovie.Formats.WEBM:
 					return '-c:v libvpx-vp9 -b:v 2M';
 				case Desmovie.Formats.GIF:
