@@ -1,1 +1,0 @@
-# Desmos Art Tools
