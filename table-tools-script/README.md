@@ -1,1 +1,0 @@
-# Desmos Table Tools
