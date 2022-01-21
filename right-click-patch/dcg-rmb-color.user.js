@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosColorRightClick
 // @namespace   slidav.Desmos
-// @version     1.1.4
+// @version     1.1.5
 // @author      SlimRunner (David Flores)
 // @description Overrides context menu for color bubble
 // @grant       none
@@ -113,16 +113,16 @@
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// User-Script Initialization
 	
-	// defines an object that is shared among my scripts 
+	// defines an object that is shared among my scripts
 	function defineScript() {
 		if (window.SLM === undefined) {
 			console.log(
 				'scripts by\n' +
-				' _____ _ _          ______                            \n' + 
-				'/  ___| (_)         | ___ \\                           \n' + 
-				'\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n' + 
-				' \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n' + 
-				'/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n' + 
+				' _____ _ _          ______                            \n' +
+				'/  ___| (_)         | ___ \\                           \n' +
+				'\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n' +
+				' \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n' +
+				'/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n' +
 				'\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n'
 			);
 			
@@ -179,6 +179,16 @@
 		return /https:\/\/.*\.desmos\.com\/activitybuilder\/custom\/\w*\/edit.*/.test(document.URL);
 	}
 	
+	function isInDesmodder() {
+		if (window.DesModder == undefined) {
+			return false;
+		} else {
+			return DesModder
+				.controller
+				.getPlugin("right-click-tray") !== undefined;
+		}
+	}
+	
 	// checks if calc and desmos are defined
 	function isCalcReady() {
 		if (
@@ -209,7 +219,13 @@
 			loadCheck.attempts++;
 		}
 		
-		if (!isCalcReady()) {
+		if (isInDesmodder()) {
+			SLM.pushMessage('warn', '%s aborted loading because DesModder plugin was detected', GM_info.script.name);
+			setTimeout(() => {
+				SLM.printMsgQueue();
+			}, SLM.MESSAGE_DELAY);
+		}
+		else if (!isCalcReady()) {
 			if (loadCheck.attempts < SLM.ATTEMPTS_LIMIT) {
 				window.setTimeout(loadCheck, SLM.ATTEMPTS_DELAY);
 			} else {
