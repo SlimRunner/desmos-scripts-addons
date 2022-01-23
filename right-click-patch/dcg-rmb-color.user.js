@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosColorRightClick
 // @namespace   slidav.Desmos
-// @version     1.1.6
+// @version     1.1.7
 // @author      SlimRunner (David Flores)
 // @description Overrides context menu for color bubble
 // @grant       none
@@ -27,11 +27,16 @@
 	
 	// initializes the event listeners
 	function initListeners () {
-		const isInDesmodder = (
-			window.DesModder == undefined?
-			() => false:
-			() => window.DesModder.controller.isPluginEnabled('right-click-tray')
-		);
+		const isInDesmodder = () => {
+			if (window.DesModder == undefined) {
+				return false;
+			} else {
+				return window
+					.DesModder
+					.controller
+					.isPluginEnabled('right-click-tray');
+			}
+		};
 		let showContextMenu = true;
 		
 		// cancels standard context menu
