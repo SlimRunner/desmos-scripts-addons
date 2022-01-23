@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosColorRightClick
 // @namespace   slidav.Desmos
-// @version     1.1.5
+// @version     1.1.6
 // @author      SlimRunner (David Flores)
 // @description Overrides context menu for color bubble
 // @grant       none
@@ -27,6 +27,11 @@
 	
 	// initializes the event listeners
 	function initListeners () {
+		const isInDesmodder = (
+			window.DesModder == undefined?
+			() => false:
+			() => window.DesModder.controller.isPluginEnabled('right-click-tray')
+		);
 		let showContextMenu = true;
 		
 		// cancels standard context menu
@@ -39,7 +44,7 @@
 		
 		// triggers the color menu and sets flag to cancel standard context menu
 		window.addEventListener('mousedown', (e) => {
-			if (e.button === 2) {
+			if (e.button === 2 && !isInDesmodder()) {
 				let tag = e.target.tagName.toLowerCase();
 				
 				// determines if clicked target is an icon container
@@ -179,16 +184,6 @@
 		return /https:\/\/.*\.desmos\.com\/activitybuilder\/custom\/\w*\/edit.*/.test(document.URL);
 	}
 	
-	function isInDesmodder() {
-		if (window.DesModder == undefined) {
-			return false;
-		} else {
-			return DesModder
-				.controller
-				.getPlugin("right-click-tray") !== undefined;
-		}
-	}
-	
 	// checks if calc and desmos are defined
 	function isCalcReady() {
 		if (
@@ -219,13 +214,7 @@
 			loadCheck.attempts++;
 		}
 		
-		if (isInDesmodder()) {
-			SLM.pushMessage('warn', '%s aborted loading because DesModder plugin was detected', GM_info.script.name);
-			setTimeout(() => {
-				SLM.printMsgQueue();
-			}, SLM.MESSAGE_DELAY);
-		}
-		else if (!isCalcReady()) {
+		if (!isCalcReady()) {
 			if (loadCheck.attempts < SLM.ATTEMPTS_LIMIT) {
 				window.setTimeout(loadCheck, SLM.ATTEMPTS_DELAY);
 			} else {
