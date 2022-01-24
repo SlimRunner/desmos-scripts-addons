@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.5.1
+// @version     1.5.2
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -132,7 +132,7 @@
 		TOGGLE_LIVE: constProperty(2)
 	});
 	
-	// stores the state of the color picker 
+	// stores the state of the color picker
 	const CPicker = Object.assign({}, {
 		show: showColorWheel,
 		hide: hideColorWheel,
@@ -344,6 +344,10 @@
 				if (!ActiveItem.menuActive) {
 					// hides custom menu if desmos menu is gone, but my menu is not active (e.g. being hovered or being clicked)
 					showPropMenu(menuFound);
+					setTimeout(() => {
+						// relocate to fix misplacement with tray-scroll-patch
+						setMenuLocation();
+					}, 20);
 				}
 			}
 		);
@@ -372,7 +376,7 @@
 		// finds the container of the contextual popups of Desmos
 		let menuContainer = getParentByQuery(document.body, '.dcg-exppanel-outer');
 		
-		if (menuContainer !== null) {	
+		if (menuContainer !== null) {
 			menuObserver.observe(menuContainer, {
 				childList: true
 			});
@@ -1267,7 +1271,7 @@
 			/*jshint bitwise: false */
 			x = (i/4) % wdt - CANV_MID;
 			// pipe used to convert operation to integer
-			y = ((i/4) / wdt|0) - CANV_MID; 
+			y = ((i/4) / wdt|0) - CANV_MID;
 			/*jshint bitwise: true */
 			
 			pix = getRGBfromHSV(
@@ -1352,7 +1356,7 @@
 			triangle[2].y		// to y
 		);
 		blackGrad.addColorStop(0, 'black');
-		blackGrad.addColorStop(1, 'white');	
+		blackGrad.addColorStop(1, 'white');
 		
 		pathTriangle(ctx, arrow, false);
 		ctx.lineCap = 'round';
@@ -2747,16 +2751,16 @@
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// User-Script Initialization
 	
-	// defines an object that is shared among my scripts 
+	// defines an object that is shared among my scripts
 	function defineScript() {
 		if (window.SLM === undefined) {
 			console.log(
 				'scripts by\n' +
-				' _____ _ _          ______                            \n' + 
-				'/  ___| (_)         | ___ \\                           \n' + 
-				'\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n' + 
-				' \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n' + 
-				'/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n' + 
+				' _____ _ _          ______                            \n' +
+				'/  ___| (_)         | ___ \\                           \n' +
+				'\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n' +
+				' \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n' +
+				'/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n' +
 				'\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n'
 			);
 			
