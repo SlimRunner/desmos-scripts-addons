@@ -90,7 +90,7 @@
 				
 				if (
 					VtxAdder.getIndex() !== -1 &&
-					e.ctrlKey &&
+					e.altKey &&
 					e.buttons === 1
 				) {
 					
@@ -797,7 +797,7 @@
 				if (typeof node.getAttribute !== 'function') return 0;
 				if (node.getAttributeNames().indexOf(attName) !== -1) {
 					output.push(node);
-				} 
+				}
 			});
 			
 		}
@@ -809,16 +809,16 @@
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	// User-Script Initialization
 	
-	// defines an object that is shared among my scripts 
+	// defines an object that is shared among my scripts
 	function defineScript() {
 		if (window.SLM === undefined) {
 			console.log(
 				'scripts by\n' +
-				' _____ _ _          ______                            \n' + 
-				'/  ___| (_)         | ___ \\                           \n' + 
-				'\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n' + 
-				' \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n' + 
-				'/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n' + 
+				' _____ _ _          ______                            \n' +
+				'/  ___| (_)         | ___ \\                           \n' +
+				'\\ \`--.| |_ _ __ ___ | |_/ /   _ _ __  _ __   ___ _ __ \n' +
+				' \`--. \\ | | \'_ \` _ \\|    / | | | \'_ \\| \'_ \\ / _ \\ \'__|\n' +
+				'/\\__/ / | | | | | | | |\\ \\ |_| | | | | | | |  __/ |   \n' +
 				'\\____/|_|_|_| |_| |_\\_| \\_\\__,_|_| |_|_| |_|\\___|_|   \n'
 			);
 			
