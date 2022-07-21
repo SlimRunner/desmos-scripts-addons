@@ -5,7 +5,7 @@
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
-// @match       https://*.desmos.com/calculator*
+// @match       https://www.desmos.com/calculator
 // @downloadURL https://github.com/SlimRunner/desmos-scripts-addons/raw/master/art-tools-script/dgc-art-tools.user.js
 // @updateURL   https://github.com/SlimRunner/desmos-scripts-addons/raw/master/art-tools-script/dgc-art-tools.user.js
 // ==/UserScript==
