@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.5.2
+// @version     1.5.3
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -374,7 +374,9 @@
 		}); // !MutationObserver
 		
 		// finds the container of the contextual popups of Desmos
-		let menuContainer = getParentByQuery(document.body, '.dcg-exppanel-outer');
+		let menuContainer = document.body.querySelector(
+			'.dcg-container.dcg-is-interactive.dcg-tap-container'
+		);
 		
 		if (menuContainer !== null) {
 			menuObserver.observe(menuContainer, {
