@@ -90,7 +90,7 @@
 				
 				if (
 					VtxAdder.getIndex() !== -1 &&
-					e.ctrlKey &&
+					e.ctrlKey || e.altKey || e?.metaKey &&
 					e.buttons === 1
 				) {
 					
