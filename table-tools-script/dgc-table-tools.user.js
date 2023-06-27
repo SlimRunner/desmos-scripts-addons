@@ -227,14 +227,16 @@
 			
 			--lastIdx;
 			
-			if (
-				expr.columns[0].values[lastIdx] &&
-				expr.columns[1].values[lastIdx]
-			) {
-				return VtxAdder.TableState.NO_TRAIL;
-			} // !if
+			//Desmos seem to not add empty heads anymore
+			return VtxAdder.TableState.NO_TRAIL
+			// if (
+			// 	expr.columns[0].values[lastIdx] &&
+			// 	expr.columns[1].values[lastIdx]
+			// ) {
+			// 	return VtxAdder.TableState.NO_TRAIL;
+			// } // !if
 			
-			return VtxAdder.TableState.HAS_TRAIL;
+			// return VtxAdder.TableState.HAS_TRAIL;
 		},
 		
 		
@@ -383,7 +385,7 @@
 					group : [{
 						tag : 'i',
 						classes : [
-							'dcg-icon-cursor'
+							'dcg-icon-points'
 						]
 					}]
 				}, {
