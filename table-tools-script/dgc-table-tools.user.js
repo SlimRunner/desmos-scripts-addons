@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosTableTools
 // @namespace   slidav.Desmos
-// @version     1.1.4
+// @version     1.1.5
 // @author      SlimRunner (David Flores)
 // @description Adds tools to manipulate tables
 // @grant       none
