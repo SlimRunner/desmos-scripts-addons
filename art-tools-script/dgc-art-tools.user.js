@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.5.3
+// @version     1.5.4
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -374,12 +374,12 @@
 		}); // !MutationObserver
 		
 		// finds the container of the contextual popups of Desmos
-		let menuContainer = document.body.querySelector(
-			'.dcg-container.dcg-is-interactive.dcg-tap-container'
+		let colorTrayAssertion = document.body.querySelector(
+			'.dcg-aria-alert'
 		);
 		
-		if (menuContainer !== null) {
-			menuObserver.observe(menuContainer, {
+		if (colorTrayAssertion !== null) {
+			menuObserver.observe(colorTrayAssertion, {
 				childList: true
 			});
 		} else {
@@ -437,19 +437,11 @@
 	
 	// dynamically show of hide buttons
 	function prepareMenu() {
-		let stExpr = getStateExpr(ActiveItem.expression.index);
-		if (
-			stExpr.hasOwnProperty('colorLatex') ||
-			ActiveItem.expression.type === 'image'
-		) {
-			ctrColor.colorButton.style.display = 'none';
-		} else {
-			ctrColor.colorButton.style.display = 'block';
-		}
-		
 		if (ActiveItem.expression.type === 'image') {
+			ctrColor.colorButton.style.display = 'none';
 			ctrColor.urlButton.style.display = 'block';
 		} else {
+			ctrColor.colorButton.style.display = 'block';
 			ctrColor.urlButton.style.display = 'none';
 		}
 		
@@ -491,7 +483,8 @@
 	
 	// sets the location of the context menu
 	function setMenuLocation() {
-		let menu = ActiveItem.element.getBoundingClientRect();
+		let menu = ActiveItem.element?.getBoundingClientRect();
+		if (!menu) return;
 		
 		let x = menu.left + menu.width + 8;
 		let y = menu.top;
@@ -518,14 +511,34 @@
 	function getCurrentColor() {
 		let expr = getStateExpr(ActiveItem.expression.index);
 		
+		// const exprColor = expr.hasOwnProperty('colorLatex')? Calc.controller.:
+		
 		if (expr.type === 'expression') {
-			return expr.color;
+			return latexColorHelper(expr);
 			
 		} else if (expr.type === 'table') {
-			return expr.columns[ActiveItem.expression.colIndex].color;
+			return latexColorHelper(expr.columns[ActiveItem.expression.colIndex]);
 			
 		}
 		
+	}
+
+	function latexColorHelper(expr) {
+		if (expr.hasOwnProperty('colorLatex')) {
+			const latexColorId =  Calc.controller.getAllColorAssignments()
+				.reduce((a, c, i) => (c.assignmentLatex === expr.colorLatex ? c.id : a), null);
+			if (latexColorId) {
+				let lcolor = Calc.controller.getColorById(latexColorId);
+				if (Array.isArray(lcolor)) {
+					lcolor = lcolor.at(0);
+				}
+				return lcolor;
+			} else {
+				return "#00000000";
+			}
+		} else {
+			return expr.color;
+		}
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
