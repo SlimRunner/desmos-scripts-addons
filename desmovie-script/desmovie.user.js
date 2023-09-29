@@ -205,7 +205,7 @@
 		}
 		
 		get mode() {
-			return his._mode;
+			return this._mode;
 		}
 		
 		get obj() {
