@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.5.7
+// @version     1.5.8
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -1363,8 +1363,8 @@
 		
 		const [r, g, b] = hsvCol.RGB;
 		ctrPicker.redInput.value = (r * 255).toFixed();
-		ctrPicker.greenInput.value = (r * 255).toFixed();
-		ctrPicker.blueInput.value = (r * 255).toFixed();
+		ctrPicker.greenInput.value = (g * 255).toFixed();
+		ctrPicker.blueInput.value = (b * 255).toFixed();
 	}
 
 	function updateHSVInputs() {
