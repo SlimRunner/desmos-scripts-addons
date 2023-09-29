@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.5.8
+// @version     1.5.9
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -1304,9 +1304,9 @@
 		);
 		const [r, g, b] = hsvCol.RGB;
 		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
-		ctrPicker.redInput.value = (r * 255).toFixed();
-		ctrPicker.greenInput.value = (g * 255).toFixed();
-		ctrPicker.blueInput.value = (b * 255).toFixed();
+		ctrPicker.redInput.value = Math.abs((r * 255).toFixed());
+		ctrPicker.greenInput.value = Math.abs((g * 255).toFixed());
+		ctrPicker.blueInput.value = Math.abs((b * 255).toFixed());
 		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol.hue).toFixed();
 		ctrPicker.satInput.value = (hsvCol.saturation * 100).toFixed();
 		ctrPicker.valInput.value = (hsvCol.value * 100).toFixed();
@@ -1362,9 +1362,9 @@
 		);
 		
 		const [r, g, b] = hsvCol.RGB;
-		ctrPicker.redInput.value = (r * 255).toFixed();
-		ctrPicker.greenInput.value = (g * 255).toFixed();
-		ctrPicker.blueInput.value = (b * 255).toFixed();
+		ctrPicker.redInput.value = Math.abs((r * 255).toFixed());
+		ctrPicker.greenInput.value = Math.abs((g * 255).toFixed());
+		ctrPicker.blueInput.value = Math.abs((b * 255).toFixed());
 	}
 
 	function updateHSVInputs() {
