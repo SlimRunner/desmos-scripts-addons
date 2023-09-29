@@ -1313,7 +1313,7 @@
 	}
 	
 	// updates the alpha text input
-	function updateAlphaInput() {
+	function updateAlphaHexInput() {
 		let hsvCol = new HSVColor (
 			CPicker.markers.hue[0].angle,
 			CPicker.markers.satv[0].sat,
@@ -1322,6 +1322,20 @@
 		);
 		
 		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
+		ctrPicker.alphaInput.value = (
+			ctrPicker.alphaSlider.value * 100
+		).toFixed();
+	}
+
+	// updates the alpha text input
+	function updateAlphaInput() {
+		let hsvCol = new HSVColor (
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
+		);
+		
 		ctrPicker.alphaInput.value = (
 			ctrPicker.alphaSlider.value * 100
 		).toFixed();
@@ -1816,10 +1830,10 @@
 		});
 		
 		// triggers when the alpha slider has been changed
-		ctrPicker.alphaSlider.addEventListener('change', updateAlphaInput);
+		ctrPicker.alphaSlider.addEventListener('change', updateAlphaHexInput);
 		
 		// triggers each time the alpha slider is changed
-		ctrPicker.alphaSlider.addEventListener('input', updateAlphaInput);
+		ctrPicker.alphaSlider.addEventListener('input', updateAlphaHexInput);
 		
 		// Ok dialog button
 		ctrPicker.dialOk.addEventListener('click', () => {
@@ -1939,13 +1953,6 @@
 				setSatValMarkerByNumber(0, s, v, CPicker.triangle);
 				drawMarkers();
 				
-				// ctrPicker.redInput.value = (r * 255).toFixed();
-				// ctrPicker.greenInput.value = (g * 255).toFixed();
-				// ctrPicker.blueInput.value = (b * 255).toFixed();
-				// ctrPicker.hueInput.value = getCoterminalAngle(h, 360).toFixed();
-				// ctrPicker.satInput.value = (s * 100).toFixed();
-				// ctrPicker.valInput.value = (v * 100).toFixed();
-				// ctrPicker.alphaInput.value = (a * 100).toFixed();
 				updateRGBInputs();
 				updateHSVInputs();
 				updateAlphaInput();
