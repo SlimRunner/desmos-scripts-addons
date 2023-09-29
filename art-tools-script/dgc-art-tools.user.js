@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.5.5
+// @version     1.5.6
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -626,18 +626,33 @@
 				grid-row: 2;
 			}
 			
-			.sli-item-hueInput-label {
+			.sli-item-redInput-label {
 				grid-column: 2;
 				grid-row: 3;
 			}
 			
-			.sli-item-satInput-label {
+			.sli-item-greenInput-label {
 				grid-column: 2;
 				grid-row: 4;
 			}
 			
-			.sli-item-valInput-label {
+			.sli-item-blueInput-label {
 				grid-column: 2;
+				grid-row: 5;
+			}
+			
+			.sli-item-hueInput-label {
+				grid-column: 4;
+				grid-row: 3;
+			}
+			
+			.sli-item-satInput-label {
+				grid-column: 4;
+				grid-row: 4;
+			}
+			
+			.sli-item-valInput-label {
+				grid-column: 4;
 				grid-row: 5;
 			}
 			
@@ -651,18 +666,33 @@
 				grid-row: 2;
 			}
 			
-			.sli-item-hueInput {
+			.sli-item-redInput {
 				grid-column: 3;
 				grid-row: 3;
 			}
 			
-			.sli-item-satInput {
+			.sli-item-greenInput {
 				grid-column: 3;
 				grid-row: 4;
 			}
 			
-			.sli-item-valInput {
+			.sli-item-blueInput {
 				grid-column: 3;
+				grid-row: 5;
+			}
+			
+			.sli-item-hueInput {
+				grid-column: 5;
+				grid-row: 3;
+			}
+			
+			.sli-item-satInput {
+				grid-column: 5;
+				grid-row: 4;
+			}
+			
+			.sli-item-valInput {
+				grid-column: 5;
 				grid-row: 5;
 			}
 			
@@ -993,6 +1023,33 @@
 						]
 					}, {
 						tag : 'label',
+						nodeContent: 'R:',
+						attributes: [
+							{name: 'for', value : 'redInput-rgb-picker'}
+						],
+						classes: [
+							'sli-item-redInput-label'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'G:',
+						attributes: [
+							{name: 'for', value : 'greenInput-rgb-picker'}
+						],
+						classes: [
+							'sli-item-greenInput-label'
+						]
+					}, {
+						tag : 'label',
+						nodeContent: 'B:',
+						attributes: [
+							{name: 'for', value : 'blueInput-rgb-picker'}
+						],
+						classes: [
+							'sli-item-blueInput-label'
+						]
+					}, {
+						tag : 'label',
 						nodeContent: 'H:',
 						attributes: [
 							{name: 'for', value : 'hueInput-hsl-picker'}
@@ -1043,11 +1100,53 @@
 						]
 					}, {
 						tag: 'input',
+						varName: 'redInput',
+						id: 'redInput-rgb-picker',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'tabindex', value: '5'},
+							{name: 'maxlength', value: '3'}
+						],
+						classes: [
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-redInput'
+						]
+					}, {
+						tag: 'input',
+						varName: 'greenInput',
+						id: 'greenInput-rgb-picker',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'tabindex', value: '6'},
+							{name: 'maxlength', value: '3'}
+						],
+						classes: [
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-greenInput'
+						]
+					}, {
+						tag: 'input',
+						varName: 'blueInput',
+						id: 'blueInput-rgb-picker',
+						attributes: [
+							{name: 'type', value: 'text'},
+							{name: 'tabindex', value: '7'},
+							{name: 'maxlength', value: '3'}
+						],
+						classes: [
+							'sli-text-box-color-appearance',
+							'sli-textbox-style-darkShade',
+							'sli-item-blueInput'
+						]
+					}, {
+						tag: 'input',
 						varName: 'hueInput',
 						id: 'hueInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '5'},
+							{name: 'tabindex', value: '8'},
 							{name: 'maxlength', value: '5'}
 						],
 						classes: [
@@ -1061,7 +1160,7 @@
 						id: 'satInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '6'},
+							{name: 'tabindex', value: '9'},
 							{name: 'maxlength', value: '3'}
 						],
 						classes: [
@@ -1075,7 +1174,7 @@
 						id: 'valInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '7'},
+							{name: 'tabindex', value: '10'},
 							{name: 'maxlength', value: '3'}
 						],
 						classes: [
@@ -1089,7 +1188,7 @@
 						id: 'alphaInput-hsl-picker',
 						attributes: [
 							{name: 'type', value: 'text'},
-							{name: 'tabindex', value: '8'},
+							{name: 'tabindex', value: '11'},
 							{name: 'maxlength', value: '3'}
 						],
 						classes: [
@@ -1108,7 +1207,7 @@
 							varName: 'dialOk',
 							nodeContent: '✔️',
 							attributes: [
-								{name: 'tabindex', value: '9'}
+								{name: 'tabindex', value: '12'}
 							],
 							classes: [
 								'button-size',
@@ -1120,7 +1219,7 @@
 							varName: 'dialCancel',
 							nodeContent: '❌',
 							attributes: [
-								{name: 'tabindex', value: '10'}
+								{name: 'tabindex', value: '13'}
 							],
 							classes: [
 								'button-size',
@@ -1203,8 +1302,11 @@
 			CPicker.markers.satv[0].val,
 			ctrPicker.alphaSlider.value
 		);
-		
+		const [r, g, b] = hsvCol.RGB;
 		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
+		ctrPicker.redInput.value = (r * 255).toFixed();
+		ctrPicker.greenInput.value = (g * 255).toFixed();
+		ctrPicker.blueInput.value = (b * 255).toFixed();
 		ctrPicker.hueInput.value = getCoterminalAngle(hsvCol.hue).toFixed();
 		ctrPicker.satInput.value = (hsvCol.saturation * 100).toFixed();
 		ctrPicker.valInput.value = (hsvCol.value * 100).toFixed();
@@ -1235,6 +1337,32 @@
 		);
 		
 		ctrPicker.hexInput.value = hsvCol.getHexRGBA();
+	}
+
+	function updateRGBInputs() {
+		let hsvCol = new HSVColor (
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val,
+			ctrPicker.alphaSlider.value
+		);
+		
+		const [r, g, b] = hsvCol.RGB;
+		ctrPicker.redInput.value = (r * 255).toFixed();
+		ctrPicker.greenInput.value = (r * 255).toFixed();
+		ctrPicker.blueInput.value = (r * 255).toFixed();
+	}
+
+	function updateHSVInputs() {
+		const [h, s, v] = [
+			CPicker.markers.hue[0].angle,
+			CPicker.markers.satv[0].sat,
+			CPicker.markers.satv[0].val
+		];
+		
+		ctrPicker.hueInput.value = getCoterminalAngle(h, 360).toFixed();
+		ctrPicker.satInput.value = (s * 100).toFixed();
+		ctrPicker.valInput.value = (v * 100).toFixed();
 	}
 	
 	// renders the color wheel onto the canvas
@@ -1756,6 +1884,44 @@
 			e.target.value = (thisVal).toFixed();
 		});
 		
+		// tidies up format of the hex color
+		bindListenerToNodes([
+			ctrPicker.redInput,
+			ctrPicker.greenInput,
+			ctrPicker.blueInput
+		], 'change', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let thisText = e.target.value.trim();
+			let thisVal;
+			
+			if (RGX_3_DIGITS.test(thisText)) {
+				thisVal = minmax(parseInt(thisText), 0, 255);
+			} else {
+				let hsvCol = new HSVColor (
+					CPicker.markers.hue[0].angle,
+					CPicker.markers.satv[0].sat,
+					CPicker.markers.satv[0].val,
+					ctrPicker.alphaSlider.value
+				);
+				const [r, g, b] = hsvCol.RGB;
+				switch (true) {
+					case e.target.isSameNode(ctrPicker.redInput):
+						thisVal = r * 255;
+						break;
+					case e.target.isSameNode(ctrPicker.greenInput):
+						thisVal = g * 255;
+						break;
+					case e.target.isSameNode(ctrPicker.blueInput):
+						thisVal = b * 255;
+						break;
+					default:
+						thisVal = 0;
+				}
+			}
+			
+			e.target.value = (thisVal).toFixed();
+		});
+		
 		// updates all color values with the hex color code
 		ctrPicker.hexInput.addEventListener('input', (e) => {
 			const RGX_HEX_STRING = /^#?(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
@@ -1773,10 +1939,44 @@
 				setSatValMarkerByNumber(0, s, v, CPicker.triangle);
 				drawMarkers();
 				
-				ctrPicker.hueInput.value = getCoterminalAngle(h, 360).toFixed();
-				ctrPicker.satInput.value = (s * 100).toFixed();
-				ctrPicker.valInput.value = (v * 100).toFixed();
-				ctrPicker.alphaInput.value = (a * 100).toFixed();
+				// ctrPicker.redInput.value = (r * 255).toFixed();
+				// ctrPicker.greenInput.value = (g * 255).toFixed();
+				// ctrPicker.blueInput.value = (b * 255).toFixed();
+				// ctrPicker.hueInput.value = getCoterminalAngle(h, 360).toFixed();
+				// ctrPicker.satInput.value = (s * 100).toFixed();
+				// ctrPicker.valInput.value = (v * 100).toFixed();
+				// ctrPicker.alphaInput.value = (a * 100).toFixed();
+				updateRGBInputs();
+				updateHSVInputs();
+				updateAlphaInput();
+			} else {
+				// not a valid color
+			}
+		});
+
+		// updates all color values with individual rgb values
+		bindListenerToNodes([
+			ctrPicker.redInput,
+			ctrPicker.greenInput,
+			ctrPicker.blueInput
+		], 'input', (e) => {
+			const RGX_3_DIGITS = /^\d{1,3}$/i;
+			let rgbText = e.target.value.trim();;
+			
+			if (RGX_3_DIGITS.test(rgbText)) {
+				const r = minmax(parseFloat(ctrPicker.redInput.value.trim()), 0, 255) / 255;
+        const g = minmax(parseFloat(ctrPicker.greenInput.value.trim()), 0, 255) / 255;
+        const b = minmax(parseFloat(ctrPicker.blueInput.value.trim()), 0, 255) / 255;
+				
+				const [h, s, v] = getHSVfromRGB(r, g, b);
+
+				setHueMarkerByAngle(0, h);
+				CPicker.triangle = updateColorWheel(CPicker.markers.hue[0].angle);
+				setSatValMarkerByNumber(0, s, v, CPicker.triangle);
+				drawMarkers();
+				
+				updateHexInput();
+				updateHSVInputs();
 			} else {
 				// not a valid color
 			}
@@ -1801,6 +2001,7 @@
 				drawMarkers();
 				
 				updateHexInput();
+				updateRGBInputs();
 			} else {
 				// not a valid color
 			}
@@ -1830,6 +2031,7 @@
 				drawMarkers();
 				
 				updateHexInput();
+				updateRGBInputs();
 			} else {
 				// not a valid color
 			}
@@ -1896,6 +2098,9 @@
 		
 		// prevent pasting invalid values in 3-digit fields
 		bindListenerToNodes([
+			ctrPicker.redInput,
+			ctrPicker.greenInput,
+			ctrPicker.blueInput,
 			ctrPicker.satInput,
 			ctrPicker.valInput,
 			ctrPicker.alphaInput
@@ -1913,6 +2118,9 @@
 		
 		// filter numeric input for fields for color values
 		bindListenerToNodes([
+			ctrPicker.redInput,
+			ctrPicker.greenInput,
+			ctrPicker.blueInput,
 			ctrPicker.hueInput,
 			ctrPicker.satInput,
 			ctrPicker.valInput,
@@ -1932,6 +2140,9 @@
 		
 		bindListenerToNodes([
 			ctrPicker.hexInput,
+			ctrPicker.redInput,
+			ctrPicker.greenInput,
+			ctrPicker.blueInput,
 			ctrPicker.hueInput,
 			ctrPicker.satInput,
 			ctrPicker.valInput,
