@@ -6,6 +6,8 @@
 // @description Overrides context menu for color bubble
 // @grant       none
 // @match       https://*.desmos.com/calculator*
+// @match       https://*.desmos.com/geometry*
+// @match       https://*.desmos.com/3d*
 // @match       https://*.desmos.com/activitybuilder/custom/*/edit*
 // @downloadURL https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
 // @updateURL   https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
