@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.5.9
+// @version     1.6.0
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -16,7 +16,7 @@
 
 (function() {
 	'use strict';
-	var Calc;
+	var Calc, CTag;
 	
 	defineScript();
 	
@@ -90,6 +90,18 @@
 				if (strOut.length === 1) strOut = '0' + strOut;
 				hexCodes.push(strOut);
 			}
+			
+			return '#' + hexCodes.join('');
+		}
+
+		getHexRGB() {
+			let hexCodes = getRGBfromHSV(
+				this.hue, this.saturation, this.value
+			).map((n) => {
+				let strOut = Math.round(n * 255).toString(16);
+				if (strOut.length === 1) strOut = '0' + strOut;
+				return strOut;
+			});
 			
 			return '#' + hexCodes.join('');
 		}
@@ -1762,7 +1774,14 @@
 				e.detail.action === DialogResult.OK &&
 				e.detail.changed()
 			) {
-				let color = e.detail.value.getCSSRGBA();
+				let color;
+				switch (CTag) {
+					case "3d":
+						color = e.detail.value.getHexRGB();
+						break;
+					default:
+						color = e.detail.value.getCSSRGBA();
+				}
 				setExprColor(ActiveItem.expression, color);
 			}
 		});
@@ -3083,7 +3102,9 @@
 		} else {
 			
 			try {
-				
+				const tagRx = /(?<=\.com\/)\w+/;
+				CTag = tagRx.exec(document.URL)[0];
+
 				initGUI();
 				initColorPicker();
 				loadEvents();
