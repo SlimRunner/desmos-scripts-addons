@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name        DesmosTableTools
 // @namespace   slidav.Desmos
-// @version     1.1.5
+// @version     1.1.6
 // @author      SlimRunner (David Flores)
 // @description Adds tools to manipulate tables
 // @grant       none
 // @match       https://*.desmos.com/calculator*
+// @match       https://*.desmos.com/geometry*
+// @match       https://*.desmos.com/3d*
 // @downloadURL https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
 // @updateURL   https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
 // ==/UserScript==
@@ -20,7 +22,7 @@
 	const EXPR_TABLE_CLASS = 'dcg-expressiontable';
 	
 	// Global variables imported from host (initialized in loadCheck)
-	var Calc;
+	var Calc, CTag;
 	
 	defineScript();
 	
@@ -573,6 +575,7 @@
 		function refreshDrawerMenu() {
 			let exprs = Calc.getExpressions()[hoverExprIdx];
 			if (
+				CTag == "calculator" &&
 				VtxAdder.validateExpression(exprs) !==
 				VtxAdder.TableState.INVALID
 			) {
@@ -908,7 +911,9 @@
 		} else {
 			
 			try {
-				
+				const tagRx = /(?<=\.com\/)\w+/;
+				CTag = tagRx.exec(document.URL)[0];
+
 				VtxAdder.initialize();
 				mousePen();
 				
