@@ -8,10 +8,8 @@ The scripts in this collection are the following:
 1. **[Art Tools][arttoolsfolder]** — Adds a tray of options next to the default color panel. Currently, it only has a color picker to select a custom color using an HSV wheel.
 1. **[Table Tools][tabletoolsfolder]** — Allows you to add points interactively using `ctrl` + `left mouse button`. Points are aggregated into a table of your choice that can be selected through a button that appears next to valid table expressions. Also gives you the option to make a polygon from a table, and allows tables to be copied to your clipboard in `.tsv` format.
 1. **[Right Click Patch][rmbpatchfolder]** — A small quality of life patch that allows you to right click the color bubble to open the color tray instead of having to long-hold.
-1. **[Alpha Features Enabler][alphaenablerfolder]** — Enables the advanced styling features that are in alpha as of November 2020. First discovered by the discord user ElFisho_2. Desmos developers warn to use these with care for the time being because they are highly experimental features.
 1. **[Color Tray Patch][traypatchfolder]** — Overrides the behavior of the color tray so that when you have more than 5 rows of colors you get a scrollbar to keep things neat. This script might need be removed in the future when this is fixed officially by Desmos. I'll update this script to show a message when that happens.
 1. **[Graph Archiver][archivefolder]** — Adds two buttons in the top right corner to save the graph as a stringified plain-text file that can be locally saved or shared.
-1. **[Desmovie][desmoviefolder]** — This is a CLI style library to easily capture images and video in Desmos using commands in the web console. This script doesn't work in Firefox due to memory management directives. It uses an [FFMPEG wasm port](https://ffmpegwasm.github.io/) to handle the video conversion.
 
 ## Getting Started
 
@@ -30,10 +28,8 @@ Once the extension is installed you can either navigate towards the respective s
 * [Art Tools][arttoolsraw]
 * [Table Tools][tabletoolsraw]
 * [Right Click Patch][rmbpatchraw]
-* [Alpha Features Enabler][alphaenablerraw]
 * [Color Tray Patch][traypatchraw]
 * [Graph Archiver][archiveraw]
-* [Desmovie][desmovieraw]
 
 Either way you will be prompted automatically by TamperMonkey to install the scripts. Click `install` or `reinstall` if you are updating. Once installed, you can periodically check for updates in TamperMonkey, and you will be served the latest changes from the master branch of this repository.
 
