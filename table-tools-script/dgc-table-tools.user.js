@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosTableTools
 // @namespace   slidav.Desmos
-// @version     1.1.6
+// @version     1.1.7
 // @author      SlimRunner (David Flores)
 // @description Adds tools to manipulate tables
 // @grant       none
@@ -760,7 +760,7 @@
 		let node = child.parentNode;
 		if (node == null) return null;
 		while (node != null && !node.isSameNode(document.body)) {
-			if (node.classList.contains(query)) {
+			if (node?.classList.contains(query)) {
 				return node;
 			} else if (shcquery && node.classList.contains(shcquery)) {
 				// short-circuit search with class
