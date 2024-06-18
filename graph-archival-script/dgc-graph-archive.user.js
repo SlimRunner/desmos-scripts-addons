@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArchiver
 // @namespace   slidav.Desmos
-// @version     1.0.5
+// @version     1.1.0
 // @author      SlimRunner (David Flores)
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
@@ -184,9 +184,10 @@
 	// initializes the event handlers of the GUI
 	function loadHandlers() {
 		ctrs.loadButton.addEventListener('change', (evt) => {
+			const displayName = evt.target.files[0].name.replace(/.txt$/i, '');
 			let fRead = new FileReader();
 			fRead.addEventListener('load', () => {
-				let tImg = document.createElement('img');
+				setGraphName(displayName);
 				deserializeJSON(fRead.result);
 			}, {once: true});
 			
@@ -283,7 +284,20 @@
 			.currentGraph
 			.title || 'untitled';
 	}
-	
+
+	// returns the current name of the graph
+	function setGraphName(graphTitle) {
+		// return document.querySelector('span.dcg-variable-title').innerText;
+		// courtesy of fireflame241#3111
+		Calc
+			._calc
+			.globalHotkeys
+			.headerController
+			.graphsController
+			.currentGraph
+			.setProperty('title', graphTitle);
+	}
+
 	// returns an array of four bytes in the endianness specified
 	function getDWord(value, littleEnd = true) {
 		let R1, R2, R3, R4;
