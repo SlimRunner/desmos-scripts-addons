@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArchiver
 // @namespace   slidav.Desmos
-// @version     1.1.0
+// @version     1.2.0
 // @author      SlimRunner (David Flores)
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
@@ -16,7 +16,7 @@
 
 (function() {
 	'use strict';
-	var Calc;
+	var Calc, CTag;
 	
 	defineScript();
 	
@@ -25,6 +25,13 @@
 	
 	const QRY_MAIN_CONT = '#graph-container .dcg-container';
 	var ctrs;
+	
+	const CALC_TYPES = Object.freeze({
+		invalid: -1,
+		calc_2d: 0,
+		geometry: 1,
+		calc_3d: 2
+	});
 	
 	// creates an error with custom name
 	class CustomError extends Error {
@@ -206,8 +213,105 @@
 	// Encoding & Data Parsing
 	
 	// validates image and loads graph
-	function deserializeJSON(json) {
-		Calc.setState(JSON.parse(json));
+	function deserializeJSON(jsonStr) {
+		let json = JSON.parse(jsonStr);
+
+		if (convertCalculator(json)) {
+			Calc.setState(json);
+		}
+	}
+
+	// converts between calculators for cross compatibility
+	function convertCalculator(json) {
+		const srcType = categorizeCalcType(json.graph?.product ?? 'calculator')
+		const destType = categorizeCalcType(CTag);
+		if (srcType === destType) {
+			return true;
+		}
+		if (srcType === CALC_TYPES.geometry) {
+			json.expressions.list = json.expressions.list.filter(
+				e => e.id !== '**dcg_geo_folder**'
+			);
+		}
+		if (
+			!confirm(
+				'The source and destination graph types do not match. ' + 
+				'This may cause errors. ' + 
+				'Do you want to proceed?'
+			)
+		) {
+			return false;
+		}
+		switch (destType) {
+			case CALC_TYPES.calc_2d:
+				json.graph = {
+					"viewport": {
+						"xmin": -10,
+						"ymin": -10.86281070745698,
+						"xmax": 10,
+						"ymax": 10.86281070745698
+					}
+				};
+				break;
+			case CALC_TYPES.geometry:
+				json.graph = {
+					"viewport": {
+						"xmin": -10,
+						"ymin": -10.289196940726576,
+						"xmax": 10,
+						"ymax": 10.289196940726576
+					},
+					"showGrid": false,
+					"showXAxis": false,
+					"showYAxis": false,
+					"degreeMode": true,
+					"product": "geometry-calculator"
+				}
+				json.expressions.list.unshift(
+					{
+						"type": "folder",
+						"id": "**dcg_geo_folder**",
+						"title": "geometry",
+						"secret": true
+					}
+				);
+				break;
+			case CALC_TYPES.calc_3d:
+				json.graph = {
+					"viewport": {
+						"xmin": -5,
+						"ymin": -5,
+						"zmin": -5,
+						"xmax": 5,
+						"ymax": 5,
+						"zmax": 5
+					},
+					"threeDMode": true,
+					"product": "graphing-3d"
+				};
+				break;
+			case CALC_TYPES.invalid:
+				alert('Error: graph types are not valid, graph was not loaded.');
+				throw TypeError('supported graphs are calculator, geometry, and 3d.');
+			default:
+				alert('Fatal Error: the graph could not be loaded.');
+				throw TypeError('graph could not be loaded due to an unknown error.');
+		}
+
+		return true;
+	}
+
+	// returns a safe "enum" for the calculator type
+	function categorizeCalcType(tag) {
+		if (tag === 'calculator') {
+			return CALC_TYPES.calc_2d;
+		} else if (tag === 'geometry-calculator' || tag === 'geometry') {
+			return CALC_TYPES.geometry;
+		} else if (tag === 'graphing-3d' || tag === '3d') {
+			return CALC_TYPES.calc_3d;
+		} else {
+			return CALC_TYPES.invalid;
+		}
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -432,6 +536,8 @@
 		} else {
 			
 			try {
+				const tagRx = /(?<=\.com\/)\w+/;
+				CTag = tagRx.exec(document.URL)[0];
 				
 				initGUI();
 				loadHandlers();
