@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArchiver
 // @namespace   slidav.Desmos
-// @version     1.2.0
+// @version     1.2.1
 // @author      SlimRunner (David Flores)
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
@@ -378,25 +378,21 @@
 	
 	// returns the current name of the graph
 	function getGraphName() {
-		// return document.querySelector('span.dcg-variable-title').innerText;
 		// courtesy of fireflame241#3111
 		return Calc
 			._calc
 			.globalHotkeys
-			.headerController
+			.mygraphsController
 			.graphsController
 			.currentGraph
 			.title || 'untitled';
 	}
 
-	// returns the current name of the graph
 	function setGraphName(graphTitle) {
-		// return document.querySelector('span.dcg-variable-title').innerText;
-		// courtesy of fireflame241#3111
 		Calc
 			._calc
 			.globalHotkeys
-			.headerController
+			.mygraphsController
 			.graphsController
 			.currentGraph
 			.setProperty('title', graphTitle);
