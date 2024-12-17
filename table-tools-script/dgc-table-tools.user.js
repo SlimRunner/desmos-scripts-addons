@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosTableTools
 // @namespace   slidav.Desmos
-// @version     1.1.8
+// @version     1.1.9
 // @author      SlimRunner (David Flores)
 // @description Adds tools to manipulate tables
 // @grant       none
@@ -336,6 +336,12 @@
 					width: 30px;
 					height: 30px;
 					z-index: 99;
+					font-size:initial;
+				}
+				
+				.sli-dtt-expr-button i {
+					color:black;
+					opacity:0.5 !important;
 				}
 				
 				.sli-dtt-table-dcg-icon-align {
@@ -614,8 +620,8 @@
 		// shows or hides drawer toggle button. Won't hide when activeButton is true
 		function showTableButton(show, elem) {
 			if (show) {
-				setButtonLocation(elem);
 				ctNodes.drawerToggle.style.display = 'block';
+				setButtonLocation(elem);
 			} else {
 				// if (activeButton) return 0;
 				ctNodes.drawerToggle.style.display = 'none';
@@ -626,13 +632,37 @@
 		
 		// sets location of drawer-toggle button element inside elem
 		function setButtonLocation(elem) {
-			let mnu = elem.getBoundingClientRect();
-			
-			let x = mnu.left + GUI_GAP;
-			let y = mnu.top + GUI_GAP * 4;
-			
-			ctNodes.drawerToggle.style.left = `${x}px`;
-			ctNodes.drawerToggle.style.top = `${y}px`;
+			const exprbar = elem.querySelector(".dcg-action-drag");
+			if (exprbar) {
+				ctNodes.drawerToggle.style.position = "absolute";
+				const regbutton = exprbar.querySelector(".dcg-add-regression-view");
+
+				if (regbutton) {	
+					const {height: y} = regbutton.getBoundingClientRect();
+					ctNodes.drawerToggle.style.top = `${y + GUI_GAP * 4}px`;
+				} else {
+					// this mimics what Desmos itself does
+					ctNodes.drawerToggle.style.top = "auto";
+				}
+
+				ctNodes.drawerToggle.style.left = `${GUI_GAP}px`;
+				exprbar.insertBefore(ctNodes.drawerToggle, null);
+			} else {
+				// this was left here as fallback
+				const mnu = elem.getBoundingClientRect();
+				// assumes its CSS rule sets it to fixed
+				ctNodes.drawerToggle.style.position = "";
+	
+				let {height} = ctNodes.drawerToggle.getBoundingClientRect();
+				if (!elem.querySelector(".dcg-add-regression-view")) {
+					height = 0;
+				}
+				const x = mnu.left + GUI_GAP;
+				const y = mnu.top + height + GUI_GAP * 5;
+				
+				ctNodes.drawerToggle.style.left = `${x}px`;
+				ctNodes.drawerToggle.style.top = `${y}px`;
+			}
 		}
 		
 		
