@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArchiver
 // @namespace   slidav.Desmos
-// @version     1.2.2
+// @version     1.2.3
 // @author      SlimRunner (David Flores)
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
@@ -389,7 +389,7 @@
 			.mygraphsController
 			.graphsController
 			.currentGraph
-			.setProperty('title', graphTitle);
+			.title = graphTitle;
 	}
 
 	// returns an array of four bytes in the endianness specified
