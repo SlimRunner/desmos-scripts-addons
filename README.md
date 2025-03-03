@@ -10,6 +10,7 @@ The scripts in this collection are the following:
 1. **[Right Click Patch][rmbpatchfolder]** — A small quality of life patch that allows you to right click the color bubble to open the color tray instead of having to long-hold.
 1. **[Color Tray Patch][traypatchfolder]** — Overrides the behavior of the color tray so that when you have more than 5 rows of colors you get a scrollbar to keep things neat. This script might need be removed in the future when this is fixed officially by Desmos. I'll update this script to show a message when that happens.
 1. **[Graph Archiver][archivefolder]** — Adds two buttons in the top right corner to save the graph as a stringified plain-text file that can be locally saved or shared.
+1. **[Saved Into View][savedviewFolder]** — Scrolls currently open graph into view when browsing graphs.
 
 ## Getting Started
 
@@ -30,6 +31,7 @@ Once the extension is installed you can either navigate towards the respective s
 * [Right Click Patch][rmbpatchraw]
 * [Color Tray Patch][traypatchraw]
 * [Graph Archiver][archiveraw]
+* [Saved Into View][savedviewraw]
 
 Either way you will be prompted automatically by TamperMonkey to install the scripts. Click `install` or `reinstall` if you are updating. Once installed, you can periodically check for updates in TamperMonkey, and you will be served the latest changes from the master branch of this repository.
 
@@ -40,6 +42,7 @@ Either way you will be prompted automatically by TamperMonkey to install the scr
 [traypatchfolder]: /tray-scroll-patch
 [archivefolder]: /graph-archival-script
 [desmoviefolder]: /desmovie-script
+[savedviewFolder]: /saved-into-view/
 [arttoolsraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/art-tools-script/dgc-art-tools.user.js
 [tabletoolsraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/table-tools-script/dgc-table-tools.user.js
 [rmbpatchraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/right-click-patch/dcg-rmb-color.user.js
@@ -47,3 +50,4 @@ Either way you will be prompted automatically by TamperMonkey to install the scr
 [traypatchraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/tray-scroll-patch/dgc-scroll-patch.user.js
 [archiveraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/graph-archival-script/dgc-graph-archive.user.js
 [desmovieraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/desmovie-script/desmovie.user.js
+[savedviewraw]: https://github.com/SlimRunner/desmos-scripts-addons/raw/master/saved-into-view/dgc-saved-into-view.user.js
