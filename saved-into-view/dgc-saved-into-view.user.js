@@ -91,8 +91,7 @@
   // returns the title of the graph or undefined
   function getGraphName() {
     const title =
-      Calc._calc.globalHotkeys.mygraphsController.graphsController.currentGraph
-        .title;
+      Calc._calc.globalHotkeys.shellController.graphsController.getCurrentGraphTitle();
     if (title instanceof String || typeof title === "string") {
       return title;
     } else {
