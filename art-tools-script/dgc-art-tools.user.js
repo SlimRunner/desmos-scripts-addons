@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.6.0
+// @version     1.6.1
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -539,15 +539,28 @@
 
 	function latexColorHelper(expr) {
 		if (expr.hasOwnProperty('colorLatex')) {
-			const latexColorId =  Calc.controller.getAllColorAssignments()
-				.reduce((a, c, i) => (c.assignmentLatex === expr.colorLatex ? c.id : a), null);
-			if (latexColorId) {
-				let lcolor = Calc.controller.getColorById(latexColorId);
-				if (Array.isArray(lcolor)) {
-					lcolor = lcolor.at(0);
+			const colorMap = new Map(
+				Calc.controller.getAllColorAssignments().map((e) => [e.assignmentLatex, e.id])
+			);
+
+			if (colorMap.has(expr.colorLatex)) {
+				let latexColor = Calc.controller.getColorById(colorMap.get(expr.colorLatex));
+
+				if (latexColor.type === "color-array") {
+					return latexColor.value[0];
+				} else if (latexColor.type === "single-color") {
+					return latexColor.value;
+				} else {
+					console.warn(
+						`Invalid colorLatex type found: ${latexColor.type}`
+					);
+					return "#00000000";
 				}
-				return lcolor;
+
 			} else {
+				console.warn(
+					`For expression ${expr.id} colorLatex is not available or not defined: ${expr.colorLatex}`
+				);
 				return "#00000000";
 			}
 		} else {
