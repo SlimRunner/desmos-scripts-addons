@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.6.1
+// @version     1.6.2
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -389,7 +389,7 @@
 		
 		// finds the container of the contextual popups of Desmos
 		let colorTrayAssertion = document.body.querySelector(
-			'.dcg-aria-alert'
+			'#graph-container .dcg-exppanel-outer__wrapper'
 		);
 		
 		if (colorTrayAssertion !== null) {
