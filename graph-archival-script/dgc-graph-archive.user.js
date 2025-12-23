@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArchiver
 // @namespace   slidav.Desmos
-// @version     1.2.4
+// @version     1.2.5
 // @author      SlimRunner (David Flores)
 // @description Saves the state of a graph as plain-text for archival.
 // @grant       none
@@ -377,18 +377,18 @@
 		if (gc != null && gc.isCurrentGraphTitled() && gc?.getCurrentGraphTitle() != null) {
 			return gc.getCurrentGraphTitle();
 		} else {
-			return "undefined";
+			return "untitled_graph";
 		}
 	}
 
 	function setGraphName(graphTitle) {
-		Calc
-			._calc
-			.globalHotkeys
-			.shellController
-			.graphsController
-			.currentGraph
-			.title = graphTitle;
+		const gc = Calc?._calc?.globalHotkeys?.shellController?.graphsController;
+
+		if (gc?.getCurrentGraph() != null) {
+			gc.getCurrentGraph().title ??= graphTitle;
+		} else {
+			console.warn("Title could not be set.")
+		}
 	}
 
 	// returns an array of four bytes in the endianness specified
