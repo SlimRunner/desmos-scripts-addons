@@ -404,10 +404,10 @@
 	
 	// predicate for hookMenu
 	function seekColorContext() {
-		const expressionQuery = '.dcg-expressionitem.dcg-depressed,.dcg-expressionitem.dcg-hovered';
-		const tableQuery = '.dcg-expressionitem.dcg-expressiontable.dcg-depressed,.dcg-expressionitem.dcg-expressiontable.dcg-hovered';
-		const imageQuery = '.dcg-expressionitem.dcg-expressionimage.dcg-depressed,.dcg-expressionitem.dcg-expressionimage.dcg-hovered'
-		const cellQuery = '.dcg-cell.dcg-depressed,.dcg-cell.dcg-hovered';
+		const expressionQuery = '.dcg-expressionitem.dcg-depressed,.dcg-expressionitem.dcg-hovered,.dcg-expressionitem.dcg-selected';
+        const tableQuery = '.dcg-expressionitem.dcg-expressiontable.dcg-depressed,.dcg-expressionitem.dcg-expressiontable.dcg-hovered,.dcg-expressionitem.dcg-expressiontable.dcg-selected';
+        const imageQuery = '.dcg-expressionitem.dcg-expressionimage.dcg-depressed,.dcg-expressionitem.dcg-expressionimage.dcg-hovered,.dcg-expressionitem.dcg-expressionimage.dcg-selected'
+        const cellQuery = '.dcg-cell.dcg-depressed,.dcg-cell.dcg-hovered,.dcg-cell.dcg-selected';
 		let expElem;
 		
 		if (expElem = document.querySelector(tableQuery)) {
@@ -1775,6 +1775,12 @@
 		
 		// event that triggers when user clicks color button
 		ctrColor.colorButton.addEventListener('click', (e) => {
+			CPicker.show(
+				getHSVpack(getCurrentColor()),
+				ctrColor.colorButton
+			);
+		});
+        ctrColor.colorButton.addEventListener('touchend', (e) => {
 			CPicker.show(
 				getHSVpack(getCurrentColor()),
 				ctrColor.colorButton
