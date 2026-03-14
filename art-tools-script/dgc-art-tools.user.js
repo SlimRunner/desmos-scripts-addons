@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        DesmosArtTools
 // @namespace   slidav.Desmos
-// @version     1.6.2
+// @version     1.6.3
 // @author      SlimRunner (David Flores)
 // @description Adds a color picker to Desmos
 // @grant       none
@@ -342,7 +342,8 @@
 		
 		// executes a function when the color menu is triggered
 		hookMenu(
-			'.dcg-expressions-options-menu,.dcg-table-column-menu,.dcg-image-options-menu',
+			// '.dcg-expressions-options-menu,.dcg-table-column-menu,.dcg-image-options-menu',
+			'.dcg-container.dcg-tap-container.touchtracking_id_1',
 			seekColorContext,
 			(menuElem, expItem, menuFound) => {
 				// desmos context menu showed up or hid
@@ -372,7 +373,10 @@
 	function hookMenu(mainQuery, scrapePredicate, callback) {
 		// initializes observer
 		let menuObserver = new MutationObserver( obsRec => {
-			let menuElem = document.querySelector(mainQuery);
+			let menuContainer = document.querySelector(mainQuery);
+			let menuElem = menuContainer.querySelector(
+				'.dcg-expressions-options-menu,.dcg-table-column-menu,.dcg-image-options-menu'
+			);
 			let isFound = menuElem !== null;
 			
 			let expItem = {};
@@ -388,9 +392,7 @@
 		}); // !MutationObserver
 		
 		// finds the container of the contextual popups of Desmos
-		let colorTrayAssertion = document.body.querySelector(
-			'#graph-container .dcg-exppanel-outer__wrapper'
-		);
+		let colorTrayAssertion = document.body.querySelector(mainQuery);
 		
 		if (colorTrayAssertion !== null) {
 			menuObserver.observe(colorTrayAssertion, {
@@ -404,7 +406,7 @@
 	
 	// predicate for hookMenu
 	function seekColorContext() {
-		const expressionQuery = '.dcg-expressionitem.dcg-depressed,.dcg-expressionitem.dcg-hovered';
+		const expressionQuery = '.dcg-expressionitem.dcg-mathitem.dcg-hovered';
 		const tableQuery = '.dcg-expressionitem.dcg-expressiontable.dcg-depressed,.dcg-expressionitem.dcg-expressiontable.dcg-hovered';
 		const imageQuery = '.dcg-expressionitem.dcg-expressionimage.dcg-depressed,.dcg-expressionitem.dcg-expressionimage.dcg-hovered'
 		const cellQuery = '.dcg-cell.dcg-depressed,.dcg-cell.dcg-hovered';
